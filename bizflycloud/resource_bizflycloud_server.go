@@ -30,7 +30,8 @@ func resourceBizFlyCloudServer() *schema.Resource {
 				Required: true,
 			},
 			"ssh_key": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"type": {
 				Type:     schema.TypeString,
@@ -38,7 +39,7 @@ func resourceBizFlyCloudServer() *schema.Resource {
 			},
 			"password": {
 				Type:     schema.TypeBool,
-				Required: false,
+				Optional: true,
 			},
 			"os_type": {
 				Type:     schema.TypeString,
@@ -53,16 +54,12 @@ func resourceBizFlyCloudServer() *schema.Resource {
 				Required: true,
 			},
 			"root_disk_size": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Required: true,
 			},
 			"availability_zone": {
 				Type:     schema.TypeString,
 				Required: true,
-			},
-			"id": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 			"user_id": {
 				Type:     schema.TypeString,
@@ -107,6 +104,10 @@ func resourceBizFlyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 		},
 		AvailabilityZone: d.Get("availability_zone").(string),
 		Password:         d.Get("password").(bool),
+		RootDisk: &gobizfly.ServerDisk{
+			Type: d.Get("root_disk_type").(string),
+			Size: d.Get("root_disk_size").(int),
+		},
 	}
 	log.Printf("[DEBUG] Create Cloud Server configuration: %#v", scr)
 

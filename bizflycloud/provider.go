@@ -44,6 +44,12 @@ func Provider() terraform.ResourceProvider {
 				Description: "Application credential secret for authenticate use application_credential",
 				DefaultFunc: schema.EnvDefaultFunc("BIZFLYCLOUD_APPLICATION_CREDENTIAL_SECRET", nil),
 			},
+			"region_name": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "BizFly Cloud Region Name. Default is HN",
+				DefaultFunc: schema.EnvDefaultFunc("BIZFLYCLOUD_REGION_NAME", "HN"),
+			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"bizflycloud_server": resourceBizFlyCloudServer(),
@@ -69,6 +75,7 @@ func providerConfigure(d *schema.ResourceData, terraformVersion string) (interfa
 		Password:            d.Get("password").(string),
 		AppCredentialID:     d.Get("application_credential_id").(string),
 		AppCredentialSecret: d.Get("application_credential_secret").(string),
+		RegionName:          d.Get("region_name").(string),
 		TerraformVersion:    terraformVersion,
 	}
 	return config.Client()
