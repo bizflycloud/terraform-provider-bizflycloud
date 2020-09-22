@@ -7,7 +7,48 @@ import (
 
 // Provider returns a schema.Provider for BizFly Cloud.
 func Provider() terraform.ResourceProvider {
-	p := &schema.Provider{}
+	p := &schema.Provider{
+		Schema: map[string]*schema.Schema{
+			"api_endpoint": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The URL use for the BizFly Cloud API",
+			},
+			"auth_method": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("BIZFLYCLOUD_AUTH_METHOD", "password"),
+				Description: "Authentication method for BizFly Cloud API",
+			},
+			"email": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Email to authenticate",
+				DefaultFunc: schema.EnvDefaultFunc("BIZFLYCLOUD_EMAIL", nil),
+			},
+			"password": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Password for email with auth_method password",
+				DefaultFunc: schema.EnvDefaultFunc("BIZFLYCLOUD_PASSWORD", nil),
+			},
+			"application_credential_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Application credential ID for authenticate use application_credential",
+				DefaultFunc: schema.EnvDefaultFunc("BIZFLYCLOUD_APPLICATION_CREDENTIAL_ID", nil),
+			},
+			"application_credential_secret": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Application credential secret for authenticate use application_credential",
+				DefaultFunc: schema.EnvDefaultFunc("BIZFLYCLOUD_APPLICATION_CREDENTIAL_SECRET", nil),
+			},
+		},
+		ResourcesMap: map[string]*schema.Resource{
+			"bizflycloud_server": resourceBizFlyCloudServer(),
+		},
+	}
 	p.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {
 		terraformVersion := p.TerraformVersion
 		if terraformVersion == "" {
