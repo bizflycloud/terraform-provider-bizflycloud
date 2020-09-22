@@ -172,8 +172,8 @@ func waitForServerCreate(d *schema.ResourceData, meta interface{}) (interface{},
 		Pending:    []string{"BUILD"},
 		Target:     []string{"ACTIVE"},
 		Refresh:    newServerStateRefreshfunc(d, "status", meta),
-		Timeout:    60 * time.Second,
-		Delay:      10 * time.Second,
+		Timeout:    600 * time.Second,
+		Delay:      20 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
 	return stateConf.WaitForState()
