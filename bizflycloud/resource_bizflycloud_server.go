@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/bizflycloud/gobizfly"
@@ -141,7 +142,7 @@ func resourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("name", server.Name)
 	d.Set("key_name", server.KeyName)
 	d.Set("status", server.Status)
-	d.Set("flavor_name", server.Flavor.Name)
+	d.Set("flavor_name", formatFlavor(server.Flavor.Name))
 	d.Set("category", server.Category)
 	d.Set("user_id", server.UserID)
 	d.Set("project_id", server.ProjectID)
@@ -212,4 +213,12 @@ func newServerStateRefreshfunc(d *schema.ResourceData, attribute string, meta in
 		}
 		return nil, "", nil
 	}
+}
+
+func formatFlavor(s string) string {
+	// This function will be removed in the near future when the API format for us
+	if strings.Contains(s, ".") {
+		return strings.Split(s, ".")[1]
+	}
+	return strings.Join(strings.Split(s, "_")[:2], "_")
 }
