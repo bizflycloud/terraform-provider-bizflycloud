@@ -25,7 +25,7 @@ type CombinedConfig struct {
 func (c *CombinedConfig) gobizflyClient() *gobizfly.Client { return c.client }
 
 func (c *Config) Client() (*CombinedConfig, error) {
-	client, err := gobizfly.NewClient(gobizfly.WithTenantName(c.Email), gobizfly.WithRegionName(c.RegionName))
+	client, err := gobizfly.NewClient(gobizfly.WithTenantName(c.Email), gobizfly.WithRegionName(c.RegionName), gobizfly.WithAPIUrl(c.APIEndpoint))
 
 	if err != nil {
 		log.Fatal(err)

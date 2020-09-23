@@ -13,6 +13,7 @@ func Provider() terraform.ResourceProvider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The URL use for the BizFly Cloud API",
+				DefaultFunc: schema.EnvDefaultFunc("BIZFLYCLOUD_API_ENDPOINT", "https://manage.bizflycloud.vn/api"),
 			},
 			"auth_method": {
 				Type:        schema.TypeString,
