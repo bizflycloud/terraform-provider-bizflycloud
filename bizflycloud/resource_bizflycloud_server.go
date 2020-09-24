@@ -153,9 +153,21 @@ func resourceBizFlyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 	id := d.Id()
 	if d.HasChange("flavor_name") {
 		// Resize server to new flavor
-		task, err := client.Server.Resize(context.Background(), d.Id(), d.Get("flavor_name").(string))
+		task, err := client.Server.Resize(context.Background(), id, d.Get("flavor_name").(string))
 		if err != nil {
 			return fmt.Errorf("Error when resize server [%s]: %v", id, err)
+		}
+		// wait for server is active again
+		_, err = waitForServerUpdate(d, meta, task.TaskID)
+		if err != nil {
+			return fmt.Errorf("Error updating cloud server with task id (%s): %s", d.Id(), err)
+		}
+	}
+	if d.HasChange("category") {
+		// Change category of the server
+		task, err := client.Server.ChangeCategory(context.Background(), id, d.Get("category").(string))
+		if err != nil {
+			fmt.Errorf("Error when change category of server [%s]: %v", id, err)
 		}
 		// wait for server is active again
 		_, err = waitForServerUpdate(d, meta, task.TaskID)
