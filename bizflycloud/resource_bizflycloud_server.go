@@ -34,7 +34,7 @@ func resourceBizFlyCloudServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"type": {
+			"category": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -74,10 +74,6 @@ func resourceBizFlyCloudServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"category": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"created_at": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -98,7 +94,7 @@ func resourceBizFlyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 		Name:       d.Get("name").(string),
 		FlavorName: d.Get("flavor_name").(string),
 		SSHKey:     d.Get("ssh_key").(string),
-		Type:       d.Get("type").(string),
+		Type:       d.Get("category").(string),
 		OS: &gobizfly.ServerOS{
 			Type: d.Get("os_type").(string),
 			ID:   d.Get("os_id").(string),
@@ -153,7 +149,21 @@ func resourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceBizFlyCloudServerUpdate(d *schema.ResourceData, meta interface{}) error {
-	return nil
+	client := meta.(*CombinedConfig).gobizflyClient()
+	id := d.Id()
+	if d.HasChange("flavor_name") {
+		// Resize server to new flavor
+		task, err := client.Server.Resize(context.Background(), d.Id(), d.Get("flavor_name").(string))
+		if err != nil {
+			return fmt.Errorf("Error when resize server [%s]: %v", id, err)
+		}
+		// wait for server is active again
+		_, err = waitForServerUpdate(d, meta, task.TaskID)
+		if err != nil {
+			return fmt.Errorf("Error updating cloud server with task id (%s): %s", d.Id(), err)
+		}
+	}
+	return resourceBizFlyCloudServerRead(d, meta)
 }
 
 func resourceBizFlyCloudServerDelete(d *schema.ResourceData, meta interface{}) error {
@@ -173,6 +183,19 @@ func waitForServerCreate(d *schema.ResourceData, meta interface{}) (interface{},
 		Pending:    []string{"BUILD"},
 		Target:     []string{"ACTIVE"},
 		Refresh:    newServerStateRefreshfunc(d, "status", meta),
+		Timeout:    600 * time.Second,
+		Delay:      20 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+	return stateConf.WaitForState()
+}
+
+func waitForServerUpdate(d *schema.ResourceData, meta interface{}, taskID string) (interface{}, error) {
+	log.Printf("[INFO] Waiting for server with task id (%s) to be created", d.Id())
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"HARD_REBOOT", "MIGRATING", "REBUILD", "RESIZE"},
+		Target:     []string{"ACTIVE"},
+		Refresh:    updateServerStateRefreshfunc(d, "status", meta, taskID),
 		Timeout:    600 * time.Second,
 		Delay:      20 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -215,6 +238,38 @@ func newServerStateRefreshfunc(d *schema.ResourceData, attribute string, meta in
 	}
 }
 
+func updateServerStateRefreshfunc(d *schema.ResourceData, attribute string, meta interface{}, taskID string) resource.StateRefreshFunc {
+	client := meta.(*CombinedConfig).gobizflyClient()
+	return func() (interface{}, string, error) {
+		// Get task result from cloud server API
+		resp, err := client.Server.GetTask(context.Background(), taskID)
+		if err != nil {
+			return nil, "", err
+		}
+		// if the task is not ready, we need to wait for a moment
+		if !resp.Ready {
+			log.Println("[DEBUG] Cloud Server is not ready")
+			return nil, "", nil
+		}
+		err = resourceBizFlyCloudServerRead(d, meta)
+		if err != nil {
+			return nil, "", err
+		}
+		if attr, ok := d.GetOkExists(attribute); ok {
+			server, err := client.Server.Get(context.Background(), d.Id())
+			if err != nil {
+				return nil, "", fmt.Errorf("Error retrieving cloud server: %v", err)
+			}
+			switch attr.(type) {
+			case bool:
+				return &server, strconv.FormatBool(attr.(bool)), nil
+			default:
+				return &server, attr.(string), nil
+			}
+		}
+		return nil, "", nil
+	}
+}
 func formatFlavor(s string) string {
 	// This function will be removed in the near future when the API format for us
 	if strings.Contains(s, ".") {
