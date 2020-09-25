@@ -54,6 +54,7 @@ func Provider() terraform.ResourceProvider {
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"bizflycloud_server": resourceBizFlyCloudServer(),
+			"bizflycloud_volume": resourceBizFlyCloudVolume(),
 		},
 	}
 	p.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {
