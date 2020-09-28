@@ -303,14 +303,15 @@ func newServerStateRefreshfunc(d *schema.ResourceData, attribute string, meta in
 		if err != nil {
 			return nil, "", err
 		}
-		if attr, ok := d.GetOkExists(attribute); ok {
+
+		if attr, ok := d.GetOkExists(attribute); ok { // nolint
 			server, err := client.Server.Get(context.Background(), resp.Result.Server.ID)
 			if err != nil {
 				return nil, "", fmt.Errorf("Error retrieving cloud server: %v", err)
 			}
-			switch attr.(type) {
+			switch attr := attr.(type) {
 			case bool:
-				return &server, strconv.FormatBool(attr.(bool)), nil
+				return &server, strconv.FormatBool(attr), nil
 			default:
 				return &server, attr.(string), nil
 			}
@@ -336,14 +337,14 @@ func updateServerStateRefreshfunc(d *schema.ResourceData, attribute string, meta
 		if err != nil {
 			return nil, "", err
 		}
-		if attr, ok := d.GetOkExists(attribute); ok {
+		if attr, ok := d.GetOkExists(attribute); ok { // nolint
 			server, err := client.Server.Get(context.Background(), d.Id())
 			if err != nil {
 				return nil, "", fmt.Errorf("Error retrieving cloud server: %v", err)
 			}
-			switch attr.(type) {
+			switch attr := attr.(type) {
 			case bool:
-				return &server, strconv.FormatBool(attr.(bool)), nil
+				return &server, strconv.FormatBool(attr), nil
 			default:
 				return &server, attr.(string), nil
 			}
