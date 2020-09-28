@@ -82,6 +82,12 @@ func resourceBizFlyCloudServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"volume_ids": {
+				Type:     schema.TypeSet,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Optional: true,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -145,6 +151,11 @@ func resourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("availability_zone", server.AvailabilityZone)
 	d.Set("created_at", server.CreatedAt)
 	d.Set("updated_at", server.UpdatedAt)
+
+	if err := d.Set("volume_ids", flatternBizFlyCloudVolumeIDs(server.AttachedVolumes)); err != nil {
+		return fmt.Errorf("Error setting `volume_ids`: %+v", err)
+	}
+
 	return nil
 }
 
@@ -288,4 +299,12 @@ func formatFlavor(s string) string {
 		return strings.Split(s, ".")[1]
 	}
 	return strings.Join(strings.Split(s, "_")[:2], "_")
+}
+
+func flatternBizFlyCloudVolumeIDs(volumeids []gobizfly.AttachedVolume) *schema.Set {
+	flattenedVolumes := schema.NewSet(schema.HashString, []interface{}{})
+	for _, v := range volumeids {
+		flattenedVolumes.Add(v.ID)
+	}
+	return flattenedVolumes
 }
