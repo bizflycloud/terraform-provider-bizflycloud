@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
+const attachTypeDataDisk = "datadisk"
+
 func resourceBizFlyCloudServer() *schema.Resource {
 	return &schema.Resource{
 		Create:        resourceBizFlyCloudServerCreate,
@@ -127,7 +129,22 @@ func resourceBizFlyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error creating cloud server with task id (%s): %s", d.Id(), err)
 	}
 
-	return nil
+	// TODO attach volume in volume_ids list after server is created
+	if attr, ok := d.GetOk("volume_ids"); ok {
+		var volumes []string
+		for _, id := range attr.(*schema.Set).List() {
+			if id == nil {
+				continue
+			}
+			volumeId := id.(string)
+			if volumeId == "" {
+				continue
+			}
+			volumes = append(volumes, volumeId)
+		}
+		attachVolumes(d.Id(), volumes, client)
+	}
+	return resourceBizFlyCloudServerRead(d, meta)
 }
 
 func resourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) error {
@@ -184,6 +201,44 @@ func resourceBizFlyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 		_, err = waitForServerUpdate(d, meta, task.TaskID)
 		if err != nil {
 			return fmt.Errorf("Error updating cloud server with task id (%s): %s", d.Id(), err)
+		}
+	}
+
+	// TODO if volume_ids is changed, update the attached volumes
+	if d.HasChange("volume_ids") {
+		oldIDs, newIDs := d.GetChange("volume_ids")
+		newSet := func(ids []interface{}) map[string]struct{} {
+			out := make(map[string]struct{}, len(ids))
+			for _, id := range ids {
+				out[id.(string)] = struct{}{}
+			}
+			return out
+		}
+
+		// leftDiff returns all elements in Left that are not in Right
+		leftDiff := func(left, right map[string]struct{}) map[string]struct{} {
+			out := make(map[string]struct{})
+			for l := range left {
+				if _, ok := right[l]; !ok {
+					out[l] = struct{}{}
+				}
+			}
+			return out
+		}
+
+		oldIDSet := newSet(oldIDs.(*schema.Set).List())
+		newIDSet := newSet(newIDs.(*schema.Set).List())
+		for volumeID := range leftDiff(newIDSet, oldIDSet) {
+			_, err := client.Volume.Attach(context.Background(), volumeID, id)
+			if err != nil {
+				return fmt.Errorf("Error attaching volume %q to server (%s): %v", volumeID, id, err)
+			}
+		}
+		for volumeID := range leftDiff(oldIDSet, newIDSet) {
+			_, err := client.Volume.Detach(context.Background(), volumeID, id)
+			if err != nil {
+				return fmt.Errorf("Error detaching volume %q from server (%s): %v", volumeID, id, err)
+			}
 		}
 	}
 	return resourceBizFlyCloudServerRead(d, meta)
@@ -304,7 +359,19 @@ func formatFlavor(s string) string {
 func flatternBizFlyCloudVolumeIDs(volumeids []gobizfly.AttachedVolume) *schema.Set {
 	flattenedVolumes := schema.NewSet(schema.HashString, []interface{}{})
 	for _, v := range volumeids {
-		flattenedVolumes.Add(v.ID)
+		if v.AttachedType == attachTypeDataDisk {
+			flattenedVolumes.Add(v.ID)
+		}
 	}
 	return flattenedVolumes
+}
+
+func attachVolumes(id string, volumeids []string, client *gobizfly.Client) error {
+	for _, vid := range volumeids {
+		_, err := client.Volume.Attach(context.Background(), id, vid)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
