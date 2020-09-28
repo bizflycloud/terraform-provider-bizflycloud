@@ -96,15 +96,15 @@ func resourceBizFlyCloudVolumeRead(d *schema.ResourceData, meta interface{}) err
 		}
 		return fmt.Errorf("Error retrieving volume: %v", err)
 	}
-	d.Set("name", volume.Name)
-	d.Set("size", volume.Size)
-	d.Set("status", volume.Status)
-	d.Set("type", volume.VolumeType)
-	d.Set("category", volume.Category)
-	d.Set("created_at", volume.CreatedAt)
-	d.Set("availability_zone", volume.AvailabilityZone)
-	d.Set("user_id", volume.UserID)
-	d.Set("project_id", volume.ProjectID)
+	_ = d.Set("name", volume.Name)
+	_ = d.Set("size", volume.Size)
+	_ = d.Set("status", volume.Status)
+	_ = d.Set("type", volume.VolumeType)
+	_ = d.Set("category", volume.Category)
+	_ = d.Set("created_at", volume.CreatedAt)
+	_ = d.Set("availability_zone", volume.AvailabilityZone)
+	_ = d.Set("user_id", volume.UserID)
+	_ = d.Set("project_id", volume.ProjectID)
 	return nil
 }
 

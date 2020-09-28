@@ -142,7 +142,10 @@ func resourceBizFlyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 			}
 			volumes = append(volumes, volumeId)
 		}
-		attachVolumes(d.Id(), volumes, client)
+		err = attachVolumes(d.Id(), volumes, client)
+		if err != nil {
+			return err
+		}
 	}
 	return resourceBizFlyCloudServerRead(d, meta)
 }
@@ -158,16 +161,16 @@ func resourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 		}
 		return fmt.Errorf("Error retrieving server: %v", err)
 	}
-	d.Set("name", server.Name)
-	d.Set("key_name", server.KeyName)
-	d.Set("status", server.Status)
-	d.Set("flavor_name", formatFlavor(server.Flavor.Name))
-	d.Set("category", server.Category)
-	d.Set("user_id", server.UserID)
-	d.Set("project_id", server.ProjectID)
-	d.Set("availability_zone", server.AvailabilityZone)
-	d.Set("created_at", server.CreatedAt)
-	d.Set("updated_at", server.UpdatedAt)
+	_ = d.Set("name", server.Name)
+	_ = d.Set("key_name", server.KeyName)
+	_ = d.Set("status", server.Status)
+	_ = d.Set("flavor_name", formatFlavor(server.Flavor.Name))
+	_ = d.Set("category", server.Category)
+	_ = d.Set("user_id", server.UserID)
+	_ = d.Set("project_id", server.ProjectID)
+	_ = d.Set("availability_zone", server.AvailabilityZone)
+	_ = d.Set("created_at", server.CreatedAt)
+	_ = d.Set("updated_at", server.UpdatedAt)
 
 	if err := d.Set("volume_ids", flatternBizFlyCloudVolumeIDs(server.AttachedVolumes)); err != nil {
 		return fmt.Errorf("Error setting `volume_ids`: %+v", err)
