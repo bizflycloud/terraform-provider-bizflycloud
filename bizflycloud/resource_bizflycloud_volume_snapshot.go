@@ -17,12 +17,13 @@ func resourceBizFlyCloudVolumeSnapshot() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
+				ForceNew: true,
 				Required: true,
 			},
 			"volume_id": {
 				Type:     schema.TypeString,
 				Required: true,
-				Computed: true,
+				ForceNew: true,
 			},
 			"size": {
 				Type:     schema.TypeInt,
@@ -52,7 +53,7 @@ func resourceBizFlyCloudVolumeSnapshotCreate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error creating snapshot: %v", err)
 	}
 	d.SetId(snapshot.Id)
-	d.Set("volume_id", snapshot.VolumeId)
+	_ = d.Set("volume_id", snapshot.VolumeId)
 	return resourceBizFlyCloudVolumeSnapshotRead(d, meta)
 }
 
