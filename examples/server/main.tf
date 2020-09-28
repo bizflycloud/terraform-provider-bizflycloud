@@ -1,15 +1,16 @@
 terraform {
     required_providers {
         bizflycloud = {
-            versions = ["v0.0.1"]
-            source = "bizflycloud"
+            versions = ["0.0.1"]
+            source = "bizflycloud/bizflycloud"
         }
     }
 }
+
 provider "bizflycloud" {
     auth_method = "password"
     region_name = "HN"
-    version = "v0.0.1"
+    version = "0.0.1"
 }
 
 resource "bizflycloud_server" "sapd-server" {
@@ -21,7 +22,7 @@ resource "bizflycloud_server" "sapd-server" {
     category = "premium"
     availability_zone = "HN1"
     root_disk_type = "HDD"
-    root_disk_size = 20    
+    root_disk_size = 20
 }
 
 resource "bizflycloud_volume" "volume1" {
