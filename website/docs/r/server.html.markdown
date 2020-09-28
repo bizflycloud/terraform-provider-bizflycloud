@@ -6,7 +6,7 @@ description: |-
   Provides a BizFly Cloud Server resource. This can be used to create, modify, and delete Servers. Servers also support provisioning.
 ---
 
-# bizflycloud\_droplet
+# bizflycloud\_server
 
 Provides a BizFly Cloud Server resource. This can be used to create,
 modify, and delete Server. Servers also support
