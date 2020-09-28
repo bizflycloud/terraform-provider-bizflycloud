@@ -250,11 +250,26 @@ func resourceBizFlyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 func resourceBizFlyCloudServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	// destroy the cloud server
-	err := client.Server.Delete(context.Background(), d.Id())
+	server, err := client.Server.Get(context.Background(), d.Id())
+	if err != nil {
+		return fmt.Errorf("Error retrieving cloud server: %v", err)
+	}
+	var rootDiskID string
+	for _, v := range server.AttachedVolumes {
+		if v.AttachedType == "rootdisk" {
+			rootDiskID = v.ID
+		}
+	}
+	err = client.Server.Delete(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("Error delete cloud server %v", err)
 	}
 	// TODO check server is deleted
+	// remove rootdisk of the server
+	err = client.Volume.Delete(context.Background(), rootDiskID)
+	if err != nil {
+		return fmt.Errorf("Error deleting rootdisk of cloud server %s: %v", d.Id(), err)
+	}
 	return nil
 }
 
