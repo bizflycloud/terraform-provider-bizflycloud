@@ -129,7 +129,7 @@ func resourceBizFlyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error creating cloud server with task id (%s): %s", d.Id(), err)
 	}
 
-	// TODO attach volume in volume_ids list after server is created
+	// attach volume in volume_ids list after server is created
 	if attr, ok := d.GetOk("volume_ids"); ok {
 		var volumes []string
 		for _, id := range attr.(*schema.Set).List() {
@@ -204,7 +204,7 @@ func resourceBizFlyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	// TODO if volume_ids is changed, update the attached volumes
+	// if volume_ids is changed, update the attached volumes
 	if d.HasChange("volume_ids") {
 		oldIDs, newIDs := d.GetChange("volume_ids")
 		newSet := func(ids []interface{}) map[string]struct{} {
