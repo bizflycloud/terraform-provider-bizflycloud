@@ -80,7 +80,7 @@ func resourceBizFlyCloudVolumeCreate(d *schema.ResourceData, meta interface{}) e
 	d.SetId(volume.ID)
 	err = resourceBizFlyCloudVolumeRead(d, meta)
 	if err != nil {
-		fmt.Printf("Error retrieving volume: ${err}")
+		fmt.Printf("Error retrieving volume: %v", err)
 	}
 	return nil
 }
@@ -94,7 +94,7 @@ func resourceBizFlyCloudVolumeRead(d *schema.ResourceData, meta interface{}) err
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving volume: #{err}")
+		return fmt.Errorf("Error retrieving volume: %v", err)
 	}
 	d.Set("name", volume.Name)
 	d.Set("size", volume.Size)
