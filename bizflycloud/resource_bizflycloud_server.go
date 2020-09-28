@@ -198,7 +198,7 @@ func resourceBizFlyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 		// Change category of the server
 		task, err := client.Server.ChangeCategory(context.Background(), id, d.Get("category").(string))
 		if err != nil {
-			fmt.Errorf("Error when change category of server [%s]: %v", id, err)
+			return fmt.Errorf("Error when change category of server [%s]: %v", id, err)
 		}
 		// wait for server is active again
 		_, err = waitForServerUpdate(d, meta, task.TaskID)
