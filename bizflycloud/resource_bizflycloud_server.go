@@ -31,7 +31,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-const attachTypeDataDisk = "datadisk"
+const (
+	attachTypeDataDisk = "datadisk"
+	attachTypeRootDisk = "rootdisk"
+)
 
 func resourceBizFlyCloudServer() *schema.Resource {
 	return &schema.Resource{
@@ -273,7 +276,7 @@ func resourceBizFlyCloudServerDelete(d *schema.ResourceData, meta interface{}) e
 	}
 	var rootDiskID string
 	for _, v := range server.AttachedVolumes {
-		if v.AttachedType == "rootdisk" {
+		if v.AttachedType == attachTypeRootDisk {
 			rootDiskID = v.ID
 		}
 	}
