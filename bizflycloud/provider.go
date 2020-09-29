@@ -73,6 +73,7 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_server":          resourceBizFlyCloudServer(),
 			"bizflycloud_volume":          resourceBizFlyCloudVolume(),
 			"bizflycloud_volume_snapshot": resourceBizFlyCloudVolumeSnapshot(),
+			"bizflycloud_ssh_key":         resourceBizFlyCloudSSHKey(),
 		},
 	}
 	p.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {
