@@ -60,7 +60,7 @@ func resourceBizFlyCloudSSHKeyCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error creating SSH key: %v", err)
 	}
 	d.SetId(resp.Name)
-	d.Set("finger_print", resp.FingerPrint)
+	_ = d.Set("finger_print", resp.FingerPrint)
 	return nil
 }
 
