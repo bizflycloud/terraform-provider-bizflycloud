@@ -110,6 +110,20 @@ func resourceBizFlyCloudServer() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"lan_ip": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"wan_ipv4": {
+				Type:     schema.TypeSet,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Computed: true,
+			},
+			"wan_ipv6": {
+				Type:     schema.TypeSet,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Computed: true,
+			},
 		},
 	}
 }
@@ -196,6 +210,13 @@ func resourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error setting `volume_ids`: %+v", err)
 	}
 
+	_ = d.Set("lan_ip", server.IPAddresses.LanAddresses[0].Address)
+	if err := d.Set("wan_ipv4", flatternBizFlyCloudIPs(server.IPAddresses.WanV4Addresses)); err != nil {
+		return fmt.Errorf("Error setting `wan_ipv4`: #{err}")
+	}
+	if err := d.Set("wan_ipv6", flatternBizFlyCloudIPs(server.IPAddresses.WanV6Addresses)); err != nil {
+		return fmt.Errorf("Error setting `wan_ipv6`: ${err}")
+	}
 	return nil
 }
 
@@ -413,4 +434,12 @@ func attachVolumes(id string, volumeids []string, client *gobizfly.Client) error
 		}
 	}
 	return nil
+}
+
+func flatternBizFlyCloudIPs(ips []gobizfly.IP) *schema.Set {
+	flatternIPs := schema.NewSet(schema.HashString, []interface{}{})
+	for _, ip := range ips {
+		flatternIPs.Add(ip.Address)
+	}
+	return flatternIPs
 }
