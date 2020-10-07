@@ -57,3 +57,6 @@ The following attributes are exported:
 * `root_disk_size` - The size of Server root disk
 * `availability_zone` - The availability zone of server
 * `volume_ids` - A list of the attached block storage volumes
+* `lan_ip` - Lan IP of the server
+* `wan_ipv4` - A list of the WAN IP v4 of the server
+* `wan_ipv6` - A list of the WAN IP v6 of the server
