@@ -75,6 +75,9 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_volume_snapshot": resourceBizFlyCloudVolumeSnapshot(),
 			"bizflycloud_ssh_key":         resourceBizFlyCloudSSHKey(),
 		},
+		DataSourcesMap: map[string]*schema.Resource{
+			"bizflycloud_image": datasourceBizFlyCloudImages(),
+		},
 	}
 	p.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {
 		terraformVersion := p.TerraformVersion
