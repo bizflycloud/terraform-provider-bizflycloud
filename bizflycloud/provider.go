@@ -74,6 +74,7 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_volume":          resourceBizFlyCloudVolume(),
 			"bizflycloud_volume_snapshot": resourceBizFlyCloudVolumeSnapshot(),
 			"bizflycloud_ssh_key":         resourceBizFlyCloudSSHKey(),
+			"bizflycloud_firewall":        resourceBizFlyCloudFirewall(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"bizflycloud_image": datasourceBizFlyCloudImages(),
