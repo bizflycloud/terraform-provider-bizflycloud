@@ -125,16 +125,16 @@ func resourceBizFlyCloudFirewallRead(d *schema.ResourceData, meta interface{}) e
 	if err != nil {
 		return fmt.Errorf("Error when retrieving fireall: %v", err)
 	}
-	d.Set("name", firewall.BaseFirewall.Name)
-	d.Set("servers_count", firewall.BaseFirewall.ServersCount)
-	d.Set("rules_count", firewall.BaseFirewall.RulesCount)
+	_ = d.Set("name", firewall.BaseFirewall.Name)
+	_ = d.Set("servers_count", firewall.BaseFirewall.ServersCount)
+	_ = d.Set("rules_count", firewall.BaseFirewall.RulesCount)
 
-	d.Set("target_servers", flatternBizFlyCloudServers(firewall.Servers))
+	_ = d.Set("target_servers", flatternBizFlyCloudServers(firewall.Servers))
 	if len(firewall.InBound) > 0 {
-		d.Set("ingress", convertFWRule(firewall.InBound))
+		_ = d.Set("ingress", convertFWRule(firewall.InBound))
 	}
 	if len(firewall.OutBound) > 0 {
-		d.Set("egress", convertFWRule(firewall.OutBound))
+		_ = d.Set("egress", convertFWRule(firewall.OutBound))
 	}
 	return nil
 }
