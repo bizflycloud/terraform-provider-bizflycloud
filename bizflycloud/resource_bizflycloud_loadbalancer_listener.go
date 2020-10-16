@@ -49,13 +49,17 @@ func resourceBizFlyCloudLoadBalancerListener() *schema.Resource {
 
 func resourceBizFlyCloudLoadBalancerListenerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
+	lName := d.Get("name").(string)
+	lDesc := d.Get("description").(string)
+	lPoolDefaultID := d.Get("default_pool_id").(string)
+	lPoolTLSRef := d.Get("default_tls_ref").(string)
 	lcr := gobizfly.ListenerCreateRequest{
-		Name:                   d.Get("name").(*string),
+		Name:                   &lName,
 		Protocol:               d.Get("protocol").(string),
 		ProtocolPort:           d.Get("port").(int),
-		Description:            d.Get("description").(*string),
-		DefaultPoolID:          d.Get("default_pool_id").(*string),
-		DefaultTLSContainerRef: d.Get("default_tls_ref").(*string),
+		Description:            &lDesc,
+		DefaultPoolID:          &lPoolDefaultID,
+		DefaultTLSContainerRef: &lPoolTLSRef,
 	}
 	listener, err := client.Listener.Create(context.Background(), d.Get("load_balancer_id").(string), &lcr)
 	if err != nil {

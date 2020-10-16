@@ -40,11 +40,13 @@ func resourceBizFlyCloudLoadBalancerPool() *schema.Resource {
 }
 func resourceBizFlyCloudLoadBalancerPoolCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
+	poolName := d.Get("name").(string)
+	poolDescription := d.Get("description").(string)
 	pcr := gobizfly.PoolCreateRequest{
-		Name:        d.Get("name").(*string),
+		Name:        &poolName,
 		LBAlgorithm: d.Get("algorithm").(string),
 		Protocol:    d.Get("protocol").(string),
-		Description: d.Get("description").(*string),
+		Description: &poolDescription,
 	}
 	pool, err := client.Pool.Create(context.Background(), d.Get("load_balancer_id").(string), &pcr)
 	if err != nil {
