@@ -39,7 +39,10 @@ func resourceBizFlyCloudLoadBalancerPool() *schema.Resource {
 	}
 }
 func resourceBizFlyCloudLoadBalancerPoolCreate(d *schema.ResourceData, meta interface{}) error {
+
 	client := meta.(*CombinedConfig).gobizflyClient()
+	lbID := d.Get("load_balancer_id").(string)
+	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID)
 	poolName := d.Get("name").(string)
 	poolDescription := d.Get("description").(string)
 	pcr := gobizfly.PoolCreateRequest{
@@ -48,7 +51,7 @@ func resourceBizFlyCloudLoadBalancerPoolCreate(d *schema.ResourceData, meta inte
 		Protocol:    d.Get("protocol").(string),
 		Description: &poolDescription,
 	}
-	pool, err := client.Pool.Create(context.Background(), d.Get("load_balancer_id").(string), &pcr)
+	pool, err := client.Pool.Create(context.Background(), lbID, &pcr)
 	if err != nil {
 		return fmt.Errorf("Error when creating load balancer pool: %v", err)
 	}
@@ -76,6 +79,8 @@ func resourceBizFlyCloudLoadBalancerPoolRead(d *schema.ResourceData, meta interf
 
 func resourceBizFlyCloudLoadBalancerPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
+	lbID := d.Get("load_balancer_id").(string)
+	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID)
 	err := client.Pool.Delete(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("Error when deleting load balancer pool: %v", err)
