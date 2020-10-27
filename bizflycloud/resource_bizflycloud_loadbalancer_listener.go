@@ -50,7 +50,7 @@ func resourceBizFlyCloudLoadBalancerListener() *schema.Resource {
 func resourceBizFlyCloudLoadBalancerListenerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	lbID := d.Get("load_balancer_id").(string)
-	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID)
+	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID, loadbalancerResource)
 	lName := d.Get("name").(string)
 	lDesc := d.Get("description").(string)
 	lPoolDefaultID := d.Get("default_pool_id").(string)
@@ -90,7 +90,7 @@ func resourceBizFlyCloudLoadBalancerListenerRead(d *schema.ResourceData, meta in
 func resourceBizFlyCloudLoadBalancerListenerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	lbID := d.Get("load_balancer_id").(string)
-	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID)
+	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID, loadbalancerResource)
 	lur := gobizfly.ListenerUpdateRequest{
 		Name:                   d.Get("name").(*string),
 		Description:            d.Get("description").(*string),
@@ -107,7 +107,7 @@ func resourceBizFlyCloudLoadBalancerListenerUpdate(d *schema.ResourceData, meta 
 func resourceBizFlyCloudLoadBalancerListenerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	lbID := d.Get("load_balancer_id").(string)
-	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID)
+	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID, loadbalancerResource)
 	err := client.Listener.Delete(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("Error when deleting listener: %v", err)

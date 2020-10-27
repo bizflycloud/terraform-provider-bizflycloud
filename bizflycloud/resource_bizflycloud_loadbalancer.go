@@ -3,10 +3,11 @@ package bizflycloud
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/bizflycloud/gobizfly"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"time"
 )
 
 const (
@@ -16,6 +17,10 @@ const (
 
 	activeStatus = "ACTIVE"
 	errorStatus  = "ERROR"
+
+	loadbalancerResource = "loadbalancer"
+	listenerResource     = "listener"
+	poolResource         = "pool"
 )
 
 func resourceBizFlyCloudLoadBalancer() *schema.Resource {
@@ -92,7 +97,7 @@ func resourceBizFlyCloudLoadBalancerCreate(d *schema.ResourceData, meta interfac
 
 func resourceBizFlyCloudLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	lb, err := waitLoadbalancerActiveProvisioningStatus(client, d.Id())
+	lb, err := waitLoadbalancerActiveProvisioningStatus(client, d.Id(), loadbalancerResource)
 	if err != nil {
 		return fmt.Errorf("Error when retrieving load balancer: %v", err)
 	}
@@ -136,7 +141,7 @@ func resourceBizFlyCloudLoadBalancerUpdate(d *schema.ResourceData, meta interfac
 
 func resourceBizFlyCloudLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	lb, err := waitLoadbalancerActiveProvisioningStatus(client, d.Id())
+	lb, err := waitLoadbalancerActiveProvisioningStatus(client, d.Id(), loadbalancerResource)
 	if err != nil {
 		return fmt.Errorf("Error when retrieving load balancer: %v", err)
 	}
@@ -148,7 +153,7 @@ func resourceBizFlyCloudLoadBalancerDelete(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func waitLoadbalancerActiveProvisioningStatus(client *gobizfly.Client, loadbalancerID string) (*gobizfly.LoadBalancer, error) {
+func waitLoadbalancerActiveProvisioningStatus(client *gobizfly.Client, ID string, resourceType string) (*gobizfly.LoadBalancer, error) {
 	backoff := wait.Backoff{
 		Duration: loadbalancerActiveInitDelay,
 		Factor:   loadbalancerActiveFactor,
@@ -156,24 +161,56 @@ func waitLoadbalancerActiveProvisioningStatus(client *gobizfly.Client, loadbalan
 	}
 	var provisioningStatus string
 	err := wait.ExponentialBackoff(backoff, func() (bool, error) {
-		lb, err := client.LoadBalancer.Get(context.Background(), loadbalancerID)
-		if err != nil {
-			return false, err
-		}
-		provisioningStatus = lb.ProvisioningStatus
-		if lb.ProvisioningStatus == activeStatus {
-			return true, nil
-		} else if lb.ProvisioningStatus == errorStatus {
-			return true, fmt.Errorf("loadbalancer %w has gone into ERROR state", loadbalancerID)
-		} else {
+		switch resourceType {
+		case loadbalancerResource:
+			lb, err := client.LoadBalancer.Get(context.Background(), ID)
+			if err != nil {
+				return false, err
+			}
+			provisioningStatus = lb.ProvisioningStatus
+			if lb.ProvisioningStatus == activeStatus {
+				return true, nil
+			} else if lb.ProvisioningStatus == errorStatus {
+				return true, fmt.Errorf("loadbalancer %w has gone into ERROR state", ID)
+			} else {
+				return false, nil
+			}
+		case poolResource:
+			pool, err := client.Pool.Get(context.Background(), ID)
+			if err != nil {
+				return false, err
+			}
+			provisioningStatus = pool.ProvisoningStatus
+			if pool.ProvisoningStatus == activeStatus {
+				return true, nil
+			} else if pool.ProvisoningStatus == errorStatus {
+				return true, fmt.Errorf("Pool %w has gone into ERROR state", ID)
+			} else {
+				return false, nil
+			}
+		case listenerResource:
+			listener, err := client.Listener.Get(context.Background(), ID)
+			if err != nil {
+				return false, err
+			}
+			provisioningStatus = listener.ProvisoningStatus
+			if listener.ProvisoningStatus == activeStatus {
+				return true, nil
+			} else if listener.ProvisoningStatus == errorStatus {
+				return true, fmt.Errorf("Listener %w has gone into ERROR state", ID)
+			} else {
+				return false, nil
+			}
+		default:
 			return false, nil
 		}
+
 	})
 
 	if err == wait.ErrWaitTimeout {
 		err = fmt.Errorf("loadbalancer failed to go into ACTIVE provisioning status within allotted time")
 		return nil, err
 	}
-	lb, err := client.LoadBalancer.Get(context.Background(), loadbalancerID)
+	lb, err := client.LoadBalancer.Get(context.Background(), ID)
 	return lb, err
 }
