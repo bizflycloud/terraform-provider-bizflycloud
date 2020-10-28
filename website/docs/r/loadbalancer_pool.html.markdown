@@ -20,6 +20,23 @@ resource "bizflycloud_loadbalancer_pool" "pool1" {
     protocol = "HTTP"
     algorithm = "ROUND_ROBIN"
     load_balancer_id = "${bizflycloud_loadbalancer.lb1.id}"
+    members {
+        name = "member2"
+        address = "10.20.165.30"
+        protocol_port = 80
+        weight = 1
+    }
+    members {
+        name = "member2"
+        address = "10.20.165.40"
+        protocol_port = 80
+        weight = 1
+    }
+    health_monitor {
+        name = "hm1"
+        type = "TCP"
+        timeout = 100
+    }
 }
 ```
 
