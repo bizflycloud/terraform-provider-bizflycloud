@@ -32,6 +32,27 @@ The following arguments are supported:
 * `protocol` - (Required) The protocol for pool: `HTTP`, `TCP`, `TERMINATED_HTTPS`
 * `load_balancer_id` - (Required) The ID of Load Balancer
 * `algorithm` - (Required) The algorithm to balance the server in pool. Supported algorithm: `ROUND_ROBIN`, `SOURCE_IP`, `LEAST_CONNECTIONS`
+* `members` - (Optional) A member block as documented below
+* `health_monitor` - (Optional) A health monitor block as documented below
+
+Members (`members`) support the following:
+
+* `name` - (Required) Name of member
+* `address` - (Required)  Address of member
+* `weight` - (Optional) Weight of member. Default value is 1.
+* `protocol_port` - (Required) Port for member
+* `backup` - (Optional) Member is backup or not.
+
+Health Monitor (`health_monitor`) support the following:
+
+* `name` - (Required) Name of health monitor
+* `type` - (Required) Type of health monitor. Support: `TCP`, `HTTP`
+* `timeout` - (Optional) Health Check timeout. Default is 3 (second)
+* `max_retries` - (Optional) Health Check max retries. Default is 3.
+* `max_retries_down` - (Optional) Health Check max retries down. Default is 3.
+* `http_method` - (Optional) HTTP method when using `HTTP` health check type. Default is `GET`
+* `url_path` - (Optional) HTTP URL path when using `HTTP` health check type. Default is `/`
+* `expected_code` - (Optional) HTTP expected codes when using `HTTP` health check type. Default is `200-409`. You can specify one status code (`200`), list of status code (`200,201`) or range of status code (`200-400`)
 
 ## Attributes Reference
 

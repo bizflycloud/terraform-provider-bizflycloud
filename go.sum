@@ -48,6 +48,14 @@ github.com/bizflycloud/gobizfly v0.0.0-20201008023001-821f86855980 h1:M+B8xjM5ds
 github.com/bizflycloud/gobizfly v0.0.0-20201008023001-821f86855980/go.mod h1:2otUgZd6PrKezjMrdAw9gy7byEXMrigX9Sm4ujCaFuk=
 github.com/bizflycloud/gobizfly v0.0.0-20201008024746-ae353136bdfd h1:amhB9b989GipIdv8XGaVHlShnYZhBkKUC97Ei1/VdJk=
 github.com/bizflycloud/gobizfly v0.0.0-20201008024746-ae353136bdfd/go.mod h1:2otUgZd6PrKezjMrdAw9gy7byEXMrigX9Sm4ujCaFuk=
+github.com/bizflycloud/gobizfly v0.0.0-20201028045816-e491394209af h1:FMXFhLViRMCvdE/9XZJ115soNwnJTTZlCqUM/ma8x+M=
+github.com/bizflycloud/gobizfly v0.0.0-20201028045816-e491394209af/go.mod h1:2otUgZd6PrKezjMrdAw9gy7byEXMrigX9Sm4ujCaFuk=
+github.com/bizflycloud/gobizfly v0.0.0-20201028075714-6be3774d5cec h1:k5qsL4tE2NBVtXcdLreaaGvV2pWrZMC+GeZ0jtHey4U=
+github.com/bizflycloud/gobizfly v0.0.0-20201028075714-6be3774d5cec/go.mod h1:2otUgZd6PrKezjMrdAw9gy7byEXMrigX9Sm4ujCaFuk=
+github.com/bizflycloud/gobizfly v0.0.0-20201028082312-c637b33285bb h1:dI+heI2VC7LQBEmv4bUk10+3uCk0Ig37HNbRKHZy92Q=
+github.com/bizflycloud/gobizfly v0.0.0-20201028082312-c637b33285bb/go.mod h1:2otUgZd6PrKezjMrdAw9gy7byEXMrigX9Sm4ujCaFuk=
+github.com/bizflycloud/gobizfly v0.0.0-20201028082857-b25f8c0a5092 h1:cfAUQIfP/aSnVqjcW3jmHRkZhei4whO/I3WgrPn7xus=
+github.com/bizflycloud/gobizfly v0.0.0-20201028082857-b25f8c0a5092/go.mod h1:2otUgZd6PrKezjMrdAw9gy7byEXMrigX9Sm4ujCaFuk=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cheggaaa/pb v1.0.27/go.mod h1:pQciLPpbU0oxA0h+VJYYLxO+XeDQb5pZijXscXHm81s=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
