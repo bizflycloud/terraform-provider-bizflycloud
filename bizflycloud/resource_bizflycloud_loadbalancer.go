@@ -159,7 +159,6 @@ func waitLoadbalancerActiveProvisioningStatus(client *gobizfly.Client, ID string
 		Factor:   loadbalancerActiveFactor,
 		Steps:    loadbalancerActiveSteps,
 	}
-	var provisioningStatus string
 	err := wait.ExponentialBackoff(backoff, func() (bool, error) {
 		switch resourceType {
 		case loadbalancerResource:
@@ -167,7 +166,6 @@ func waitLoadbalancerActiveProvisioningStatus(client *gobizfly.Client, ID string
 			if err != nil {
 				return false, err
 			}
-			provisioningStatus = lb.ProvisioningStatus
 			if lb.ProvisioningStatus == activeStatus {
 				return true, nil
 			} else if lb.ProvisioningStatus == errorStatus {
@@ -180,7 +178,6 @@ func waitLoadbalancerActiveProvisioningStatus(client *gobizfly.Client, ID string
 			if err != nil {
 				return false, err
 			}
-			provisioningStatus = pool.ProvisoningStatus
 			if pool.ProvisoningStatus == activeStatus {
 				return true, nil
 			} else if pool.ProvisoningStatus == errorStatus {
@@ -193,7 +190,6 @@ func waitLoadbalancerActiveProvisioningStatus(client *gobizfly.Client, ID string
 			if err != nil {
 				return false, err
 			}
-			provisioningStatus = listener.ProvisoningStatus
 			if listener.ProvisoningStatus == activeStatus {
 				return true, nil
 			} else if listener.ProvisoningStatus == errorStatus {

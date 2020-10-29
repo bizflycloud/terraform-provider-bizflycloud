@@ -79,6 +79,11 @@ func resourceBizFlyCloudLoadBalancerPool() *schema.Resource {
 							Default:  3,
 							Optional: true,
 						},
+						"delay": {
+							Type:     schema.TypeInt,
+							Default:  3,
+							Optional: true,
+						},
 						"http_method": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -95,6 +100,23 @@ func resourceBizFlyCloudLoadBalancerPool() *schema.Resource {
 					},
 				},
 			},
+			"persistent": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"cookie_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -105,11 +127,25 @@ func resourceBizFlyCloudLoadBalancerPoolCreate(d *schema.ResourceData, meta inte
 	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID, loadbalancerResource)
 	poolName := d.Get("name").(string)
 	poolDescription := d.Get("description").(string)
+
 	pcr := gobizfly.PoolCreateRequest{
 		Name:        &poolName,
 		LBAlgorithm: d.Get("algorithm").(string),
 		Protocol:    d.Get("protocol").(string),
 		Description: &poolDescription,
+	}
+	// Get session persistent
+	sessionPersistent := d.Get("persistent").([]interface{})
+	if len(sessionPersistent) == 1 {
+		sp := sessionPersistent[0].(map[string]interface{})
+		spType := sp["type"].(string)
+		var sess gobizfly.SessionPersistence
+		sess.Type = spType
+		if spType == "APP_COOKIE" {
+			cookieName := sp["cookie_name"].(string)
+			sess.CookieName = &cookieName
+		}
+		pcr.SessionPersistence = &sess
 	}
 	pool, err := client.Pool.Create(context.Background(), lbID, &pcr)
 	if err != nil {
@@ -129,64 +165,78 @@ func resourceBizFlyCloudLoadBalancerPoolCreate(d *schema.ResourceData, meta inte
 		}
 	}
 	// create health monitor
-	healthMonitor := d.Get("health_monitor").([]interface{})
-	if len(healthMonitor) == 1 {
-		hm := healthMonitor[0].(map[string]interface{})
-		hmType := hm["type"].(string)
-		var hmcr gobizfly.HealthMonitorCreateRequest
-		if hmType == "TCP" {
-			hmcr = gobizfly.HealthMonitorCreateRequest{
-				Name:           hm["name"].(string),
-				Type:           hmType,
-				TimeOut:        hm["timeout"].(int),
-				MaxRetriesDown: hm["max_retries_down"].(int),
-				MaxRetries:     hm["max_retries"].(int),
-			}
-		} else {
-			hmcr = gobizfly.HealthMonitorCreateRequest{
-				Name:           hm["name"].(string),
-				Type:           hmType,
-				TimeOut:        hm["timeout"].(int),
-				MaxRetriesDown: hm["max_retries_down"].(int),
-				MaxRetries:     hm["max_retries"].(int),
-				HTTPMethod:     hm["http_method"].(string),
-				URLPath:        hm["url_path"].(string),
-				ExpectedCodes:  hm["expected_code"].(string),
-			}
-		}
-		_, _ = waitLoadbalancerActiveProvisioningStatus(client, pool.ID, poolResource)
-		_, err := client.HealthMonitor.Create(context.Background(), pool.ID, &hmcr)
-		if err != nil {
-			return fmt.Errorf("Error when creating health monitor for pool: %s, %v", pool.Name, err)
-		}
-	}
+	createHealthMonitor(client, d.Get("health_monitor").([]interface{}), pool.ID)
+
 	return resourceBizFlyCloudLoadBalancerPoolRead(d, meta)
 }
 
 func resourceBizFlyCloudLoadBalancerPoolUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
+	var pur gobizfly.PoolUpdateRequest
+	poolChanged := false
+	if d.HasChange("persistent") {
+		poolChanged = true
+		// Get session persistent
+		sessionPersistent := d.Get("persistent").([]interface{})
+		if len(sessionPersistent) == 1 {
+			sp := sessionPersistent[0].(map[string]interface{})
+			spType := sp["type"].(string)
+			var sess gobizfly.SessionPersistence
+			sess.Type = spType
+			if spType == "APP_COOKIE" {
+				cookieName := sp["cookie_name"].(string)
+				sess.CookieName = &cookieName
+			}
+			pur.SessionPersistence = &sess
+		}
+	}
+	if d.HasChange("algorithm") {
+		poolChanged = true
+		algo := d.Get("algorithm").(string)
+		pur.LBAlgorithm = &algo
+	}
+	if d.HasChange("description") {
+		poolChanged = true
+		desc := d.Get("description").(string)
+		pur.Description = &desc
+	}
+	if poolChanged {
+		_, _ = waitLoadbalancerActiveProvisioningStatus(client, d.Id(), poolResource)
+		_, err := client.Pool.Update(context.Background(), d.Id(), &pur)
+		if err != nil {
+			return fmt.Errorf("Error when update pool %s, %v", d.Id(), err)
+		}
+	}
 	if d.HasChange("health_monitor") {
 		healthMonitors := d.Get("health_monitor").([]interface{})
 		if len(healthMonitors) == 1 {
+			_, _ = waitLoadbalancerActiveProvisioningStatus(client, d.Id(), poolResource)
 			healthMonitor := healthMonitors[0].(map[string]interface{})
-			hm, err := client.HealthMonitor.Get(context.Background(), healthMonitor["id"].(string))
-			if err != nil {
-				return fmt.Errorf("Error when get current health monitor: %s, %v", healthMonitor["id"].(string), err)
-			}
-			hmur := gobizfly.HealthMonitorUpdateRequest{
-				Name:           healthMonitor["name"].(string),
-				TimeOut:        healthMonitor["timeout"].(int),
-				MaxRetries:     healthMonitor["max_retries"].(int),
-				MaxRetriesDown: healthMonitor["max_retries_down"].(int),
-			}
-			if hm.Type == "HTTP" {
-				hmur.HTTPMethod = healthMonitor["http_method"].(string)
-				hmur.URLPath = healthMonitor["url_path"].(string)
-				hmur.ExpectedCodes = healthMonitor["expected_code"].(string)
-			}
-			_, err = client.HealthMonitor.Update(context.Background(), healthMonitor["id"].(string), &hmur)
-			if err != nil {
-				return fmt.Errorf("Error when updating health monitor: %s, %v", healthMonitor["name"].(string), err)
+			// if health monitor is not created, create a new one
+			if healthMonitor["id"].(string) == "" {
+				createHealthMonitor(client, d.Get("health_monitor").([]interface{}), d.Id())
+			} else {
+				hm, err := client.HealthMonitor.Get(context.Background(), healthMonitor["id"].(string))
+				if err != nil {
+					return fmt.Errorf("Error when get current health monitor: %s, %v", healthMonitor["id"].(string), err)
+				}
+				hmur := gobizfly.HealthMonitorUpdateRequest{
+					Name:           healthMonitor["name"].(string),
+					TimeOut:        healthMonitor["timeout"].(int),
+					MaxRetries:     healthMonitor["max_retries"].(int),
+					MaxRetriesDown: healthMonitor["max_retries_down"].(int),
+					Delay:          healthMonitor["delay"].(int),
+				}
+				if hm.Type == "HTTP" {
+					hmur.HTTPMethod = healthMonitor["http_method"].(string)
+					hmur.URLPath = healthMonitor["url_path"].(string)
+					hmur.ExpectedCodes = healthMonitor["expected_code"].(string)
+				}
+
+				_, err = client.HealthMonitor.Update(context.Background(), healthMonitor["id"].(string), &hmur)
+				if err != nil {
+					return fmt.Errorf("Error when updating health monitor: %s, %v", healthMonitor["name"].(string), err)
+				}
 			}
 		}
 	}
@@ -238,6 +288,7 @@ func resourceBizFlyCloudLoadBalancerPoolRead(d *schema.ResourceData, meta interf
 		_ = d.Set("members", convertMember(members))
 	}
 	_ = d.Set("health_monitor", convertHealthMonitor(pool.HealthMonitor))
+	_ = d.Set("persistent", convertSessionPersistent(pool.SessionPersistence))
 	return nil
 }
 
@@ -321,8 +372,47 @@ func convertHealthMonitor(healthMonitor *gobizfly.HealthMonitor) []map[string]in
 	r["timeout"] = healthMonitor.TimeOut
 	r["max_retries"] = healthMonitor.MaxRetries
 	r["max_retries_down"] = healthMonitor.MaxRetriesDown
+	r["delay"] = healthMonitor.Delay
 	r["http_method"] = healthMonitor.HTTPMethod
 	r["expected_code"] = healthMonitor.ExpectedCodes
 	result = append(result, r)
 	return result
+}
+
+func convertSessionPersistent(sessionPersistent *gobizfly.SessionPersistence) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0, 1)
+	if sessionPersistent == nil {
+		return nil
+	}
+	r := make(map[string]interface{})
+	r["type"] = sessionPersistent.Type
+	r["cookie_name"] = sessionPersistent.CookieName
+	result = append(result, r)
+	return result
+}
+
+func createHealthMonitor(client *gobizfly.Client, healthMonitor []interface{}, poolID string) error {
+	if len(healthMonitor) == 1 {
+		hm := healthMonitor[0].(map[string]interface{})
+		hmType := hm["type"].(string)
+		var hmcr gobizfly.HealthMonitorCreateRequest
+		if hmType == "TCP" {
+			hmcr.Name = hm["name"].(string)
+			hmcr.Type = hmType
+			hmcr.TimeOut = hm["timeout"].(int)
+			hmcr.MaxRetriesDown = hm["max_retries_down"].(int)
+			hmcr.MaxRetries = hm["max_retries"].(int)
+			hmcr.Delay = hm["delay"].(int)
+		} else {
+			hmcr.HTTPMethod = hm["http_method"].(string)
+			hmcr.URLPath = hm["url_path"].(string)
+			hmcr.ExpectedCodes = hm["expected_code"].(string)
+		}
+		_, _ = waitLoadbalancerActiveProvisioningStatus(client, poolID, poolResource)
+		_, err := client.HealthMonitor.Create(context.Background(), poolID, &hmcr)
+		if err != nil {
+			return fmt.Errorf("Error when creating health monitor for pool: %s, %v", poolID, err)
+		}
+	}
+	return nil
 }

@@ -37,6 +37,10 @@ resource "bizflycloud_loadbalancer_pool" "pool1" {
         type = "TCP"
         timeout = 100
     }
+    persistent {
+        type = "APP_COOKIE"
+        cookie_name = "TEST"
+    }
 }
 ```
 
@@ -51,6 +55,7 @@ The following arguments are supported:
 * `algorithm` - (Required) The algorithm to balance the server in pool. Supported algorithm: `ROUND_ROBIN`, `SOURCE_IP`, `LEAST_CONNECTIONS`
 * `members` - (Optional) A member block as documented below
 * `health_monitor` - (Optional) A health monitor block as documented below
+* `persistent` - (Optional) Setup session persistent for pool. Session Persistent block as documented below.
 
 Members (`members`) support the following:
 
@@ -65,11 +70,16 @@ Health Monitor (`health_monitor`) support the following:
 * `name` - (Required) Name of health monitor
 * `type` - (Required) Type of health monitor. Support: `TCP`, `HTTP`
 * `timeout` - (Optional) Health Check timeout. Default is 3 (second)
-* `max_retries` - (Optional) Health Check max retries. Default is 3.
-* `max_retries_down` - (Optional) Health Check max retries down. Default is 3.
+* `max_retries` - (Optional) Health Check max retries. Default is 3 (second).
+* `max_retries_down` - (Optional) Health Check max retries down. Default is 3 (second).
+* `delay` - (Optional) Delay in second before checking. Default is 3 (second)
 * `http_method` - (Optional) HTTP method when using `HTTP` health check type. Default is `GET`
 * `url_path` - (Optional) HTTP URL path when using `HTTP` health check type. Default is `/`
 * `expected_code` - (Optional) HTTP expected codes when using `HTTP` health check type. Default is `200-409`. You can specify one status code (`200`), list of status code (`200,201`) or range of status code (`200-400`)
+
+Session Persistent (`persistent`) support the following: 
+* `type` - (Required) Type of session persistent. Supported: `SOURCE_IP`, `HTTP_COOKIE` and `APP_COOKIE`
+* `cookie_name` - (Optional) The name of the cookie if persistence mode is set appropriately. Required if `type` = `APP_COOKIE`.
 
 ## Attributes Reference
 
