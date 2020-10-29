@@ -101,13 +101,13 @@ func resourceBizFlyCloudLoadBalancerRead(d *schema.ResourceData, meta interface{
 	if err != nil {
 		return fmt.Errorf("Error when retrieving load balancer: %v", err)
 	}
-	d.Set("name", lb.Name)
-	d.Set("description", lb.Description)
-	d.Set("network_type", lb.NetworkType)
-	d.Set("type", lb.Type)
-	d.Set("vip_address", lb.VipAddress)
-	d.Set("provisioning_status", lb.ProvisioningStatus)
-	d.Set("operating_status", lb.OperatingStatus)
+	_ = d.Set("name", lb.Name)
+	_ = d.Set("description", lb.Description)
+	_ = d.Set("network_type", lb.NetworkType)
+	_ = d.Set("type", lb.Type)
+	_ = d.Set("vip_address", lb.VipAddress)
+	_ = d.Set("provisioning_status", lb.ProvisioningStatus)
+	_ = d.Set("operating_status", lb.OperatingStatus)
 	pools := schema.NewSet(schema.HashString, []interface{}{})
 	for _, v := range lb.Pools {
 		pools.Add(v.ID)
@@ -127,15 +127,16 @@ func resourceBizFlyCloudLoadBalancerRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceBizFlyCloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) error {
-	if d.HasChange("type") {
-		// TODO update new type of load balancer
-	}
-	if d.HasChange("listeners") {
-		//	TODO update listeners in a load balancer
-	}
-	if d.HasChange("pools") {
-		//	TODO update pool in a load balancer
-	}
+	//client := meta.(*CombinedConfig).gobizflyClient()
+	//if d.HasChange("type") {
+	//	// TODO update new type of load balancer
+	//}
+	//if d.HasChange("listeners") {
+	//	//	TODO update listeners in a load balancer
+	//}
+	//if d.HasChange("pools") {
+	//	//	TODO update pool in a load balancer
+	//}
 	return nil
 }
 
@@ -169,7 +170,7 @@ func waitLoadbalancerActiveProvisioningStatus(client *gobizfly.Client, ID string
 			if lb.ProvisioningStatus == activeStatus {
 				return true, nil
 			} else if lb.ProvisioningStatus == errorStatus {
-				return true, fmt.Errorf("loadbalancer %w has gone into ERROR state", ID)
+				return true, fmt.Errorf("loadbalancer %s has gone into ERROR state", ID)
 			} else {
 				return false, nil
 			}
@@ -181,7 +182,7 @@ func waitLoadbalancerActiveProvisioningStatus(client *gobizfly.Client, ID string
 			if pool.ProvisoningStatus == activeStatus {
 				return true, nil
 			} else if pool.ProvisoningStatus == errorStatus {
-				return true, fmt.Errorf("Pool %w has gone into ERROR state", ID)
+				return true, fmt.Errorf("Pool %s has gone into ERROR state", ID)
 			} else {
 				return false, nil
 			}
@@ -193,7 +194,7 @@ func waitLoadbalancerActiveProvisioningStatus(client *gobizfly.Client, ID string
 			if listener.ProvisoningStatus == activeStatus {
 				return true, nil
 			} else if listener.ProvisoningStatus == errorStatus {
-				return true, fmt.Errorf("Listener %w has gone into ERROR state", ID)
+				return true, fmt.Errorf("Listener %s has gone into ERROR state", ID)
 			} else {
 				return false, nil
 			}

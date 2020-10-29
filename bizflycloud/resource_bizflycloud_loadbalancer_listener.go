@@ -77,13 +77,13 @@ func resourceBizFlyCloudLoadBalancerListenerRead(d *schema.ResourceData, meta in
 	if err != nil {
 		return fmt.Errorf("Error when retrieving listener: %v", err)
 	}
-	d.Set("name", listener.Name)
-	d.Set("protocol", listener.Protocol)
-	d.Set("port", listener.ProtocolPort)
-	d.Set("description", listener.Description)
-	d.Set("default_pool_id", listener.DefaultPoolID)
-	d.Set("default_tls_ref", listener.DefaultTLSContainerRef)
-	d.Set("load_balancer_id", listener.LoadBalancers[0].ID)
+	_ = d.Set("name", listener.Name)
+	_ = d.Set("protocol", listener.Protocol)
+	_ = d.Set("port", listener.ProtocolPort)
+	_ = d.Set("description", listener.Description)
+	_ = d.Set("default_pool_id", listener.DefaultPoolID)
+	_ = d.Set("default_tls_ref", listener.DefaultTLSContainerRef)
+	_ = d.Set("load_balancer_id", listener.LoadBalancers[0].ID)
 	return nil
 }
 
@@ -99,7 +99,7 @@ func resourceBizFlyCloudLoadBalancerListenerUpdate(d *schema.ResourceData, meta 
 	}
 	_, err := client.Listener.Update(context.Background(), d.Id(), &lur)
 	if err != nil {
-		return fmt.Errorf("Error when updating listener: %v")
+		return fmt.Errorf("Error when updating listener: %v", err)
 	}
 	return resourceBizFlyCloudLoadBalancerListenerRead(d, meta)
 }

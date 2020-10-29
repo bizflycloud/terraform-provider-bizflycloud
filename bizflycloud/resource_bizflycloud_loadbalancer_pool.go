@@ -165,7 +165,10 @@ func resourceBizFlyCloudLoadBalancerPoolCreate(d *schema.ResourceData, meta inte
 		}
 	}
 	// create health monitor
-	createHealthMonitor(client, d.Get("health_monitor").([]interface{}), pool.ID)
+	err = createHealthMonitor(client, d.Get("health_monitor").([]interface{}), pool.ID)
+	if err != nil {
+		return err
+	}
 
 	return resourceBizFlyCloudLoadBalancerPoolRead(d, meta)
 }
@@ -214,7 +217,10 @@ func resourceBizFlyCloudLoadBalancerPoolUpdate(d *schema.ResourceData, meta inte
 			healthMonitor := healthMonitors[0].(map[string]interface{})
 			// if health monitor is not created, create a new one
 			if healthMonitor["id"].(string) == "" {
-				createHealthMonitor(client, d.Get("health_monitor").([]interface{}), d.Id())
+				err := createHealthMonitor(client, d.Get("health_monitor").([]interface{}), d.Id())
+				if err != nil {
+					return err
+				}
 			} else {
 				hm, err := client.HealthMonitor.Get(context.Background(), healthMonitor["id"].(string))
 				if err != nil {
@@ -255,7 +261,7 @@ func resourceBizFlyCloudLoadBalancerPoolUpdate(d *schema.ResourceData, meta inte
 				_, _ = waitLoadbalancerActiveProvisioningStatus(client, d.Id(), poolResource)
 				err := client.Member.Delete(context.Background(), d.Id(), member.ID)
 				if err != nil {
-					fmt.Errorf("Error when delete old member")
+					return fmt.Errorf("Error when delete old member: %v", err)
 				}
 			}
 			for _, m := range mcr {
@@ -275,11 +281,11 @@ func resourceBizFlyCloudLoadBalancerPoolRead(d *schema.ResourceData, meta interf
 	if err != nil {
 		return fmt.Errorf("Error when retrieving load balancer pool: %v", err)
 	}
-	d.Set("name", pool.Name)
-	d.Set("algorithm", pool.LBAlgorithm)
-	d.Set("description", pool.Description)
-	d.Set("protocol", pool.Protocol)
-	d.Set("load_balancer_id", pool.LoadBalancers[0].ID)
+	_ = d.Set("name", pool.Name)
+	_ = d.Set("algorithm", pool.LBAlgorithm)
+	_ = d.Set("description", pool.Description)
+	_ = d.Set("protocol", pool.Protocol)
+	_ = d.Set("load_balancer_id", pool.LoadBalancers[0].ID)
 	members, err := client.Member.List(context.Background(), pool.ID, &gobizfly.ListOptions{})
 	if err != nil {
 		return fmt.Errorf("Error when getting pool member of pool: %s, %v", pool.Name, err)
