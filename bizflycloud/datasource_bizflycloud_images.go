@@ -42,11 +42,11 @@ func dataSourceBizFlyCloudImageRead(d *schema.ResourceData, meta interface{}) er
 	version, okVer := d.GetOk("version")
 	if okDist && okVer {
 		for _, image := range osImages {
-			if strings.ToLower(image.OSDistribution) != strings.ToLower(distribution.(string)) {
+			if !strings.EqualFold(strings.ToLower(image.OSDistribution), strings.ToLower(distribution.(string))) {
 				continue
 			}
 			for _, v := range image.Version {
-				if strings.ToLower(v.Name) != strings.ToLower(version.(string)) {
+				if !strings.EqualFold(strings.ToLower(v.Name), strings.ToLower(version.(string))) {
 					continue
 				}
 				d.SetId(v.ID)
