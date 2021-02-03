@@ -76,6 +76,10 @@ func resourceBizFlyCloudAutoscalingScaleInPolicyCreate(d *schema.ResourceData, m
 
 	if d.Get("metric_type").(string) == requestPerSecond {
 		policies, err := client.AutoScaling.Policies().List(context.Background(), clusterID)
+		if err != nil {
+			return fmt.Errorf("[ERROR] errors when create scale in policy for cluster: %s, error: %s", clusterID, err)
+		}
+
 		lb := policies.LoadBalancerPolicyInformations
 
 		lbpcr := &gobizfly.LoadBalancersPolicyCreateRequest{
@@ -143,6 +147,10 @@ func resourceBizFlyCloudAutoscalingScaleInPolicyUpdate(d *schema.ResourceData, m
 
 	if d.Get("metric_type").(string) == requestPerSecond {
 		policies, err := client.AutoScaling.Policies().List(context.Background(), clusterID)
+		if err != nil {
+			return fmt.Errorf("[ERROR] errors when update scale in policy for cluster: %s, error: %s", clusterID, err)
+		}
+
 		lb := policies.LoadBalancerPolicyInformations
 
 		lbpur := &gobizfly.LoadBalancersPolicyUpdateRequest{
@@ -201,6 +209,10 @@ func resourceBizFlyCloudAutoscalingScaleOutPolicyCreate(d *schema.ResourceData, 
 
 	if d.Get("metric_type").(string) == requestPerSecond {
 		policies, err := client.AutoScaling.Policies().List(context.Background(), clusterID)
+		if err != nil {
+			return fmt.Errorf("[ERROR] errors when create scale out policy for cluster: %s, error: %s", clusterID, err)
+		}
+
 		lb := policies.LoadBalancerPolicyInformations
 
 		lbpcr := &gobizfly.LoadBalancersPolicyCreateRequest{
@@ -268,6 +280,10 @@ func resourceBizFlyCloudAutoscalingScaleOutPolicyUpdate(d *schema.ResourceData, 
 
 	if d.Get("metric_type").(string) == requestPerSecond {
 		policies, err := client.AutoScaling.Policies().List(context.Background(), clusterID)
+		if err != nil {
+			return fmt.Errorf("[ERROR] errors when update scale out policy for cluster: %s, error: %s", clusterID, err)
+		}
+
 		lb := policies.LoadBalancerPolicyInformations
 
 		lbpur := &gobizfly.LoadBalancersPolicyUpdateRequest{
