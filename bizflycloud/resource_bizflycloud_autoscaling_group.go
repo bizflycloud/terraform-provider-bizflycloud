@@ -138,6 +138,12 @@ func resourceBizFlyCloudAutoscalingGroupUpdate(d *schema.ResourceData, meta inte
 func resourceBizFlyCloudAutoscalingGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
+	// Wait to delete
+	_, err = waitForAutoScalingGroupReady(d, meta)
+	if err != nil {
+		return fmt.Errorf("[ERROR] deleting auto scaling group (%s) failed: %s", d.Get("name").(string), err)
+	}
+
 	err := client.AutoScaling.AutoScalingGroups().Delete(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("Error delete auto scaling group %v", err)
