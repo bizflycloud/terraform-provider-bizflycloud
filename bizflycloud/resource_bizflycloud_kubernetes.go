@@ -42,44 +42,12 @@ func resourceBizFlyKubernetes() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"flavor": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"profile_type": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"volume_type": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"volume_size": {
-				Type:     schema.TypeInt,
-				Required: true,
-			},
-			"availability_zone": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"desired_size": {
-				Type:     schema.TypeInt,
-				Required: true,
-			},
 			"enable_autoscaling": {
 				Type:     schema.TypeBool,
 				Required: true,
 			},
-			"min_size": {
-				Type:     schema.TypeInt,
-				Required: true,
-			},
-			"max_size": {
-				Type:     schema.TypeInt,
-				Required: true,
-			},
 			"tags": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Required: true,
 			},
@@ -91,7 +59,15 @@ func resourceBizFlyKubernetes() *schema.Resource {
 				Type:     schema.TypeBool,
 				Required: true,
 			},
-			"worker_pool_name": {
+			"status": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"create_at": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"created_by": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -99,6 +75,10 @@ func resourceBizFlyKubernetes() *schema.Resource {
 				Type:     schema.TypeList,
 				Required: true,
 				Elem:     &schema.Resource{Schema: workerPoolSchema()},
+			},
+			"worker_pools_count": {
+				Type:     schema.TypeInt,
+				Required: true,
 			},
 		},
 	}
@@ -193,7 +173,6 @@ func resourceBizFlyCloudClusterRead(d *schema.ResourceData, meta interface{}) er
 		}
 		return fmt.Errorf("Error retrieved cluster: %v", err)
 	}
-	d.Set("cluster_id", cluster.UID)
 	d.Set("name", cluster.Name)
 	d.Set("version", cluster.Version)
 	d.Set("status", cluster.ClusterStatus)
