@@ -100,7 +100,7 @@ func resourceBizFlyCloudAutoscalingScaleInPolicyCreate(d *schema.ResourceData, m
 			return fmt.Errorf("[ERROR] errors when create scale in policy for cluster: %s, error: %s", clusterID, err)
 		}
 
-		d.Set("task_id", task.TaskID)
+		_ = d.Set("task_id", task.TaskID)
 	} else {
 
 		pcr := &gobizfly.PolicyCreateRequest{
@@ -117,7 +117,7 @@ func resourceBizFlyCloudAutoscalingScaleInPolicyCreate(d *schema.ResourceData, m
 			return fmt.Errorf("[ERROR] errors when create scale in policy for cluster: %s, error: %s", clusterID, err)
 		}
 
-		d.Set("task_id", task.TaskID)
+		_ = d.Set("task_id", task.TaskID)
 	}
 
 	_, err := waitForAutoScalingGroupPolicyReady(d, meta)
@@ -171,7 +171,7 @@ func resourceBizFlyCloudAutoscalingScaleInPolicyUpdate(d *schema.ResourceData, m
 			return fmt.Errorf("[ERROR] errors when update scale in policy for cluster: %s, error: %s", clusterID, err)
 		}
 
-		d.Set("task_id", task.TaskID)
+		_ = d.Set("task_id", task.TaskID)
 	} else {
 
 		pur := &gobizfly.PolicyUpdateRequest{
@@ -188,7 +188,7 @@ func resourceBizFlyCloudAutoscalingScaleInPolicyUpdate(d *schema.ResourceData, m
 			return fmt.Errorf("[ERROR] errors when update scale in policy for cluster: %s, error: %s", clusterID, err)
 		}
 
-		d.Set("task_id", task.TaskID)
+		_ = d.Set("task_id", task.TaskID)
 	}
 
 	_, err := waitForAutoScalingGroupPolicyReady(d, meta)
@@ -233,7 +233,7 @@ func resourceBizFlyCloudAutoscalingScaleOutPolicyCreate(d *schema.ResourceData, 
 			return fmt.Errorf("[ERROR] errors when create scale out policy for cluster: %s, error: %s", clusterID, err)
 		}
 
-		d.Set("task_id", task.TaskID)
+		_ = d.Set("task_id", task.TaskID)
 	} else {
 
 		pcr := &gobizfly.PolicyCreateRequest{
@@ -250,7 +250,7 @@ func resourceBizFlyCloudAutoscalingScaleOutPolicyCreate(d *schema.ResourceData, 
 			return fmt.Errorf("[ERROR] errors when create scale out policy for cluster: %s, error: %s", clusterID, err)
 		}
 
-		d.Set("task_id", task.TaskID)
+		_ = d.Set("task_id", task.TaskID)
 	}
 
 	_, err := waitForAutoScalingGroupPolicyReady(d, meta)
@@ -304,7 +304,7 @@ func resourceBizFlyCloudAutoscalingScaleOutPolicyUpdate(d *schema.ResourceData, 
 			return fmt.Errorf("[ERROR] errors when update scale out policy for cluster: %s, error: %s", clusterID, err)
 		}
 
-		d.Set("task_id", task.TaskID)
+		_ = d.Set("task_id", task.TaskID)
 	} else {
 
 		pur := &gobizfly.PolicyUpdateRequest{
@@ -321,7 +321,7 @@ func resourceBizFlyCloudAutoscalingScaleOutPolicyUpdate(d *schema.ResourceData, 
 			return fmt.Errorf("[ERROR] errors when update scale out policy for cluster: %s, error: %s", clusterID, err)
 		}
 
-		d.Set("task_id", task.TaskID)
+		_ = d.Set("task_id", task.TaskID)
 	}
 
 	_, err := waitForAutoScalingGroupPolicyReady(d, meta)
