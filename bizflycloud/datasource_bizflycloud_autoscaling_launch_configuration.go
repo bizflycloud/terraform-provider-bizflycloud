@@ -54,14 +54,14 @@ func dataBizFlyCloudAutoScalingLaunchConfigurationRead(d *schema.ResourceData, m
 	log.Printf("[DEBUG] bizflycloud_autoscaling_launch_configuration - Single Launch Configuration found: %s", profile.Name)
 
 	d.SetId(profile.ID)
-	d.Set("availability_zone", profile.AvailabilityZone)
-	d.Set("flavor", profile.Flavor)
-	d.Set("name", profile.Name)
-	d.Set("network_plan", profile.NetworkPlan)
-	d.Set("instance_type", profile.ProfileType)
-	d.Set("key_name", profile.SSHKey)
-	d.Set("status", profile.Status)
-	d.Set("user_data", profile.UserData)
+	_ = d.Set("availability_zone", profile.AvailabilityZone)
+	_ = d.Set("flavor", profile.Flavor)
+	_ = d.Set("name", profile.Name)
+	_ = d.Set("network_plan", profile.NetworkPlan)
+	_ = d.Set("instance_type", profile.ProfileType)
+	_ = d.Set("key_name", profile.SSHKey)
+	_ = d.Set("status", profile.Status)
+	_ = d.Set("user_data", profile.UserData)
 
 	if err := d.Set("data_disks", getDataDisks(profile.DataDisks)); err != nil {
 		return fmt.Errorf("error setting data_disks: %w", err)

@@ -76,7 +76,7 @@ func resourceBizFlyCloudAutoscalingGroupCreate(d *schema.ResourceData, meta inte
 	log.Printf("[DEBUG] creating auto scaling group with task %s", task.TaskID)
 
 	d.SetId(task.ID)
-	d.Set("task_id", task.TaskID)
+	_ = d.Set("task_id", task.TaskID)
 
 	// wait for auto scaling group to become active
 	_, err = waitForAutoScalingGroupReady(d, meta)
@@ -124,7 +124,7 @@ func resourceBizFlyCloudAutoscalingGroupUpdate(d *schema.ResourceData, meta inte
 
 	log.Printf("[DEBUG] updating auto scaling group with task %s", task.TaskID)
 	d.SetId(task.ID)
-	d.Set("task_id", task.TaskID)
+	_ = d.Set("task_id", task.TaskID)
 
 	// wait for auto scaling group to become active
 	_, err = waitForAutoScalingGroupReady(d, meta)
@@ -177,7 +177,7 @@ func newStateRefreshfunc(d *schema.ResourceData, attribute string, meta interfac
 			return nil, "", err
 		}
 
-		if attr, ok := d.GetOkExists(attribute); ok {
+		if attr, ok := d.GetOk(attribute); ok {
 			asg, err := client.AutoScaling.AutoScalingGroups().Get(context.Background(), d.Id())
 			if err != nil {
 				return nil, "", fmt.Errorf("Error retrieving auto scaling group: %v", err)
