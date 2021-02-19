@@ -54,14 +54,14 @@ func dataSourceBizFlyCloudAutoScalingGroupRead(d *schema.ResourceData, meta inte
 	log.Printf("[DEBUG] bizflycloud_autoscaling_group - Single Auto Scaling Group found: %s", group.Name)
 
 	d.SetId(group.ID)
-	d.Set("desired_capacity", group.DesiredCapacity)
-	d.Set("launch_configuration_id", group.ProfileID)
-	d.Set("launch_configuration_name", group.ProfileName)
-	d.Set("max_size", group.MaxSize)
-	d.Set("min_size", group.MinSize)
-	d.Set("name", group.Name)
-	d.Set("node_ids", group.NodeIDs)
-	d.Set("status", group.Status)
+	_ = d.Set("desired_capacity", group.DesiredCapacity)
+	_ = d.Set("launch_configuration_id", group.ProfileID)
+	_ = d.Set("launch_configuration_name", group.ProfileName)
+	_ = d.Set("max_size", group.MaxSize)
+	_ = d.Set("min_size", group.MinSize)
+	_ = d.Set("name", group.Name)
+	_ = d.Set("node_ids", group.NodeIDs)
+	_ = d.Set("status", group.Status)
 
 	if err := d.Set("load_balancers", readLoadBalancerInfo(group.LoadBalancerPolicyInformations)); err != nil {
 		return fmt.Errorf("error setting load_balancers: %w", err)

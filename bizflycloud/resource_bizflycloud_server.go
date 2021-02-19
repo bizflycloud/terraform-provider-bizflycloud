@@ -360,7 +360,7 @@ func newServerStateRefreshfunc(d *schema.ResourceData, attribute string, meta in
 			return nil, "", err
 		}
 
-		if attr, ok := d.GetOkExists(attribute); ok { // nolint
+		if attr, ok := d.GetOk(attribute); ok { // nolint
 			server, err := client.Server.Get(context.Background(), resp.Result.Server.ID)
 			if err != nil {
 				return nil, "", fmt.Errorf("Error retrieving cloud server: %v", err)
@@ -393,7 +393,7 @@ func updateServerStateRefreshfunc(d *schema.ResourceData, attribute string, meta
 		if err != nil {
 			return nil, "", err
 		}
-		if attr, ok := d.GetOkExists(attribute); ok { // nolint
+		if attr, ok := d.GetOk(attribute); ok { // nolint
 			server, err := client.Server.Get(context.Background(), d.Id())
 			if err != nil {
 				return nil, "", fmt.Errorf("Error retrieving cloud server: %v", err)
