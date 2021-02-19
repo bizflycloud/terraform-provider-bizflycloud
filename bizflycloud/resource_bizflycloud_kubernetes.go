@@ -172,12 +172,12 @@ func resourceBizFlyClusterCreate(d *schema.ResourceData, meta interface{}) error
 	log.Printf("[DEBUG] Create Cluster configuration: %#v\n", ccrq)
 	cluster, err := client.KubernetesEngine.Create(context.Background(), ccrq)
 	if err != nil {
-		fmt.Errorf("Error creating cluster: %v", err)
+		return fmt.Errorf("Error creating cluster: %v", err)
 	}
 	d.SetId(cluster.UID)
 	err = resourceBizFlyCloudClusterRead(d, meta)
 	if err != nil {
-		fmt.Errorf("Error retrieving cluster: %v", err)
+		return fmt.Errorf("Error retrieving cluster: %v", err)
 	}
 	return nil
 }
@@ -209,7 +209,7 @@ func resourceBizFlyCloudClusterDelete(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*CombinedConfig).gobizflyClient()
 	err := client.KubernetesEngine.Delete(context.Background(), d.Id())
 	if err != nil {
-		fmt.Errorf("Error delete cluster: %v", err)
+		return fmt.Errorf("Error delete cluster: %v", err)
 	}
 	return nil
 }
@@ -218,7 +218,7 @@ func resourceBizFlyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*CombinedConfig).gobizflyClient()
 	cluster, err := client.KubernetesEngine.Get(context.Background(), d.Get("cluster_id").(string))
 	if err != nil {
-		fmt.Errorf("Error update cluster: %v", err)
+		return fmt.Errorf("Error update cluster: %v", err)
 	}
 	if d.HasChange("worker_pools") {
 		newPools := d.Get("worker_pools").([]gobizfly.WorkerPool)
@@ -239,14 +239,14 @@ func resourceBizFlyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 		_, err := client.KubernetesEngine.AddWorkerPools(context.Background(), d.Id(), awrq)
 		if err != nil {
-			fmt.Errorf("Error add pool: %v", err)
+			return fmt.Errorf("Error add pool: %v", err)
 		}
 
 		for _, pool := range cluster.WorkerPools {
-			if isOldPool[pool.Name] == true && isNewPool[pool.Name] == false {
+			if isOldPool[pool.Name] && !isNewPool[pool.Name] {
 				err := client.KubernetesEngine.DeleteClusterWorkerPool(context.Background(), d.Id(), pool.UID)
 				if err != nil {
-					fmt.Errorf("Error delete pool: %v", err)
+					return fmt.Errorf("Error delete pool: %v", err)
 				}
 			}
 		}

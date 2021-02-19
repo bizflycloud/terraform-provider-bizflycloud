@@ -61,7 +61,7 @@ func testAccCheckBizFlyCloudClusterExists(n string, cluster *gobizfly.FullCluste
 			return fmt.Errorf("Not found: %s", n)
 		}
 		if rs.Primary.ID == "" {
-			fmt.Errorf("No cluster ID is set")
+			return fmt.Errorf("No cluster ID is set: %s", rs.Primary.ID)
 		}
 		client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
 		retrieveCluster, err := client.KubernetesEngine.Get(context.Background(), rs.Primary.ID)
