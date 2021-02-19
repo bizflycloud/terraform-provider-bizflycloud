@@ -78,6 +78,7 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_loadbalancer":          resourceBizFlyCloudLoadBalancer(),
 			"bizflycloud_loadbalancer_listener": resourceBizFlyCloudLoadBalancerListener(),
 			"bizflycloud_loadbalancer_pool":     resourceBizFlyCloudLoadBalancerPool(),
+			"bizflycloud_kubernetes":            resourceBizFlyKubernetes(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"bizflycloud_image": datasourceBizFlyCloudImages(),
