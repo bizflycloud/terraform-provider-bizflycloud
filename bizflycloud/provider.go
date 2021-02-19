@@ -82,7 +82,7 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_autoscaling_scalein_policy":       resourceBizFlyCloudAutoscalingScaleInPolicy(),
 			"bizflycloud_autoscaling_scaleout_policy":      resourceBizFlyCloudAutoscalingScaleOutPolicy(),
 			"bizflycloud_autoscaling_launch_configuration": resourceBizFlyCloudAutoscalingLaunchConfiguration(),
-			"bizflycloud_kubernetes":            resourceBizFlyKubernetes(),
+			"bizflycloud_kubernetes":                       resourceBizFlyKubernetes(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"bizflycloud_image":                            datasourceBizFlyCloudImages(),
