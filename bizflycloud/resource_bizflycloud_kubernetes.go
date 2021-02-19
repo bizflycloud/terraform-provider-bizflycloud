@@ -26,7 +26,7 @@ import (
 	"log"
 )
 
-func resourceBizFlyKubernetes() *schema.Resource {
+func resourceBizFlyCloudKubernetes() *schema.Resource {
 	return &schema.Resource{
 		Create:        resourceBizFlyClusterCreate,
 		Read:          resourceBizFlyCloudClusterRead,
@@ -61,15 +61,15 @@ func resourceBizFlyKubernetes() *schema.Resource {
 			},
 			"status": {
 				Type:     schema.TypeString,
-				Required: true,
+				Computed: true,
 			},
 			"create_at": {
 				Type:     schema.TypeString,
-				Required: true,
+				Computed: true,
 			},
 			"created_by": {
 				Type:     schema.TypeString,
-				Required: true,
+				Computed: true,
 			},
 			"worker_pools": {
 				Type:     schema.TypeList,
@@ -78,7 +78,7 @@ func resourceBizFlyKubernetes() *schema.Resource {
 			},
 			"worker_pools_count": {
 				Type:     schema.TypeInt,
-				Required: true,
+				Computed: true,
 			},
 		},
 	}
@@ -173,14 +173,14 @@ func resourceBizFlyCloudClusterRead(d *schema.ResourceData, meta interface{}) er
 		}
 		return fmt.Errorf("Error retrieved cluster: %v", err)
 	}
-	d.Set("name", cluster.Name)
-	d.Set("version", cluster.Version)
-	d.Set("status", cluster.ClusterStatus)
-	d.Set("auto_upgrade", cluster.AutoUpgrade)
-	d.Set("worker_pools_count", cluster.WorkerPoolsCount)
-	d.Set("create_at", cluster.CreatedAt)
-	d.Set("created_by", cluster.CreatedBy)
-	d.Set("worker_pools", cluster.WorkerPools)
+	_ = d.Set("name", cluster.Name)
+	_ = d.Set("version", cluster.Version)
+	_ = d.Set("status", cluster.ClusterStatus)
+	_ = d.Set("auto_upgrade", cluster.AutoUpgrade)
+	_ = d.Set("worker_pools_count", cluster.WorkerPoolsCount)
+	_ = d.Set("create_at", cluster.CreatedAt)
+	_ = d.Set("created_by", cluster.CreatedBy)
+	_ = d.Set("worker_pools", cluster.WorkerPools)
 	return nil
 }
 
