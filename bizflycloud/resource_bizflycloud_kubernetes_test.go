@@ -29,8 +29,8 @@ import (
 )
 
 func init() {
-	resource.AddTestSweepers("bizflycloud_kubernets", &resource.Sweeper{
-		Name: "bizflycloud_kubernets",
+	resource.AddTestSweepers("bizflycloud_kubernetes", &resource.Sweeper{
+		Name: "bizflycloud_kubernetes",
 	})
 }
 
@@ -45,10 +45,10 @@ func TestAccBizFlyCloudCluster(t *testing.T) {
 			{
 				Config: testAccBizFlyCloudClusterConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBizFlyCloudClusterExists("bizflycloud_kubernets.xyz", &cluster),
+					testAccCheckBizFlyCloudClusterExists("bizflycloud_kubernetes.xyz", &cluster),
 					testAccCheckBizFlyCloudClusterAttributes(&cluster),
 					resource.TestCheckResourceAttr(
-						"bizflycloud_kubernets.xyz", "name", fmt.Sprintf("foo-%d", rInt)),
+						"bizflycloud_kubernetes.xyz", "name", fmt.Sprintf("foo-%d", rInt)),
 				),
 			},
 		},
@@ -92,7 +92,7 @@ func testAccCheckBizFlyCloudClusterDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "bizflycloud_kubernets" {
+		if rs.Type != "bizflycloud_kubernetes" {
 			continue
 		}
 
@@ -108,7 +108,7 @@ func testAccCheckBizFlyCloudClusterDestroy(s *terraform.State) error {
 
 func testAccBizFlyCloudClusterConfig(rInt int) string {
 	return fmt.Sprintf(`
-resource "bizflycloud_kubernets" "xyz" {
+resource "bizflycloud_kubernetes" "xyz" {
 	name = "foo-%d"
 	version = "5f6425f3d0d3befd40e7a31f"
 	auto_upgrade = false

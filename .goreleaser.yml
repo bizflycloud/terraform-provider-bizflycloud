@@ -14,7 +14,7 @@ builds:
     flags:
       - -trimpath
     ldflags:
-      - '-s -w -X main.version={{.Version}} -X main.commit={{.Commit}}'
+      - '-s -w -X terraform-provider-bizflycloud_v0.0.5.version={{.Version}} -X terraform-provider-bizflycloud_v0.0.5.commit={{.Commit}}'
     goos:
       - freebsd
       - windows

@@ -28,10 +28,13 @@ import (
 
 func resourceBizFlyCloudKubernetes() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceBizFlyClusterCreate,
-		Read:          resourceBizFlyCloudClusterRead,
-		Delete:        resourceBizFlyCloudClusterDelete,
-		Update:        resourceBizFlyCloudClusterUpdate,
+		Create: resourceBizFlyClusterCreate,
+		Read:   resourceBizFlyCloudClusterRead,
+		Delete: resourceBizFlyCloudClusterDelete,
+		Update: resourceBizFlyCloudClusterUpdate,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -49,15 +52,7 @@ func resourceBizFlyCloudKubernetes() *schema.Resource {
 			"tags": {
 				Type:     schema.TypeList,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Required: true,
-			},
-			"auto_upgrade": {
-				Type:     schema.TypeBool,
-				Required: true,
-			},
-			"enable_cloud": {
-				Type:     schema.TypeBool,
-				Required: true,
+				Optional: true,
 			},
 			"status": {
 				Type:     schema.TypeString,
@@ -87,10 +82,6 @@ func resourceBizFlyCloudKubernetes() *schema.Resource {
 func workerPoolSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
-			Type:     schema.TypeString,
-			Required: true,
-		},
-		"version": {
 			Type:     schema.TypeString,
 			Required: true,
 		},
@@ -144,10 +135,8 @@ func resourceBizFlyClusterCreate(d *schema.ResourceData, meta interface{}) error
 	ccrq := &gobizfly.ClusterCreateRequest{
 		Name:        d.Get("name").(string),
 		Version:     d.Get("version").(string),
-		AutoUpgrade: d.Get("auto_upgrade").(bool),
-		EnableCloud: d.Get("enable_cloud").(bool),
 		Tags:        d.Get("tags").([]string),
-		WorkerPools: d.Get("worker_pools").([]gobizfly.WorkerPool),
+		WorkerPools: readWorkerPoolFromConfig(d),
 	}
 	log.Printf("[DEBUG] Create Cluster configuration: %#v\n", ccrq)
 	cluster, err := client.KubernetesEngine.Create(context.Background(), ccrq)
@@ -155,11 +144,7 @@ func resourceBizFlyClusterCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error creating cluster: %v", err)
 	}
 	d.SetId(cluster.UID)
-	err = resourceBizFlyCloudClusterRead(d, meta)
-	if err != nil {
-		return fmt.Errorf("Error retrieving cluster: %v", err)
-	}
-	return nil
+	return resourceBizFlyCloudClusterRead(d, meta)
 }
 
 func resourceBizFlyCloudClusterRead(d *schema.ResourceData, meta interface{}) error {
@@ -200,7 +185,7 @@ func resourceBizFlyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error update cluster: %v", err)
 	}
 	if d.HasChange("worker_pools") {
-		newPools := d.Get("worker_pools").([]gobizfly.WorkerPool)
+		newPools := readWorkerPoolFromConfig(d)
 		addPools := make([]gobizfly.WorkerPool, 0)
 		isOldPool := make(map[string]bool)
 		isNewPool := make(map[string]bool)
@@ -213,12 +198,14 @@ func resourceBizFlyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 				addPools = append(addPools, pool)
 			}
 		}
-		awrq := &gobizfly.AddWorkerPoolsRequest{
-			WorkerPools: addPools,
-		}
-		_, err := client.KubernetesEngine.AddWorkerPools(context.Background(), d.Id(), awrq)
-		if err != nil {
-			return fmt.Errorf("Error add pool: %v", err)
+		if len(addPools) > 0 {
+			awrq := &gobizfly.AddWorkerPoolsRequest{
+				WorkerPools: addPools,
+			}
+			_, err := client.KubernetesEngine.AddWorkerPools(context.Background(), d.Id(), awrq)
+			if err != nil {
+				return fmt.Errorf("Error add pool: %v", err)
+			}
 		}
 
 		for _, pool := range cluster.WorkerPools {
@@ -231,4 +218,26 @@ func resourceBizFlyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 	return resourceBizFlyCloudClusterRead(d, meta)
+}
+
+func readWorkerPoolFromConfig(l *schema.ResourceData) []gobizfly.WorkerPool {
+	pools := make([]gobizfly.WorkerPool, 0)
+	for i := 0; i < len(l.Get("worker_pools").([]interface{})); i++ {
+		pattern := fmt.Sprintf("worker_pools.%d.", i)
+		pool := gobizfly.WorkerPool{
+			Name:              l.Get(pattern + "name").(string),
+			Flavor:            l.Get(pattern + "flavor").(string),
+			ProfileType:       l.Get(pattern + "profile_type").(string),
+			VolumeType:        l.Get(pattern + "volume_type").(string),
+			VolumeSize:        l.Get(pattern + "volume_size").(int),
+			AvailabilityZone:  l.Get(pattern + "availability_zone").(string),
+			DesiredSize:       l.Get(pattern + "desired_size").(int),
+			EnableAutoScaling: l.Get(pattern + "enable_autoscaling").(bool),
+			MinSize:           l.Get(pattern + "min_size").(int),
+			MaxSize:           l.Get(pattern + "max_size").(int),
+			Tags:              l.Get(pattern + "tags").([]string),
+		}
+		pools = append(pools, pool)
+	}
+	return pools
 }
