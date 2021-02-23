@@ -91,7 +91,7 @@ func workerPoolSchema() map[string]*schema.Schema {
 		},
 		"volume_type": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Required: true,
 		},
 		"volume_size": {
 			Type:     schema.TypeInt,
@@ -107,15 +107,15 @@ func workerPoolSchema() map[string]*schema.Schema {
 		},
 		"enable_autoscaling": {
 			Type:     schema.TypeBool,
-			Required: true,
+			Optional: true,
 		},
 		"min_size": {
 			Type:     schema.TypeInt,
-			Required: true,
+			Optional: true,
 		},
 		"max_size": {
 			Type:     schema.TypeInt,
-			Required: true,
+			Optional: true,
 		},
 		"tags": {
 			Type:     schema.TypeList,
@@ -166,7 +166,6 @@ func resourceBizFlyCloudClusterRead(d *schema.ResourceData, meta interface{}) er
 	}
 	_ = d.Set("name", cluster.Name)
 	_ = d.Set("vpc_network_id", cluster.VPCNetworkID)
-	_ = d.Set("auto_upgrade", cluster.AutoUpgrade)
 	_ = d.Set("worker_pools_count", cluster.WorkerPoolsCount)
 	_ = d.Set("create_at", cluster.CreatedAt)
 	_ = d.Set("created_by", cluster.CreatedBy)

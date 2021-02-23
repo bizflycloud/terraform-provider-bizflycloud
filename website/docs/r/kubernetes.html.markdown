@@ -73,12 +73,12 @@ The following arguments are supported:
   * `name` - (Required) The worker pool name
   * `flavor` - (Required) The flavor of pool
   * `profile_type` - (Required) The profile type of pool
-  * `volume_type` - (Optional) The volume type
-  * `volume_size` - (Optional) The volume size
+  * `volume_type` - (Required) The volume type
+  * `volume_size` - (Required) The volume size
   * `availability_zone` - (Required) The availability zone
-  * `enable_autoscaling` - (Required) Enable auto scaling or not
-  * `min_size` - (Required) The number of the minimum node
-  * `max_size` - (Required) The number of the maximum node
+  * `enable_autoscaling` - (Optional) Enable auto scaling or not
+  * `min_size` - (Optional) The number of the minimum node
+  * `max_size` - (Optional) The number of the maximum node
   * `tags` - (Optional) The tags of the pool
   
 
