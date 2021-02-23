@@ -45,19 +45,6 @@ func resourceBizFlyCloudKubernetes() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"enable_autoscaling": {
-				Type:     schema.TypeBool,
-				Required: true,
-			},
-			"tags": {
-				Type:     schema.TypeList,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Optional: true,
-			},
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"create_at": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -74,6 +61,15 @@ func resourceBizFlyCloudKubernetes() *schema.Resource {
 			"worker_pools_count": {
 				Type:     schema.TypeInt,
 				Computed: true,
+			},
+			"tags": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"vpc_network_id": {
+				Type:     schema.TypeString,
+				Required: true,
 			},
 		},
 	}
@@ -101,11 +97,11 @@ func workerPoolSchema() map[string]*schema.Schema {
 			Type:     schema.TypeInt,
 			Required: true,
 		},
-		"available_zone": {
+		"availability_zone": {
 			Type:     schema.TypeString,
 			Required: true,
 		},
-		"desire_size": {
+		"desired_size": {
 			Type:     schema.TypeInt,
 			Required: true,
 		},
@@ -132,23 +128,33 @@ func resourceBizFlyClusterCreate(d *schema.ResourceData, meta interface{}) error
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	// Build up creation options
+	tags := make([]string, 0)
+	for j := 0; j < len(d.Get("tags").([]interface{})); j++ {
+		tagPattern := fmt.Sprintf("tags.%d", j)
+		tags = append(tags, d.Get(tagPattern).(string))
+	}
+
+	log.Println("[DEBUG] creating cluster")
 	ccrq := &gobizfly.ClusterCreateRequest{
-		Name:        d.Get("name").(string),
-		Version:     d.Get("version").(string),
-		Tags:        d.Get("tags").([]string),
-		WorkerPools: readWorkerPoolFromConfig(d),
+		Name:         d.Get("name").(string),
+		Version:      d.Get("version").(string),
+		VPCNetworkID: d.Get("vpc_network_id").(string),
+		WorkerPools:  readWorkerPoolFromConfig(d),
+		Tags:         tags,
 	}
 	log.Printf("[DEBUG] Create Cluster configuration: %#v\n", ccrq)
 	cluster, err := client.KubernetesEngine.Create(context.Background(), ccrq)
 	if err != nil {
 		return fmt.Errorf("Error creating cluster: %v", err)
 	}
+	log.Println("[DEBUG] set id " + cluster.UID)
 	d.SetId(cluster.UID)
 	return resourceBizFlyCloudClusterRead(d, meta)
 }
 
 func resourceBizFlyCloudClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
+	log.Printf("[DEBUG] cluster ID %s", d.Id())
 	cluster, err := client.KubernetesEngine.Get(context.Background(), d.Id())
 	if err != nil {
 		if errors.Is(err, gobizfly.ErrNotFound) {
@@ -159,8 +165,7 @@ func resourceBizFlyCloudClusterRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error retrieved cluster: %v", err)
 	}
 	_ = d.Set("name", cluster.Name)
-	_ = d.Set("version", cluster.Version)
-	_ = d.Set("status", cluster.ClusterStatus)
+	_ = d.Set("vpc_network_id", cluster.VPCNetworkID)
 	_ = d.Set("auto_upgrade", cluster.AutoUpgrade)
 	_ = d.Set("worker_pools_count", cluster.WorkerPoolsCount)
 	_ = d.Set("create_at", cluster.CreatedAt)
@@ -180,7 +185,7 @@ func resourceBizFlyCloudClusterDelete(d *schema.ResourceData, meta interface{}) 
 
 func resourceBizFlyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	cluster, err := client.KubernetesEngine.Get(context.Background(), d.Get("cluster_id").(string))
+	cluster, err := client.KubernetesEngine.Get(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("Error update cluster: %v", err)
 	}
@@ -193,11 +198,13 @@ func resourceBizFlyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 			isOldPool[pool.Name] = true
 		}
 		for _, pool := range newPools {
-			isNewPool[pool.Name] = true
-			if _, ok := isOldPool[pool.Name]; ok {
+			if !isOldPool[pool.Name] {
 				addPools = append(addPools, pool)
+			} else {
+				isNewPool[pool.Name] = true
 			}
 		}
+		log.Printf("[DEBUG] add Pools %v", addPools)
 		if len(addPools) > 0 {
 			awrq := &gobizfly.AddWorkerPoolsRequest{
 				WorkerPools: addPools,
@@ -207,9 +214,9 @@ func resourceBizFlyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 				return fmt.Errorf("Error add pool: %v", err)
 			}
 		}
-
 		for _, pool := range cluster.WorkerPools {
 			if isOldPool[pool.Name] && !isNewPool[pool.Name] {
+				log.Printf("[DEBUG] remove pool %v", pool)
 				err := client.KubernetesEngine.DeleteClusterWorkerPool(context.Background(), d.Id(), pool.UID)
 				if err != nil {
 					return fmt.Errorf("Error delete pool: %v", err)
@@ -224,6 +231,11 @@ func readWorkerPoolFromConfig(l *schema.ResourceData) []gobizfly.WorkerPool {
 	pools := make([]gobizfly.WorkerPool, 0)
 	for i := 0; i < len(l.Get("worker_pools").([]interface{})); i++ {
 		pattern := fmt.Sprintf("worker_pools.%d.", i)
+		tags := make([]string, 0)
+		for j := 0; j < len(l.Get("tags").([]interface{})); j++ {
+			tagPattern := pattern + fmt.Sprintf("tags.%d", j)
+			tags = append(tags, l.Get(tagPattern).(string))
+		}
 		pool := gobizfly.WorkerPool{
 			Name:              l.Get(pattern + "name").(string),
 			Flavor:            l.Get(pattern + "flavor").(string),
@@ -235,7 +247,7 @@ func readWorkerPoolFromConfig(l *schema.ResourceData) []gobizfly.WorkerPool {
 			EnableAutoScaling: l.Get(pattern + "enable_autoscaling").(bool),
 			MinSize:           l.Get(pattern + "min_size").(int),
 			MaxSize:           l.Get(pattern + "max_size").(int),
-			Tags:              l.Get(pattern + "tags").([]string),
+			Tags:              tags,
 		}
 		pools = append(pools, pool)
 	}
