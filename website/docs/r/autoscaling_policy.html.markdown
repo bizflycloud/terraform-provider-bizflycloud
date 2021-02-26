@@ -5,9 +5,9 @@ sidebar_current: "docs-bizflycloud-resource-autoscaling-policy"
 description: - Provide a BizFly Cloud AutoScaling Policy resource. This can be used to create, modify, and delete.
 ---
 
-# bizflycloud\_autoscaling\_scalein\_policy
-
 Provides a BizFly Cloud AutoScaling Policy resource. This can be used to create, modify, and delete.
+
+# bizflycloud\_autoscaling\_scalein\_policy
 
 ## Example
 ```hcl
@@ -21,6 +21,8 @@ resource "bizflycloud_autoscaling_scalein_policy" "name" {
 }
 
 ```
+
+# bizflycloud\_autoscaling\_scaleout\_policy
 
 ```hcl
 ### Create a new AutoScaling Scaleout Policy
@@ -37,11 +39,11 @@ resource "bizflycloud_autoscaling_scaleout_policy" "name" {
 
 The following arguments are supported:
 * `cluster_id` - (Required) The ID of AutoScaling Group
-* `cooldown` - (Required) The time between two action continuous to do scale in
+* `cooldown` - (Required) The time between two action continuous to do scale out/in
 * `metric_type` - (Required) The metric type of policy
 * `range_time` - (Required) The range time of policy when was reach to threshold value
-* `threshold` - (Required) The threshold value was using make decision to do scale in
-* `scale_size` - (Optional) The number member to do remove when to do scale in
+* `threshold` - (Required) The threshold value was using make decision to do scale out/in
+* `scale_size` - (Optional) The number member to do add/remove when to do scale out/in
 
 ### Atrributes Reference
 
@@ -56,4 +58,4 @@ The following attributes are exported:
     - `request_per_second` - The metric is type request per second of load balancer if it was configured
 * `range_time` - The range time of policy when was reach to threshold value
 * `threshold` - The threshold value was using make decision to do scale out/in
-* `scale_size` - The number member to do remove when to do scale out/in
+* `scale_size` - The number member to do add/remove when to do scale out/in

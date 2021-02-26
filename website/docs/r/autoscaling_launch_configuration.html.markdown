@@ -48,7 +48,7 @@ The following arguments are supported:
 * `availability_zone` - (Required) The availability zone where a cloud server to be allocated
 * `data_disks` - (Optional) The data disks using for cloud server
 * `flavor` - (Required) The flavor of cloud server.
-* `instance_type` - (Required) The type of a server: `basic`, `premium`, `enterprise`
+* `instance_type` - (Required) The type of a server: `basic`, `premium`, `enterprise` or `dedicated`
 * `network_plan` - (Optional) The network plan using for server: `free_datatransfer` or `free_bandwidth`
 * `networks` - (Optional) The custom network interface with security groups and choos vpc networks
     - `network_id` - (Required) The network ID using create a interface for server with security groups (firewall)
@@ -78,8 +78,8 @@ The following attributes are exported:
         - `ENTERPRISE-SSD1`
         - `DEDICATED-SSD1`
         - `DEDICATED-HDD1`
-* `flavor` - The flavor of your server. The format for flavor is `xc_yg_<type>`, `x` is number of CPU, and `y` is GB of RAM. if not found, `type` is required with values maybe: `basic` or `enterprise` and `dedicated`
-* `instance_type` - The type of a server: `basic`, `premium`, `enterprise`
+* `flavor` - The flavor of your server. The format for flavor is `xc_yg`, `x` is number of CPU, and `y` is GB of RAM.
+* `instance_type` - The type of a server: `basic`, `premium`, `enterprise` or `dedicated`
 * `network_plan` - The network plan using for server: `free_datatransfer` or `free_bandwidth`
 * `networks` - The custom network interface with security groups and choos vpc networks
     - `network_id` - The network ID using create a interface for server with security groups (firewall). Note: With public network will have ID is `wan`
