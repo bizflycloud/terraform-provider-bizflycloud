@@ -19,7 +19,7 @@ resource "bizflycloud_autoscaling_launch_configuration" "basic-centos-terrafrom"
   name              = "basic-centos-terrafrom"
   ssh_key           = "ministry"
   availability_zone = "HN1"
-  flavor            = "1c_1g_basic"
+  flavor            = "1c_1g"
   instance_type     = "basic"
   os {
     uuid        = "4cdbe57f-6ba1-4f40-a6fb-beb1ed974168"

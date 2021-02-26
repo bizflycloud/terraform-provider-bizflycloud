@@ -45,8 +45,8 @@ The following attributes are exported:
         - `ENTERPRISE-SSD1`
         - `DEDICATED-SSD1`
         - `DEDICATED-HDD1`
-* `flavor` - The flavor of cloud server. The format for flavor is `xc_yg_<type>`, `x` is number of CPU, and `y` is GB of RAM. if not found, `type` is required with values maybe: `basic` or `enterprise` and `dedicated`
-* `instance_type` - The type of a server: `basic`, `premium`, `enterprise`
+* `flavor` - The flavor of cloud server. The format for flavor is `xc_yg`, `x` is number of CPU, and `y` is GB of RAM.
+* `instance_type` - The type of a server: `basic`, `premium`, `enterprise` or `dedicated`
 * `network_plan` - The network plan using for server: `free_datatransfer` or `free_bandwidth`
 * `networks` - The custom network interface with security groups and choos vpc networks
     - `network_id` - The network ID using create a interface for server with security groups (firewall)
