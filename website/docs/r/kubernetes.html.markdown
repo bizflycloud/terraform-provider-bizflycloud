@@ -2,17 +2,18 @@
 layout: "bizflycloud"
 page_title: "BizFly Cloud: bizflycloud_kubernetes"
 sidebar_current: "docs-bizflycloud-resource-kubernetes"
-description: - Provide a BizFly Cloud Kubernetes Engine resource. This can be used to create, modify, and delete
-Clusters.
+description: |-
+  Provide a BizFly Cloud Kubernetes Engine resource. This can be used to create, modify, and delete Clusters.
 ---
 
 # bizflycloud\_kubernetes
 
 Provides a BizFly Cloud Kubernetes Engine resource. This can be used to create, modify, and delete Cluster.
 
-## Example
- ### Create a new cluster
+## Example Usage
+
 ```json
+# Create a new Cluster with two worker pools
 {
   "resource": {
     "bizflycloud_kubernetes": {
@@ -61,7 +62,7 @@ Provides a BizFly Cloud Kubernetes Engine resource. This can be used to create, 
 }
 ```
 
-### Argument Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -82,7 +83,7 @@ The following arguments are supported:
   * `tags` - (Optional) The tags of the pool
   
 
-### Atrributes Reference
+## Attributes Reference
 
 The following attributes are exported:
 
