@@ -3,9 +3,9 @@ module github.com/bizflycloud/terraform-provider-bizflycloud
 go 1.14
 
 require (
-	github.com/bizflycloud/gobizfly v0.0.0-20210223004914-2ebaf1dd2dab
+	github.com/bizflycloud/gobizfly v0.0.0-20210630071216-134d2ea9f142
 	github.com/hashicorp/terraform-plugin-sdk v1.15.0
-	github.com/kisielk/errcheck v1.4.0 // indirect
-	golang.org/x/tools v0.0.0-20200925191224-5d1fdd8fa346 // indirect
+	golang.org/x/net v0.0.0-20200822124328-c89045814202 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	k8s.io/apimachinery v0.19.2
 )
