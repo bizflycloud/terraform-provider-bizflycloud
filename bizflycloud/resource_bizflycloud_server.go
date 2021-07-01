@@ -301,16 +301,12 @@ func resourceBizFlyCloudServerDelete(d *schema.ResourceData, meta interface{}) e
 			rootDiskID = v.ID
 		}
 	}
-	err = client.Server.Delete(context.Background(), d.Id())
+	err = client.Server.Delete(context.Background(), d.Id(), []string{rootDiskID})
 	if err != nil {
 		return fmt.Errorf("Error delete cloud server %v", err)
 	}
 	// TODO check server is deleted
 	// remove rootdisk of the server
-	err = client.Volume.Delete(context.Background(), rootDiskID)
-	if err != nil {
-		return fmt.Errorf("Error deleting rootdisk of cloud server %s: %v", d.Id(), err)
-	}
 	return nil
 }
 
