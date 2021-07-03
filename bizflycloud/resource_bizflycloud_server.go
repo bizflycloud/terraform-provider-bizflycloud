@@ -125,11 +125,9 @@ func resourceBizFlyCloudServer() *schema.Resource {
 				Computed: true,
 			},
 		},
-		Importer: &schema.ResourceImporter{State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-			//TODO: Should throw error on server not found
-			err := resourceBizFlyCloudServerRead(d, meta)
-			return []*schema.ResourceData{d}, err
-		}},
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 	}
 }
 
