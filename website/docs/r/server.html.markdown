@@ -60,3 +60,11 @@ The following attributes are exported:
 * `lan_ip` - Lan IP of the server
 * `wan_ipv4` - A list of the WAN IP v4 of the server
 * `wan_ipv6` - A list of the WAN IP v6 of the server
+
+## Import
+
+BizFly Cloud SSH key resource can be imported using the SSH key name in the BizFly manage dashboard
+
+```
+$ terraform import bizflycloud_ssh_key.example ssh-key-1
+```
