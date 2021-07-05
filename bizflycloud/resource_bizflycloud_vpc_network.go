@@ -62,5 +62,10 @@ func resourceBizFlyCloudVPCNetworkUpdate(d *schema.ResourceData, meta interface{
 }
 
 func resourceBizFlyCloudVPCNetworkDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*CombinedConfig).gobizflyClient()
+	err := client.VPC.Delete(context.Background(), d.Id())
+	if err != nil {
+		return fmt.Errorf("Error delete vpc network: %v", err)
+	}
 	return nil
 }
