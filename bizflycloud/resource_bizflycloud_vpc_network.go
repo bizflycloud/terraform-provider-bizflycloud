@@ -1,6 +1,13 @@
 package bizflycloud
 
-import "github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/bizflycloud/gobizfly"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+)
 
 func resourceBizFlyCloudVPCNetwork() *schema.Resource {
 	return &schema.Resource{
@@ -31,6 +38,22 @@ func resourceBizFlyCloudVPCNetwork() *schema.Resource {
 
 func resourceBizFlyCloudVPCNetworkCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
+
+	log.Println("[DEBUG] creating vpc network")
+	cvp := &gobizfly.CreateVPCPayload{
+		Name:        d.Get("name").(string),
+		Description: d.Get("description").(string),
+		CIDR:        d.Get("cidr").(string),
+		IsDefault:   d.Get("is-default").(bool),
+	}
+	log.Printf("[DEBUG] Create vpc network configuration: %#v\n", cvp)
+	data, err := client.VPC.Create(context.Background(), cvp)
+	if err != nil {
+		return fmt.Errorf("Error creating vpc network: %v", err)
+	}
+	log.Println("[DEBUG] set id " + data.ID)
+	d.SetId(data.ID)
+
 	return nil
 }
 
