@@ -2,6 +2,7 @@ package bizflycloud
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -12,6 +13,7 @@ import (
 func resourceBizFlyCloudVPCNetwork() *schema.Resource {
 	return &schema.Resource{
 		Create:        resourceBizFlyCloudVPCNetworkCreate,
+		Read:          resourceBizFlyCloudVPCNetworkRead,
 		Update:        resourceBizFlyCloudVPCNetworkUpdate,
 		Delete:        resourceBizFlyCloudVPCNetworkDelete,
 		SchemaVersion: 1,
@@ -26,9 +28,9 @@ func resourceBizFlyCloudVPCNetwork() *schema.Resource {
 			},
 			"cidr": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
-			"is-default": {
+			"is_default": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
@@ -38,26 +40,68 @@ func resourceBizFlyCloudVPCNetwork() *schema.Resource {
 
 func resourceBizFlyCloudVPCNetworkCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-
 	log.Println("[DEBUG] creating vpc network")
 	cvp := &gobizfly.CreateVPCPayload{
 		Name:        d.Get("name").(string),
 		Description: d.Get("description").(string),
 		CIDR:        d.Get("cidr").(string),
-		IsDefault:   d.Get("is-default").(bool),
+		IsDefault:   d.Get("is_default").(bool),
 	}
 	log.Printf("[DEBUG] Create vpc network configuration: %#v\n", cvp)
-	data, err := client.VPC.Create(context.Background(), cvp)
+	network, err := client.VPC.Create(context.Background(), cvp)
 	if err != nil {
 		return fmt.Errorf("Error creating vpc network: %v", err)
 	}
-	log.Println("[DEBUG] set id " + data.ID)
-	d.SetId(data.ID)
+	log.Println("[DEBUG] set id " + network.ID)
+	d.SetId(network.ID)
+	return resourceBizFlyCloudVPCNetworkRead(d, meta)
+}
 
+func resourceBizFlyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*CombinedConfig).gobizflyClient()
+	log.Printf("[DEBUG] vpc network ID %s", d.Id())
+	network, err := client.VPC.Get(context.Background(), d.Id())
+	if err != nil {
+		if errors.Is(err, gobizfly.ErrNotFound) {
+			log.Printf("[WARN] vpc network id %s is not found", d.Id())
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("Error retrieved vpc network: %v", err)
+	}
+	_ = d.Set("name", network.Name)
+	_ = d.Set("description", network.Description)
+	_ = d.Set("is_default", network.IsDefault)
 	return nil
 }
 
 func resourceBizFlyCloudVPCNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*CombinedConfig).gobizflyClient()
+	log.Println("[DEBUG] update vpc network")
+	var uvp gobizfly.UpdateVPCPayload
+	networkChanged := false
+	// uvp := &gobizfly.UpdateVPCPayload{
+	// 	Name:        d.Get("name").(string),
+	// 	Description: d.Get("description").(string),
+	// 	CIDR:        d.Get("cidr").(string),
+	// 	IsDefault:   d.Get("is_default").(bool),
+	// }
+	if d.HasChange("name") {
+		networkChanged = true
+		name := d.Get("name").(string)
+		uvp.Name = name
+	}
+	if d.HasChange("description") {
+		networkChanged = true
+		desc := d.Get("description").(string)
+		uvp.Description = desc
+	}
+	if networkChanged {
+		_, err := client.VPC.Update(context.Background(), d.Id(), &uvp)
+		if err != nil {
+			return fmt.Errorf("Error when update vpc network: %s, %v", d.Id(), err)
+		}
+	}
 	return nil
 }
 
