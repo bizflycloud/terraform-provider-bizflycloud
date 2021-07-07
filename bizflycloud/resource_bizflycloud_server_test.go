@@ -56,6 +56,12 @@ func TestAccBizFlyCloudServer_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("bizflycloud_server.foobar", "created_at"),
 				),
 			},
+			{
+				ResourceName:            "bizflycloud_server.foobar",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{""},
+			},
 		},
 	})
 }
