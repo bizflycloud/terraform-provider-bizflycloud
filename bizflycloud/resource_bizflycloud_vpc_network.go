@@ -63,7 +63,6 @@ func resourceBizFlyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{})
 	if err := dataSourceBizFlyCloudVPCNetworkRead(d, meta); err != nil {
 		return err
 	}
-
 	return nil
 }
 

@@ -64,5 +64,19 @@ func dataSourceBizFlyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{
 	_ = d.Set("name", network.Name)
 	_ = d.Set("description", network.Description)
 	_ = d.Set("is_default", network.IsDefault)
+
+	if err := d.Set("subnets", readSubnets(network.Subnets)); err != nil {
+		return fmt.Errorf("error setting subnets: %w", err)
+	}
 	return nil
+}
+
+func readSubnets(subnets []gobizfly.Subnet) []map[string]interface{} {
+	var results []map[string]interface{}
+	for _, s := range subnets {
+		results = append(results, map[string]interface{}{
+			"cidr": s.CIDR,
+		})
+	}
+	return results
 }
