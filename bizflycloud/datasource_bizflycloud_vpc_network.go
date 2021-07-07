@@ -30,7 +30,7 @@ func dataSourceBizFlyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{
 	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		var err error
 
-		log.Printf("[DEBUG] Reading VPC Network: %s", d.Id())
+		log.Printf("[DEBUG] Reading vpc network: %s", d.Id())
 		network, err = client.VPC.Get(context.Background(), d.Id())
 
 		// Retry on any API "not found" errors, but only on new resources.
@@ -52,12 +52,12 @@ func dataSourceBizFlyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error create vpc network %s: %w", d.Id(), err)
+		return fmt.Errorf("Error read vpc network %s: %w", d.Id(), err)
 	}
 
 	// Prevent panics.
 	if network == nil {
-		return fmt.Errorf("error create vpc network (%s): empty response", d.Id())
+		return fmt.Errorf("Error read vpc network (%s): empty response", d.Id())
 	}
 
 	d.SetId(network.ID)
