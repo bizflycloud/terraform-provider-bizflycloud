@@ -2,9 +2,12 @@ package bizflycloud
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
+	"github.com/bizflycloud/gobizfly"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -22,16 +25,40 @@ func dataSourceBizFlyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{
 		d.SetId(v.(string))
 	}
 
-	log.Printf("[DEBUG] Reading VPC Network: %s", d.Id())
-	network, err := client.VPC.Get(context.Background(), d.Id())
+	var network *gobizfly.VPC
 
-	log.Printf("[DEBUG] Checking for error: %s", err)
-	if err != nil {
-		return fmt.Errorf("error describing VPC Network: %w", err)
+	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		var err error
+
+		log.Printf("[DEBUG] Reading VPC Network: %s", d.Id())
+		network, err = client.VPC.Get(context.Background(), d.Id())
+
+		// Retry on any API "not found" errors, but only on new resources.
+		if d.IsNewResource() && errors.Is(err, gobizfly.ErrNotFound) {
+			return resource.RetryableError(err)
+		}
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
+
+	// Prevent confusing Terraform error messaging to operators by
+	// Only ignoring API "not found" errors if not a new resource
+	if !d.IsNewResource() && errors.Is(err, gobizfly.ErrNotFound) {
+		log.Printf("[WARN] VPC network %s is not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
 	}
 
-	log.Printf("[DEBUG] Found VPC Network: %s", d.Id())
-	log.Printf("[DEBUG] bizflycloud_vpc_network found: %s", network.Name)
+	if err != nil {
+		return fmt.Errorf("Error create vpc network %s: %w", d.Id(), err)
+	}
+
+	// Prevent panics.
+	if network == nil {
+		return fmt.Errorf("error create vpc network (%s): empty response", d.Id())
+	}
 
 	d.SetId(network.ID)
 	_ = d.Set("name", network.Name)

@@ -2,13 +2,10 @@ package bizflycloud
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/bizflycloud/gobizfly"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -24,7 +21,7 @@ func resourceBizFlyCloudVPCNetwork() *schema.Resource {
 		SchemaVersion: 1,
 		Schema:        resourceVPCNetworkSchema(),
 		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(600 * time.Second),
+			Read: schema.DefaultTimeout(10 * time.Minute),
 		},
 	}
 }
@@ -63,43 +60,10 @@ func resourceBizFlyCloudVPCNetworkCreate(d *schema.ResourceData, meta interface{
 }
 
 func resourceBizFlyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*CombinedConfig).gobizflyClient()
-	var network *gobizfly.VPC
-
-	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		var err error
-		network, err = client.VPC.Get(context.Background(), d.Id())
-
-		// Retry on any API "not found" errors, but only on new resources.
-		if d.IsNewResource() && errors.Is(err, gobizfly.ErrNotFound) {
-			return resource.RetryableError(err)
-		}
-		if err != nil {
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-
-	// Prevent confusing Terraform error messaging to operators by
-	// Only ignoring API "not found" errors if not a new resource
-	if !d.IsNewResource() && errors.Is(err, gobizfly.ErrNotFound) {
-		log.Printf("[WARN] VPC network %s is not found, removing from state", d.Id())
-		d.SetId("")
-		return nil
+	if err := dataSourceBizFlyCloudVPCNetworkRead(d, meta); err != nil {
+		return err
 	}
 
-	if err != nil {
-		return fmt.Errorf("Error create vpc network %s: %w", d.Id(), err)
-	}
-
-	// Prevent panics.
-	if network == nil {
-		return fmt.Errorf("error create vpc network (%s): empty response", d.Id())
-	}
-	_ = d.Set("name", network.Name)
-	_ = d.Set("description", network.Description)
-	_ = d.Set("is_default", network.IsDefault)
-	_ = d.Set("id", network.ID)
 	return nil
 }
 
