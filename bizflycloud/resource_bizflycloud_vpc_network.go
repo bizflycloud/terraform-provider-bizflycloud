@@ -41,7 +41,6 @@ func resourceBizFlyCloudVPCNetwork() *schema.Resource {
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(2 * time.Minute),
 			Read:   schema.DefaultTimeout(2 * time.Minute),
 		},
 	}
@@ -76,7 +75,6 @@ func resourceBizFlyCloudVPCNetworkCreate(d *schema.ResourceData, meta interface{
 	if err != nil {
 		return fmt.Errorf("Error creating VPC: %v", err)
 	}
-
 	d.SetId(network.ID)
 	return resourceBizFlyCloudVPCNetworkRead(d, meta)
 }
@@ -93,11 +91,9 @@ func resourceBizFlyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{})
 		if d.IsNewResource() && errors.Is(err, gobizfly.ErrNotFound) {
 			return resource.RetryableError(err)
 		}
-
 		if err != nil {
 			return resource.NonRetryableError(err)
 		}
-
 		return nil
 	})
 
