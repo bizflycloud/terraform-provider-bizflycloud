@@ -14,7 +14,7 @@ func dataVPCNetworkSchema() map[string]*schema.Schema {
 		},
 		"description": {
 			Type:     schema.TypeString,
-			Required: true,
+			Optional: true,
 		},
 		"cidr": {
 			Type:     schema.TypeString,
@@ -35,7 +35,7 @@ func resourceVPCNetworkSchema() map[string]*schema.Schema {
 		},
 		"description": {
 			Type:     schema.TypeString,
-			Required: true,
+			Optional: true,
 		},
 		"cidr": {
 			Type:     schema.TypeString,
