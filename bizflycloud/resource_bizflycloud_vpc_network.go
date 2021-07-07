@@ -26,7 +26,7 @@ func resourceBizFlyCloudVPCNetwork() *schema.Resource {
 	}
 }
 
-func VPCRequestBuilder(d *schema.ResourceData) gobizfly.UpdateVPCPayload {
+func vpcRequestBuilder(d *schema.ResourceData) gobizfly.UpdateVPCPayload {
 	vpcOpts := gobizfly.UpdateVPCPayload{}
 	if v, ok := d.GetOk("name"); ok {
 		vpcOpts.Name = v.(string)
@@ -69,7 +69,7 @@ func resourceBizFlyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{})
 
 func resourceBizFlyCloudVPCNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	vpcOpts := VPCRequestBuilder(d)
+	vpcOpts := vpcRequestBuilder(d)
 	network, err := client.VPC.Update(context.Background(), d.Id(), &vpcOpts)
 	if err != nil {
 		return fmt.Errorf("Error when update vpc network: %s, %v", d.Id(), err)
