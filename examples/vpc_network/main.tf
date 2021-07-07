@@ -13,8 +13,8 @@ provider "bizflycloud" {
     password = ""
 }
 
-resource "bizflycloud_vpc_network" "test_vpc_network" {
-    name = "test_create_vpc_network"
+resource "bizflycloud_vpc_network" "vpc_network" {
+    name = "test_vpc_network"
     description = "test vpc network"
     is_default = false
 }
