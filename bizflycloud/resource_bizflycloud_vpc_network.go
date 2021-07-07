@@ -72,39 +72,9 @@ func resourceBizFlyCloudVPCNetworkCreate(d *schema.ResourceData, meta interface{
 		CIDR:        d.Get("cidr").(string),
 		IsDefault:   d.Get("is_default").(bool),
 	}
-
-	var network *gobizfly.VPC
-	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		var err error
-		network, err = client.VPC.Create(context.Background(), cvp)
-
-		// Retry on any API "not found" errors, but only on new resources.
-		if d.IsNewResource() && errors.Is(err, gobizfly.ErrNotFound) {
-			return resource.RetryableError(err)
-		}
-
-		if err != nil {
-			return resource.NonRetryableError(err)
-		}
-
-		return nil
-	})
-
-	// Prevent confusing Terraform error messaging to operators by
-	// Only ignoring API "not found" errors if not a new resource
-	if !d.IsNewResource() && errors.Is(err, gobizfly.ErrNotFound) {
-		log.Printf("[WARN] VPC network %s is not found, removing from state", d.Id())
-		d.SetId("")
-		return nil
-	}
-
+	network, err := client.VPC.Create(context.Background(), cvp)
 	if err != nil {
-		return fmt.Errorf("Error create vpc network %s: %w", d.Id(), err)
-	}
-
-	// Prevent panics.
-	if network == nil {
-		return fmt.Errorf("error create vpc network (%s): empty response", d.Id())
+		return fmt.Errorf("Error creating VPC: %v", err)
 	}
 
 	d.SetId(network.ID)
