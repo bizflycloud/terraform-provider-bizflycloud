@@ -41,7 +41,7 @@ func resourceBizFlyCloudVPCNetwork() *schema.Resource {
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Read:   schema.DefaultTimeout(2 * time.Minute),
+			Read: schema.DefaultTimeout(600 * time.Second),
 		},
 	}
 }
