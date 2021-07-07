@@ -22,24 +22,7 @@ func resourceBizFlyCloudVPCNetwork() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		SchemaVersion: 1,
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"description": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"cidr": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"is_default": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-		},
+		Schema:        resourceVPCNetworkSchema(),
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(600 * time.Second),
 		},

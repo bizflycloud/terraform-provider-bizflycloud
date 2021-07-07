@@ -18,3 +18,8 @@ resource "bizflycloud_vpc_network" "test_vpc_network" {
     description = "test vpc network"
     is_default = false
 }
+
+data "bizflycloud_vpc_network" "vpc_network" {
+  id = bizflycloud_vpc_network.vpc_network.id
+  name = bizflycloud_vpc_network.vpc_network.name
+}
