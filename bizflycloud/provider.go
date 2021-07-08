@@ -83,13 +83,13 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_autoscaling_scaleout_policy":      resourceBizFlyCloudAutoscalingScaleOutPolicy(),
 			"bizflycloud_autoscaling_launch_configuration": resourceBizFlyCloudAutoscalingLaunchConfiguration(),
 			"bizflycloud_kubernetes":                       resourceBizFlyCloudKubernetes(),
-			"bizflycloud_virtual_private_cloud_network":    resourceBizFlyCloudVirtualPrivateCloudNetwork(),
+			"bizflycloud_vpc_network":                      resourceBizFlyCloudVPCNetwork(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"bizflycloud_image":                            datasourceBizFlyCloudImages(),
 			"bizflycloud_autoscaling_group":                datasourceBizFlyCloudAutoScalingGroup(),
 			"bizflycloud_autoscaling_launch_configuration": datasourceBizFlyCloudLaunchConfiguration(),
-			"bizflycloud_virtual_private_cloud_network":    dataSourceBizFlyCloudVirtualPrivateCloudNetwork(),
+			"bizflycloud_vpc_network":                      dataSourceBizFlyCloudVPCNetwork(),
 		},
 	}
 	p.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {

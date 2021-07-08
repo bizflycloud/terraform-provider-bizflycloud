@@ -2,7 +2,7 @@ package bizflycloud
 
 import "github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
-func dataVirtualPrivateCloudNetworkSchema() map[string]*schema.Schema {
+func dataVPCNetworkSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
@@ -27,7 +27,7 @@ func dataVirtualPrivateCloudNetworkSchema() map[string]*schema.Schema {
 	}
 }
 
-func resourceVirtualPrivateCloudNetworkSchema() map[string]*schema.Schema {
+func resourceVPCNetworkSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,

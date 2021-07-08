@@ -11,14 +11,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceBizFlyCloudVirtualPrivateCloudNetwork() *schema.Resource {
+func dataSourceBizFlyCloudVPCNetwork() *schema.Resource {
 	return &schema.Resource{
-		Read:   dataSourceBizFlyCloudVirtualPrivateCloudNetworkRead,
-		Schema: dataVirtualPrivateCloudNetworkSchema(),
+		Read:   dataSourceBizFlyCloudVPCNetworkRead,
+		Schema: dataVPCNetworkSchema(),
 	}
 }
 
-func dataSourceBizFlyCloudVirtualPrivateCloudNetworkRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBizFlyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	if v, ok := d.GetOk("id"); ok {
@@ -30,7 +30,7 @@ func dataSourceBizFlyCloudVirtualPrivateCloudNetworkRead(d *schema.ResourceData,
 	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		var err error
 
-		log.Printf("[DEBUG] Reading virtual private cloud network: %s", d.Id())
+		log.Printf("[DEBUG] Reading vpc network: %s", d.Id())
 		network, err = client.VPC.Get(context.Background(), d.Id())
 
 		// Retry on any API "not found" errors, but only on new resources.
@@ -46,18 +46,18 @@ func dataSourceBizFlyCloudVirtualPrivateCloudNetworkRead(d *schema.ResourceData,
 	// Prevent confusing Terraform error messaging to operators by
 	// Only ignoring API "not found" errors if not a new resource
 	if !d.IsNewResource() && errors.Is(err, gobizfly.ErrNotFound) {
-		log.Printf("[WARN] Virtual private cloud network %s is not found, removing from state", d.Id())
+		log.Printf("[WARN] vpc network %s is not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error read virtual private cloud network %s: %w", d.Id(), err)
+		return fmt.Errorf("Error read vpc network %s: %w", d.Id(), err)
 	}
 
 	// Prevent panics.
 	if network == nil {
-		return fmt.Errorf("Error read virtual private cloud network (%s): empty response", d.Id())
+		return fmt.Errorf("Error read vpc network (%s): empty response", d.Id())
 	}
 
 	d.SetId(network.ID)
