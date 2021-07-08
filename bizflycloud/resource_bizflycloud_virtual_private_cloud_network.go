@@ -53,7 +53,7 @@ func resourceBizFlyCloudVirtualPrivateCloudNetworkCreate(d *schema.ResourceData,
 	}
 	network, err := client.VPC.Create(context.Background(), cvp)
 	if err != nil {
-		return fmt.Errorf("Error creating vpc network: %v", err)
+		return fmt.Errorf("Error when create virtual private cloud network: %v", err)
 	}
 	d.SetId(network.ID)
 	return resourceBizFlyCloudVirtualPrivateCloudNetworkRead(d, meta)
@@ -71,7 +71,7 @@ func resourceBizFlyCloudVirtualPrivateCloudNetworkUpdate(d *schema.ResourceData,
 	vpcOpts := virtualPrivateCloudRequestBuilder(d)
 	network, err := client.VPC.Update(context.Background(), d.Id(), &vpcOpts)
 	if err != nil {
-		return fmt.Errorf("Error when update vpc network: %s, %v", d.Id(), err)
+		return fmt.Errorf("Error when update virtual private cloud network: %s, %v", d.Id(), err)
 	}
 	d.SetId(network.ID)
 	return resourceBizFlyCloudVirtualPrivateCloudNetworkRead(d, meta)
@@ -81,7 +81,7 @@ func resourceBizFlyCloudVirtualPrivateCloudNetworkDelete(d *schema.ResourceData,
 	client := meta.(*CombinedConfig).gobizflyClient()
 	err := client.VPC.Delete(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error delete vpc network: %v", err)
+		return fmt.Errorf("Error when delete virtual private cloud network: %v", err)
 	}
 	return nil
 }

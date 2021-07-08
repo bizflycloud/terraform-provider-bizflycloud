@@ -13,33 +13,33 @@ import (
 )
 
 func init() {
-	resource.AddTestSweepers("bizflycloud_vpc_network", &resource.Sweeper{
-		Name: "bizflycloud_vpc_network",
+	resource.AddTestSweepers("bizflycloud_virtual_private_cloud_network", &resource.Sweeper{
+		Name: "bizflycloud_virtual_private_cloud_network",
 	})
 }
 
-func TestAccBizFlyCloudVPC(t *testing.T) {
+func TestAccBizFlyCloudVirtualPrivateCloud(t *testing.T) {
 	var vpc gobizfly.VPC
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckBizFlyCloudVpcNetworkDestroy,
+		CheckDestroy: testAccCheckBizFlyCloudVirtualPrivateCloudNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBizFlyCloudVpcNetworkConfig(rInt),
+				Config: testAccBizFlyCloudVirtualPrivateCloudNetworkConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBizFlyCloudVpcNetworkExists("bizflycloud_vpc_network.abc", &vpc),
-					testAccCheckBizFlyCloudVpcNetworkAttributes(&vpc),
+					testAccCheckBizFlyCloudVirtualPrivateCloudNetworkExists("bizflycloud_virtual_private_cloud_network.abc", &vpc),
+					testAccCheckBizFlyCloudVirtualPrivateCloudNetworkAttributes(&vpc),
 					resource.TestCheckResourceAttr(
-						"bizflycloud_vpc_network.abc", "name", fmt.Sprintf("foo-%d", rInt)),
+						"bizflycloud_virtual_private_cloud_network.abc", "name", fmt.Sprintf("foo-%d", rInt)),
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckBizFlyCloudVpcNetworkExists(n string, vpc *gobizfly.VPC) resource.TestCheckFunc {
+func testAccCheckBizFlyCloudVirtualPrivateCloudNetworkExists(n string, vpc *gobizfly.VPC) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -50,38 +50,38 @@ func testAccCheckBizFlyCloudVpcNetworkExists(n string, vpc *gobizfly.VPC) resour
 		}
 		client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
 
-		retrieveVpcNetwork, err := client.VPC.Get(context.Background(), rs.Primary.ID)
+		retrieveVirtualPrivateCloudNetwork, err := client.VPC.Get(context.Background(), rs.Primary.ID)
 
 		if err != nil {
 			return err
 		}
-		if retrieveVpcNetwork.ID != rs.Primary.ID {
-			return fmt.Errorf("VPC Network not found")
+		if retrieveVirtualPrivateCloudNetwork.ID != rs.Primary.ID {
+			return fmt.Errorf("Virtual private cloud network not found")
 		}
-		*vpc = *retrieveVpcNetwork
+		*vpc = *retrieveVirtualPrivateCloudNetwork
 		return nil
 	}
 }
 
-func testAccCheckBizFlyCloudVpcNetworkAttributes(vpc *gobizfly.VPC) resource.TestCheckFunc {
+func testAccCheckBizFlyCloudVirtualPrivateCloudNetworkAttributes(vpc *gobizfly.VPC) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		if vpc.Description != "test vpc network" {
-			return fmt.Errorf("Bad vpc network description: %s", vpc.Description)
+		if vpc.Description != "test virtual private cloud network" {
+			return fmt.Errorf("Bad virtual private cloud network description: %s", vpc.Description)
 		}
 
 		if vpc.IsDefault != false {
-			return fmt.Errorf("Bad vpc network is default: %t", vpc.IsDefault)
+			return fmt.Errorf("Bad virtual private cloud network is default: %t", vpc.IsDefault)
 		}
 
 		return nil
 	}
 }
 
-func testAccCheckBizFlyCloudVpcNetworkDestroy(s *terraform.State) error {
+func testAccCheckBizFlyCloudVirtualPrivateCloudNetworkDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "bizflycloud_vpc_network" {
+		if rs.Type != "bizflycloud_virtual_private_cloud_network" {
 			continue
 		}
 
@@ -95,11 +95,11 @@ func testAccCheckBizFlyCloudVpcNetworkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccBizFlyCloudVpcNetworkConfig(rInt int) string {
+func testAccBizFlyCloudVirtualPrivateCloudNetworkConfig(rInt int) string {
 	return fmt.Sprintf(`
-resource "bizflycloud_vpc_network" "abc" {
+resource "bizflycloud_virtual_private_cloud_network" "abc" {
     name = "foo-%d"
-    description = "test vpc network"
+    description = "test virtual private cloud network"
     is_default = false
 }
 `, rInt)
