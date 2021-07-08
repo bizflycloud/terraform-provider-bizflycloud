@@ -11,14 +11,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceBizFlyCloudVPCNetwork() *schema.Resource {
+func dataSourceBizFlyCloudVirtualPrivateCloudNetwork() *schema.Resource {
 	return &schema.Resource{
-		Read:   dataSourceBizFlyCloudVPCNetworkRead,
-		Schema: dataVPCNetworkSchema(),
+		Read:   dataSourceBizFlyCloudVirtualPrivateCloudNetworkRead,
+		Schema: dataVirtualPrivateCloudNetworkSchema(),
 	}
 }
 
-func dataSourceBizFlyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBizFlyCloudVirtualPrivateCloudNetworkRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	if v, ok := d.GetOk("id"); ok {
@@ -30,7 +30,7 @@ func dataSourceBizFlyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{
 	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		var err error
 
-		log.Printf("[DEBUG] Reading vpc network: %s", d.Id())
+		log.Printf("[DEBUG] Reading virtual private cloud network: %s", d.Id())
 		network, err = client.VPC.Get(context.Background(), d.Id())
 
 		// Retry on any API "not found" errors, but only on new resources.
@@ -46,18 +46,18 @@ func dataSourceBizFlyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{
 	// Prevent confusing Terraform error messaging to operators by
 	// Only ignoring API "not found" errors if not a new resource
 	if !d.IsNewResource() && errors.Is(err, gobizfly.ErrNotFound) {
-		log.Printf("[WARN] VPC network %s is not found, removing from state", d.Id())
+		log.Printf("[WARN] Virtual private cloud network %s is not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error read vpc network %s: %w", d.Id(), err)
+		return fmt.Errorf("Error read virtual private cloud network %s: %w", d.Id(), err)
 	}
 
 	// Prevent panics.
 	if network == nil {
-		return fmt.Errorf("Error read vpc network (%s): empty response", d.Id())
+		return fmt.Errorf("Error read virtual private cloud network (%s): empty response", d.Id())
 	}
 
 	d.SetId(network.ID)
@@ -65,18 +65,5 @@ func dataSourceBizFlyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{
 	_ = d.Set("description", network.Description)
 	_ = d.Set("is_default", network.IsDefault)
 
-	if err := d.Set("subnets", readSubnets(network.Subnets)); err != nil {
-		return fmt.Errorf("error setting subnets: %w", err)
-	}
 	return nil
-}
-
-func readSubnets(subnets []gobizfly.Subnet) []map[string]interface{} {
-	var results []map[string]interface{}
-	for _, s := range subnets {
-		results = append(results, map[string]interface{}{
-			"cidr": s.CIDR,
-		})
-	}
-	return results
 }
