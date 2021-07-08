@@ -29,7 +29,7 @@ func TestAccBizFlyCloudVPC(t *testing.T) {
 			{
 				Config: testAccBizFlyCloudVpcNetworkConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBizFlyCloudVpcNetworkExists("bizflycloud_vpc_network.xyz", &vpc),
+					testAccCheckBizFlyCloudVpcNetworkExists("bizflycloud_vpc_network.abc", &vpc),
 					testAccCheckBizFlyCloudVpcNetworkAttributes(&vpc),
 					resource.TestCheckResourceAttr(
 						"bizflycloud_vpc_network.abc", "name", fmt.Sprintf("foo-%d", rInt)),
