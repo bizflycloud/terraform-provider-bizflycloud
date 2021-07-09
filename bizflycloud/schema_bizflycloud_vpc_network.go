@@ -61,18 +61,6 @@ func resourceVPCNetworkSchema() map[string]*schema.Schema {
 			Type:     schema.TypeInt,
 			Optional: true,
 		},
-		"project_id": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
-		"gateway_ip": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
-		"ip_version": {
-			Type:     schema.TypeInt,
-			Optional: true,
-		},
 		"subnets": {
 			Type:     schema.TypeList,
 			Optional: true,
