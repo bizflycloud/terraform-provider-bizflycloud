@@ -23,3 +23,4 @@ resource "bizflycloud_vpc_network" "vpc_network" {
     description = "test vpc network"
     is_default = false
 }
+

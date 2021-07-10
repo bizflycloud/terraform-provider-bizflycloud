@@ -26,3 +26,4 @@ output "tags" {
 output "subnets" {
   value = bizflycloud_vpc_network.vpc_network.subnets
 }
+
