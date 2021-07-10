@@ -1,25 +1,21 @@
 ---
 layout: "bizflycloud"
 page_title: "BizFly Cloud: bizflycloud_vpc_network"
-sidebar_current: "docs-bizflycloud-resource-vpc-network"
+sidebar_current: "docs-bizflycloud-datasource-vpc-network"
 description: |-
   Provides a BizFly Cloud VPC Network resource. This can be used to create, modify, and delete VPC Networks.
 ---
 
 # bizflycloud\_vpc\_network
 
-Provides a BizFly Cloud VPC Network resource. This can be used to create,
-modify, and delete VPC Network.
+Get ìnformation about BizFly Cloud VPC Network resource.
 
 ## Example Usage
 
 ```hcl
-# Create a new VPC Network
-resource "bizflycloud_vpc_network" "vpc_network" {
-    name = var.vpc_network_name
-    description = "test vpc network"
-    cidr = "10.108.16.0/20"
-    is_default = false
+# Get information of VPC Network from datasource
+data "bizflycloud_vpc_network" "vpc_network" {
+  name = bizflycloud_vpc_network.vpc_network.name
 }
 ```
 
@@ -27,10 +23,8 @@ resource "bizflycloud_vpc_network" "vpc_network" {
 
 The following arguments are supported:
 
+* `id` - (Computed) The ID of VPC Network
 * `name` - (Required) The name of VPC Network.
-* `description` - (Optional) The description of VPC Network.
-* `cidr` - (Optional) CIDR Block: IPv4 or IPv6 CIDR. 
-* `is_default` - (Optional) The default of VPC Network: true or false.
 
 ## Attributes Reference
 

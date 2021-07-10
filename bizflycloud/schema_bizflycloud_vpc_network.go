@@ -45,9 +45,19 @@ func resourceVPCNetworkSchema() map[string]*schema.Schema {
 			Type:     schema.TypeBool,
 			Optional: true,
 		},
+		"availability_zones": {
+			Type:     schema.TypeList,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			Computed: true,
+		},
 		"status": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
+		},
+		"tags": {
+			Type:     schema.TypeList,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			Computed: true,
 		},
 		"created_at": {
 			Type:     schema.TypeString,
@@ -59,11 +69,11 @@ func resourceVPCNetworkSchema() map[string]*schema.Schema {
 		},
 		"mtu": {
 			Type:     schema.TypeInt,
-			Optional: true,
+			Computed: true,
 		},
 		"subnets": {
 			Type:     schema.TypeList,
-			Optional: true,
+			Computed: true,
 			Elem: &schema.Resource{
 				Schema: dataSubnetsInfoSchema(),
 			},
