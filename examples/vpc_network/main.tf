@@ -10,10 +10,8 @@ terraform {
 provider "bizflycloud" {
     auth_method = "password"
     region_name = "HN"
-    # email = "username"
-    # password = ""
-    email = "toannd@vccloud.vn"
-    password = "Dactoan130396@"
+    email = "username"
+    password = ""
 }
 
 data "bizflycloud_vpc_network" "vpc_network" {
