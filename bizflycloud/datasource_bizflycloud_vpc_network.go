@@ -73,10 +73,6 @@ func dataSourceBizFlyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error setting availability_zones: %w", err)
 	}
 
-	if err := d.Set("tags", readTags(network.Tags)); err != nil {
-		return fmt.Errorf("error setting tags: %w", err)
-	}
-
 	if err := d.Set("subnets", readSubnets(network.Subnets)); err != nil {
 		return fmt.Errorf("error setting subnets: %w", err)
 	}
@@ -91,20 +87,14 @@ func readAvailabilityZones(availabilityZone []string) []string {
 	return results
 }
 
-func readTags(tag []string) []string {
-	var results []string
-	results = append(results, tag...)
-
-	return results
-}
-
 func readSubnets(subnets []gobizfly.Subnet) []map[string]interface{} {
 	var results []map[string]interface{}
 	for _, s := range subnets {
 		results = append(results, map[string]interface{}{
-			"project_id": s.ProjectID,
-			"ip_version": s.IPVersion,
-			"gateway_ip": s.GatewayIP,
+			"project_id":       s.ProjectID,
+			"ip_version":       s.IPVersion,
+			"gateway_ip":       s.GatewayIP,
+			"allocation_pools": s.AllocationPools,
 		})
 	}
 	return results

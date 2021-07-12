@@ -54,11 +54,6 @@ func resourceVPCNetworkSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"tags": {
-			Type:     schema.TypeList,
-			Elem:     &schema.Schema{Type: schema.TypeString},
-			Computed: true,
-		},
 		"created_at": {
 			Type:     schema.TypeString,
 			Computed: true,
@@ -95,6 +90,13 @@ func dataSubnetInfoSchema() map[string]*schema.Schema {
 			Computed: true,
 			Type:     schema.TypeString,
 		},
+		"allocation_pools": {
+			Computed: true,
+			Type:     schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: dataAllocationPoolsInfoSchema(),
+			},
+		},
 	}
 }
 
@@ -102,4 +104,17 @@ func dataSubnetsInfoSchema() map[string]*schema.Schema {
 	commonSchema := dataSubnetInfoSchema()
 
 	return commonSchema
+}
+
+func dataAllocationPoolsInfoSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"end": {
+			Computed: true,
+			Type:     schema.TypeString,
+		},
+		"start": {
+			Computed: true,
+			Type:     schema.TypeString,
+		},
+	}
 }

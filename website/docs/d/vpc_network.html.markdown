@@ -38,10 +38,10 @@ The following attributes are exported:
 * `is_default` - The default of VPC Network: true or false.
 * `availability_zones` - The availability zones of the VPC Network
 * `mtu` - The maximum transmission unit of VPC Network.
-* `tags` - The tags of VPC Network.
 * `subnets` - The subnets of VPC Network
   * `project_id` - The project id subnets of VPC Network.
   * `ip_version` - The IP version subnets of VPC Network.
   * `gateway_ip` - The IP gateway subnets of VPC Network.
+  * `allocation_pools` - The Allocation Pools subnets of VPC Network.
 * `create_at` - The created time.
 * `updated_at` - The updated time.
