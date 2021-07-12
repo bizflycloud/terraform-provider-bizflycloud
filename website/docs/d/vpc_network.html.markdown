@@ -1,0 +1,47 @@
+---
+layout: "bizflycloud"
+page_title: "BizFly Cloud: bizflycloud_vpc_network"
+sidebar_current: "docs-bizflycloud-datasource-vpc-network"
+description: |-
+  Provides a BizFly Cloud VPC Network resource. This can be used to create, modify, and delete VPC Networks.
+---
+
+# bizflycloud\_vpc\_network
+
+Get ìnformation about BizFly Cloud VPC Network resource.
+
+## Example Usage
+
+```hcl
+# Get information of VPC Network from datasource
+data "bizflycloud_vpc_network" "vpc_network" {
+  name = bizflycloud_vpc_network.vpc_network.name
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+* `id` - (Computed) The ID of VPC Network
+* `name` - (Required) The name of VPC Network.
+
+## Attributes Reference
+
+The following attributes are exported:
+
+* `id` - The ID of VPC Network
+* `name`- The name of VPC Network
+* `description` - The description of VPC Network
+* `cidr` - CIDR Block: IPv4 or IPv6 CIDR. 
+* `status` - The status of the VPC Network
+* `is_default` - The default of VPC Network: true or false.
+* `availability_zones` - The availability zones of the VPC Network
+* `mtu` - The maximum transmission unit of VPC Network.
+* `subnets` - The subnets of VPC Network
+  * `project_id` - The project id subnets of VPC Network.
+  * `ip_version` - The IP version subnets of VPC Network.
+  * `gateway_ip` - The IP gateway subnets of VPC Network.
+  * `allocation_pools` - The allocation pools subnets of VPC Network.
+* `create_at` - The created time.
+* `updated_at` - The updated time.
