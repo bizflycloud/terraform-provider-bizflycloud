@@ -24,3 +24,8 @@ resource "bizflycloud_vpc_network" "vpc_network" {
     is_default = false
 }
 
+resource "bizflycloud_network_interface" "network_interface" {
+  name = "test-1"
+  network_id = bizflycloud_vpc_network.vpc_network.id
+}
+

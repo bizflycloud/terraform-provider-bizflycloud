@@ -18,11 +18,6 @@ output "mtu" {
   value = bizflycloud_vpc_network.vpc_network.mtu
 }
 
-output "tags" {
-  value = bizflycloud_vpc_network.vpc_network.tags
-}
-
-
 output "subnets" {
   value = bizflycloud_vpc_network.vpc_network.subnets
 }
