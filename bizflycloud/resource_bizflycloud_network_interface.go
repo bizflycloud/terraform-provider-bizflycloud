@@ -26,14 +26,6 @@ func resourceBizFlyCloudNetworkInterface() *schema.Resource {
 	}
 }
 
-func NetworkInterfaceRequestBuilder(d *schema.ResourceData) gobizfly.UpdateNetworkInterfacePayload {
-	networkInterfaceOpts := gobizfly.UpdateNetworkInterfacePayload{}
-	if v, ok := d.GetOk("name"); ok {
-		networkInterfaceOpts.Name = v.(string)
-	}
-	return networkInterfaceOpts
-}
-
 func resourceBizFlyCloudNetworkInterfaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
