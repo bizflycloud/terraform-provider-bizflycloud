@@ -13,7 +13,7 @@ func resourceBizFlyCloudNetworkInterface() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceBizFlyCloudNetworkInterfaceCreate,
 		Read:   resourceBizFlyCloudNetworkInterfaceRead,
-		Update: resourceBizFlyCloudNetworkInterfacekUpdate,
+		Update: resourceBizFlyCloudNetworkInterfaceUpdate,
 		Delete: resourceBizFlyCloudNetworkInterfaceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -55,7 +55,7 @@ func resourceBizFlyCloudNetworkInterfaceRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceBizFlyCloudNetworkInterfacekUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizFlyCloudNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	networkID := d.Get("network_id").(string)
