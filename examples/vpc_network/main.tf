@@ -22,10 +22,13 @@ resource "bizflycloud_vpc_network" "vpc_network" {
     name = var.vpc_network_name
     description = "test vpc network"
     is_default = false
+    cidr = "10.108.16.0/20"
 }
 
 resource "bizflycloud_network_interface" "network_interface" {
-  name = "test-1"
+  name = "test-name"
   network_id = bizflycloud_vpc_network.vpc_network.id
+  attached_server = "21da0a9e-a59f-456f-a4c3-a0248a29eb9c"
+  fixed_ip = "10.108.16.5"
 }
 

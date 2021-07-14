@@ -21,12 +21,9 @@ func dataSourceBizFlyCloudNetworkInterface() *schema.Resource {
 func dataSourceBizFlyCloudNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
-	gnp := &gobizfly.GetNetworkInterfacePayload{
-		NetworkID: d.Get("network_id").(string),
-	}
-
-	if v, ok := d.GetOk("id"); ok {
-		d.SetId(v.(string))
+	networkID := d.Get("network_id").(string)
+	if networkID == "" {
+		return fmt.Errorf("Invalid network id specified")
 	}
 
 	var networkInterface *gobizfly.NetworkInterface
@@ -35,7 +32,7 @@ func dataSourceBizFlyCloudNetworkInterfaceRead(d *schema.ResourceData, meta inte
 		var err error
 
 		log.Printf("[DEBUG] Reading network interface: %s", d.Id())
-		networkInterface, err = client.NetworkInterface.GetNetworkInterface(context.Background(), gnp.NetworkID, d.Id())
+		networkInterface, err = client.NetworkInterface.GetNetworkInterface(context.Background(), networkID, d.Id())
 
 		// Retry on any API "not found" errors, but only on new resources.
 		if d.IsNewResource() && errors.Is(err, gobizfly.ErrNotFound) {
@@ -68,6 +65,28 @@ func dataSourceBizFlyCloudNetworkInterfaceRead(d *schema.ResourceData, meta inte
 	_ = d.Set("name", networkInterface.Name)
 	_ = d.Set("attached_server", networkInterface.AttachedServer)
 	_ = d.Set("fixed_ip", networkInterface.FixedIps)
+	_ = d.Set("mac_address", networkInterface.MacAddress)
+	_ = d.Set("admin_state_up", networkInterface.AdminStateUp)
+	_ = d.Set("status", networkInterface.Status)
+	_ = d.Set("device_id", networkInterface.DeviceID)
+	_ = d.Set("port_security_enabled", networkInterface.PortSecurityEnabled)
+	_ = d.Set("created_at", networkInterface.CreatedAt)
+	_ = d.Set("updated_at", networkInterface.UpdatedAt)
+
+	if err := d.Set("fixed_ips", readFixedIps(networkInterface.FixedIps)); err != nil {
+		return fmt.Errorf("error setting fixed_ips: %w", err)
+	}
 
 	return nil
+}
+
+func readFixedIps(fixedIps []gobizfly.FixedIp) []map[string]interface{} {
+	var results []map[string]interface{}
+	for _, v := range fixedIps {
+		results = append(results, map[string]interface{}{
+			"subnet_id":  v.SubnetID,
+			"ip_address": v.IPAddress,
+		})
+	}
+	return results
 }

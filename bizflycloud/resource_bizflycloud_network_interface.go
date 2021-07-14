@@ -31,23 +31,26 @@ func NetworkInterfaceRequestBuilder(d *schema.ResourceData) gobizfly.UpdateNetwo
 	if v, ok := d.GetOk("name"); ok {
 		networkInterfaceOpts.Name = v.(string)
 	}
-
 	return networkInterfaceOpts
 }
 
 func resourceBizFlyCloudNetworkInterfaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
+	networkID := d.Get("network_id").(string)
+	if networkID == "" {
+		return fmt.Errorf("Invalid network id specified")
+	}
+
 	cnp := &gobizfly.CreateNetworkInterfacePayload{
 		AttachedServer: d.Get("attached_server").(string),
 		FixedIP:        d.Get("fixed_ip").(string),
 		Name:           d.Get("name").(string),
-		NetworkID:      d.Get("network_id").(string),
 	}
 
-	networkInterface, err := client.NetworkInterface.CreateNetworkInterface(context.Background(), cnp.NetworkID, cnp)
+	networkInterface, err := client.NetworkInterface.CreateNetworkInterface(context.Background(), networkID, cnp)
 	if err != nil {
-		return fmt.Errorf("Error when create vpc network: %v", err)
+		return fmt.Errorf("Error when create network interface: %v", err)
 	}
 	d.SetId(networkInterface.ID)
 	return resourceBizFlyCloudNetworkInterfaceRead(d, meta)
@@ -61,9 +64,36 @@ func resourceBizFlyCloudNetworkInterfaceRead(d *schema.ResourceData, meta interf
 }
 
 func resourceBizFlyCloudNetworkInterfacekUpdate(d *schema.ResourceData, meta interface{}) error {
-	return nil
+	client := meta.(*CombinedConfig).gobizflyClient()
+
+	networkID := d.Get("network_id").(string)
+	if networkID == "" {
+		return fmt.Errorf("Invalid network id specified")
+	}
+
+	unp := &gobizfly.UpdateNetworkInterfacePayload{
+		Name: d.Get("name").(string),
+	}
+
+	networkInterface, err := client.NetworkInterface.UpdateNetworkInterface(context.Background(), networkID, d.Id(), unp)
+	if err != nil {
+		return fmt.Errorf("Error when update network interface: %s, %v", d.Id(), err)
+	}
+	d.SetId(networkInterface.ID)
+	return resourceBizFlyCloudNetworkInterfaceRead(d, meta)
 }
 
 func resourceBizFlyCloudNetworkInterfaceDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*CombinedConfig).gobizflyClient()
+
+	networkID := d.Get("network_id").(string)
+	if networkID == "" {
+		return fmt.Errorf("Invalid network id specified")
+	}
+
+	err := client.NetworkInterface.DeleteNetworkInterface(context.Background(), networkID, d.Id())
+	if err != nil {
+		return fmt.Errorf("Error when delete network interface: %v", err)
+	}
 	return nil
 }
