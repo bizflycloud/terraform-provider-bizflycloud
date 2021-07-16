@@ -40,7 +40,7 @@ func datasourceBizFlyCloudKubernetesControllerVersions() *schema.Resource {
 }
 func dataSourceBizFlyCloudKubernetesVersion(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	resp, err := client.KubernetesEngine.GetK8sVersions(context.Background())
+	resp, err := client.KubernetesEngine.GetKubernetesVersion(context.Background())
 	if err != nil {
 		return err
 	}
