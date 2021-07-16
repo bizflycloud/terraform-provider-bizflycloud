@@ -4,7 +4,7 @@ jobs:
   lint:
     strategy:
       matrix:
-        go-version: [1.13.x, 1.14.x]
+        go-version: [1.16.x]
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
@@ -23,7 +23,7 @@ jobs:
   test-with-module:
     strategy:
       matrix:
-        go-version: [1.13.x, 1.14.x]
+        go-version: [1.16.x]
     env:
       GO111MODULE: on
       GOPROXY: "https://proxy.golang.org"
