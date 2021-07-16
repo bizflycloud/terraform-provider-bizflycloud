@@ -1,25 +1,21 @@
 ---
 layout: "bizflycloud"
 page_title: "BizFly Cloud: bizflycloud_network_interface"
-sidebar_current: "docs-bizflycloud-resource-network-interface"
+sidebar_current: "docs-bizflycloud-datasource-network-interface"
 description: |-
-  Provides a BizFly Cloud Network Interface resource. This can be used to create, modify, and delete Network Interface.
+  Provides a BizFly Cloud Network Interface datasource. This can be used to create, modify, and delete Network Interface.
 ---
 
 # bizflycloud\_network\_interface
 
-Provides a BizFly Cloud Network Interface resource. This can be used to create,
-modify, and delete Network Interface.
+Get ìnformation about BizFly Cloud Network Interface resource.
 
 ## Example Usage
 
 ```hcl
-# Create a new Network Interface
-resource "bizflycloud_network_interface" "network_interface" {
-  name = "test-name"
-  network_id = "${bizflycloud_vpc_network.vpc_network.id}"
-  attached_server = "21da0a9e-a59f-456f-a4c3-a0248a29eb9c"
-  fixed_ip = "10.108.16.5"
+# Get information of Network Interface
+data "bizflycloud_network_interface" "network_interface" {
+  network_id = bizflycloud_network_interface.network_interface.
 }
 ```
 
@@ -27,10 +23,7 @@ resource "bizflycloud_network_interface" "network_interface" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of network interface.
-* `network_id` - (Required) The Network ID of network interface.
-* `attached_server` - (Optional) The attached server of network interface. 
-* `fixed_ip` - (Optional) The fixed IP of network interface.
+* `network_id` - The Network ID of network interface.
 
 ## Attributes Reference
 

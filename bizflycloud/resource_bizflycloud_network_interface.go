@@ -26,6 +26,28 @@ func resourceBizFlyCloudNetworkInterface() *schema.Resource {
 	}
 }
 
+func networkInterfaceRequestBuilder(d *schema.ResourceData) gobizfly.NetworkInterfaceRequestPayload {
+	networkInterfaceOpts := gobizfly.NetworkInterfaceRequestPayload{}
+	if v, ok := d.GetOk("name"); ok {
+		networkInterfaceOpts.Name = v.(string)
+	}
+	if v, ok := d.GetOk("attached_server"); ok {
+		networkInterfaceOpts.AttachedServer = v.(string)
+	}
+	if v, ok := d.GetOk("fixed_ip"); ok {
+		networkInterfaceOpts.FixedIP = v.(string)
+	}
+	if v, ok := d.GetOk("action"); ok {
+		networkInterfaceOpts.Action = v.(string)
+	}
+	if v, ok := d.GetOk("security_groups"); ok {
+		for _, id := range v.([]interface{}) {
+			networkInterfaceOpts.SecurityGroups = append(networkInterfaceOpts.SecurityGroups, id.(string))
+		}
+	}
+	return networkInterfaceOpts
+}
+
 func resourceBizFlyCloudNetworkInterfaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
@@ -34,17 +56,15 @@ func resourceBizFlyCloudNetworkInterfaceCreate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Invalid network id specified")
 	}
 
-	cnp := &gobizfly.CreateNetworkInterfacePayload{
-		AttachedServer: d.Get("attached_server").(string),
-		FixedIP:        d.Get("fixed_ip").(string),
-		Name:           d.Get("name").(string),
-	}
-
-	networkInterface, err := client.NetworkInterface.CreateNetworkInterface(context.Background(), networkID, cnp)
+	networkInterfaceOpts := networkInterfaceRequestBuilder(d)
+	networkInterface, err := client.NetworkInterface.CreateNetworkInterface(context.Background(), networkID, &networkInterfaceOpts)
 	if err != nil {
 		return fmt.Errorf("Error when create network interface: %v", err)
 	}
 	d.SetId(networkInterface.ID)
+
+	_, _ = client.NetworkInterface.ActionNetworkInterface(context.Background(), d.Id(), &networkInterfaceOpts)
+
 	return resourceBizFlyCloudNetworkInterfaceRead(d, meta)
 }
 
@@ -63,7 +83,7 @@ func resourceBizFlyCloudNetworkInterfaceUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Invalid network id specified")
 	}
 
-	unp := &gobizfly.UpdateNetworkInterfacePayload{
+	unp := &gobizfly.NetworkInterfaceRequestPayload{
 		Name: d.Get("name").(string),
 	}
 

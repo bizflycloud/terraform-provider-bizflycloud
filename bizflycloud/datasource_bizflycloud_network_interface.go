@@ -62,6 +62,7 @@ func dataSourceBizFlyCloudNetworkInterfaceRead(d *schema.ResourceData, meta inte
 	}
 
 	d.SetId(networkInterface.ID)
+	_ = d.Set("network_id", networkInterface.NetworkID)
 	_ = d.Set("name", networkInterface.Name)
 	_ = d.Set("attached_server", networkInterface.AttachedServer)
 	_ = d.Set("fixed_ip", networkInterface.FixedIps)

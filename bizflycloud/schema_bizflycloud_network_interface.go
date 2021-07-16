@@ -6,10 +6,12 @@ func dataNetworkInterfaceSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
+			Optional: true,
 			Computed: true,
 		},
 		"network_id": {
 			Type:     schema.TypeString,
+			Optional: true,
 			Computed: true,
 		},
 		"name": {
@@ -64,6 +66,15 @@ func resourceNetworkInterfaceSchema() map[string]*schema.Schema {
 		"port_security_enabled": {
 			Type:     schema.TypeBool,
 			Computed: true,
+		},
+		"action": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"security_groups": {
+			Type:     schema.TypeList,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			Optional: true,
 		},
 		"fixed_ips": {
 			Type:     schema.TypeList,
