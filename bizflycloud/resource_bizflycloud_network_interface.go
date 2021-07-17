@@ -40,11 +40,6 @@ func networkInterfaceRequestBuilder(d *schema.ResourceData) gobizfly.NetworkInte
 	if v, ok := d.GetOk("action"); ok {
 		networkInterfaceOpts.Action = v.(string)
 	}
-	// if v, ok := d.GetOk("security_groups"); ok {
-	// 	for _, id := range v.([]interface{}) {
-	// 		networkInterfaceOpts.SecurityGroups = append(networkInterfaceOpts.SecurityGroups, id.(string))
-	// 	}
-	// }
 	return networkInterfaceOpts
 }
 
@@ -62,8 +57,6 @@ func resourceBizFlyCloudNetworkInterfaceCreate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error when create network interface: %v", err)
 	}
 	d.SetId(networkInterface.ID)
-
-	// _, _ = client.NetworkInterface.ActionNetworkInterface(context.Background(), d.Id(), &networkInterfaceOpts)
 
 	return resourceBizFlyCloudNetworkInterfaceRead(d, meta)
 }

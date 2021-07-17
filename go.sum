@@ -41,6 +41,8 @@ github.com/bizflycloud/gobizfly v0.0.0-20210713063337-e11d35f0e828 h1:c6bdSZRgQo
 github.com/bizflycloud/gobizfly v0.0.0-20210713063337-e11d35f0e828/go.mod h1:dESSbBmjQ5OJBgRPCTgmxAeqxNnRzXIZuRK3CTW2DUs=
 github.com/bizflycloud/gobizfly v0.0.0-20210716014935-da89453b94dc h1:qagfmVASHdjrLBGVfeEOS1TImej/CB0ShHYPpEdXLps=
 github.com/bizflycloud/gobizfly v0.0.0-20210716014935-da89453b94dc/go.mod h1:dESSbBmjQ5OJBgRPCTgmxAeqxNnRzXIZuRK3CTW2DUs=
+github.com/bizflycloud/gobizfly v0.0.0-20210716032810-cbdd481d8c3d h1:cyP6gCGXLOq68O/TVImg8Ok4RnmTiqga71YM5tocsDA=
+github.com/bizflycloud/gobizfly v0.0.0-20210716032810-cbdd481d8c3d/go.mod h1:dESSbBmjQ5OJBgRPCTgmxAeqxNnRzXIZuRK3CTW2DUs=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cheggaaa/pb v1.0.27/go.mod h1:pQciLPpbU0oxA0h+VJYYLxO+XeDQb5pZijXscXHm81s=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
