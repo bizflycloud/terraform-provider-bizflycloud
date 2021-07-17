@@ -44,6 +44,10 @@ func resourceBizFlyCloudFirewall() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
+			"network_interface_count": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 			"ingress": {
 				Type:       schema.TypeSet,
 				Optional:   true,
@@ -63,6 +67,12 @@ func resourceBizFlyCloudFirewall() *schema.Resource {
 				},
 			},
 			"target_server_ids": {
+				Type:     schema.TypeSet,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Optional: true,
+				Computed: true,
+			},
+			"network_interfaces": {
 				Type:     schema.TypeSet,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Optional: true,
@@ -99,6 +109,11 @@ func firewallRequestBuilder(d *schema.ResourceData) gobizfly.FirewallRequestPayl
 			firewallOpts.Targets = append(firewallOpts.Targets, id.(string))
 		}
 	}
+	if v, ok := d.GetOk("network_interfaces"); ok {
+		for _, id := range v.(*schema.Set).List() {
+			firewallOpts.NetworkInterfaces = append(firewallOpts.NetworkInterfaces, id.(string))
+		}
+	}
 	if v, ok := d.GetOk("ingress"); ok {
 		firewallOpts.InBound = flatternFirewallRules(v.(*schema.Set))
 	}
@@ -128,8 +143,10 @@ func resourceBizFlyCloudFirewallRead(d *schema.ResourceData, meta interface{}) e
 	_ = d.Set("name", firewall.BaseFirewall.Name)
 	_ = d.Set("servers_count", firewall.BaseFirewall.ServersCount)
 	_ = d.Set("rules_count", firewall.BaseFirewall.RulesCount)
+	_ = d.Set("network_interface_count", firewall.BaseFirewall.NetworkInterfaceCount)
 
 	_ = d.Set("target_servers", flatternBizFlyCloudServers(firewall.Servers))
+	_ = d.Set("target_network_interface", flatternBizFlyCloudNetworkInterfaces(firewall.NetworkInterface))
 	if len(firewall.InBound) > 0 {
 		_ = d.Set("ingress", convertFWRule(firewall.InBound))
 	}
@@ -193,4 +210,12 @@ func flatternBizFlyCloudServers(servers []*gobizfly.Server) *schema.Set {
 		flattenedServers.Add(server.ID)
 	}
 	return flattenedServers
+}
+
+func flatternBizFlyCloudNetworkInterfaces(networkInterfaces []*gobizfly.NetworkInterface) *schema.Set {
+	flattenedNetworkInterfaces := schema.NewSet(schema.HashString, []interface{}{})
+	for _, networkInterface := range networkInterfaces {
+		flattenedNetworkInterfaces.Add(networkInterface.ID)
+	}
+	return flattenedNetworkInterfaces
 }
