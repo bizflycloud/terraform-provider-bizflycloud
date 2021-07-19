@@ -54,7 +54,7 @@ func resourceBizFlyCloudNetworkInterfaceCreate(d *schema.ResourceData, meta inte
 	}
 	_, err = client.NetworkInterface.Action(context.Background(), d.Id(), actionPayload)
 	if err != nil {
-		return fmt.Errorf("Error when add firewall network interface: %v", err)
+		return fmt.Errorf("Error when action network interface: %v", err)
 	}
 
 	return resourceBizFlyCloudNetworkInterfaceRead(d, meta)
@@ -89,7 +89,7 @@ func resourceBizFlyCloudNetworkInterfaceUpdate(d *schema.ResourceData, meta inte
 	}
 	_, err = client.NetworkInterface.Action(context.Background(), d.Id(), actionPayload)
 	if err != nil {
-		return fmt.Errorf("Error when add firewall network interface: %v", err)
+		return fmt.Errorf("Error when action network interface: %v", err)
 	}
 
 	return resourceBizFlyCloudNetworkInterfaceRead(d, meta)
