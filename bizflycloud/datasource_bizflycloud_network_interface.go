@@ -20,19 +20,13 @@ func dataSourceBizFlyCloudNetworkInterface() *schema.Resource {
 
 func dataSourceBizFlyCloudNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-
-	networkID := d.Get("network_id").(string)
-	if networkID == "" {
-		return fmt.Errorf("Invalid network id specified")
-	}
-
 	var networkInterface *gobizfly.NetworkInterface
 
 	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		var err error
 
 		log.Printf("[DEBUG] Reading network interface: %s", d.Id())
-		networkInterface, err = client.NetworkInterface.GetNetworkInterface(context.Background(), networkID, d.Id())
+		networkInterface, err = client.NetworkInterface.Get(context.Background(), d.Id())
 
 		// Retry on any API "not found" errors, but only on new resources.
 		if d.IsNewResource() && errors.Is(err, gobizfly.ErrNotFound) {
@@ -62,7 +56,6 @@ func dataSourceBizFlyCloudNetworkInterfaceRead(d *schema.ResourceData, meta inte
 	}
 
 	d.SetId(networkInterface.ID)
-	_ = d.Set("network_id", networkInterface.NetworkID)
 	_ = d.Set("name", networkInterface.Name)
 	_ = d.Set("attached_server", networkInterface.AttachedServer)
 	_ = d.Set("fixed_ip", networkInterface.FixedIps)
@@ -78,6 +71,10 @@ func dataSourceBizFlyCloudNetworkInterfaceRead(d *schema.ResourceData, meta inte
 		return fmt.Errorf("error setting fixed_ips: %w", err)
 	}
 
+	if err := d.Set("security_groups", readSecurityGroups(networkInterface.SecurityGroups)); err != nil {
+		return fmt.Errorf("error setting security_groups: %w", err)
+	}
+
 	return nil
 }
 
@@ -89,5 +86,12 @@ func readFixedIps(fixedIps []gobizfly.FixedIp) []map[string]interface{} {
 			"ip_address": v.IPAddress,
 		})
 	}
+	return results
+}
+
+func readSecurityGroups(securityGroups []string) []string {
+	var results []string
+	results = append(results, securityGroups...)
+
 	return results
 }

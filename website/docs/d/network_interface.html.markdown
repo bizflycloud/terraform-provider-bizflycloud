@@ -15,7 +15,7 @@ Get ìnformation about BizFly Cloud Network Interface resource.
 ```hcl
 # Get information of Network Interface
 data "bizflycloud_network_interface" "network_interface" {
-  network_id = bizflycloud_network_interface.network_interface.
+  network_id = bizflycloud_network_interface.network_interface.network_id
 }
 ```
 
@@ -42,5 +42,6 @@ The following attributes are exported:
 * `fixed_ips` - The fixed ips of network interface.
   * `subnet_id` - The subnet ID of network interface.
   * `ip_address` - The IP address of network interface.
+* `security_groups` - List ID of security groups.
 * `create_at` - The created time of network interface.
 * `updated_at` - The updated time of network interface.

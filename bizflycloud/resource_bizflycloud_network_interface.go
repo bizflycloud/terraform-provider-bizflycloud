@@ -26,37 +26,36 @@ func resourceBizFlyCloudNetworkInterface() *schema.Resource {
 	}
 }
 
-func networkInterfaceRequestBuilder(d *schema.ResourceData) gobizfly.NetworkInterfaceRequestPayload {
-	networkInterfaceOpts := gobizfly.NetworkInterfaceRequestPayload{}
-	if v, ok := d.GetOk("name"); ok {
-		networkInterfaceOpts.Name = v.(string)
-	}
-	if v, ok := d.GetOk("attached_server"); ok {
-		networkInterfaceOpts.AttachedServer = v.(string)
-	}
-	if v, ok := d.GetOk("fixed_ip"); ok {
-		networkInterfaceOpts.FixedIP = v.(string)
-	}
-	if v, ok := d.GetOk("action"); ok {
-		networkInterfaceOpts.Action = v.(string)
-	}
-	return networkInterfaceOpts
-}
-
 func resourceBizFlyCloudNetworkInterfaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-
 	networkID := d.Get("network_id").(string)
 	if networkID == "" {
 		return fmt.Errorf("Invalid network id specified")
 	}
-
-	networkInterfaceOpts := networkInterfaceRequestBuilder(d)
-	networkInterface, err := client.NetworkInterface.CreateNetworkInterface(context.Background(), networkID, &networkInterfaceOpts)
+	createPayload := &gobizfly.CreateNetworkInterfacePayload{
+		Name:           d.Get("name").(string),
+		AttachedServer: d.Get("attached_server").(string),
+		FixedIP:        d.Get("fixed_ip").(string),
+	}
+	networkInterface, err := client.NetworkInterface.Create(context.Background(), networkID, createPayload)
 	if err != nil {
 		return fmt.Errorf("Error when create network interface: %v", err)
 	}
 	d.SetId(networkInterface.ID)
+
+	actionPayload := &gobizfly.ActionNetworkInterfacePayload{
+		Action:   d.Get("action").(string),
+		ServerID: d.Get("server_id").(string),
+	}
+	if v, ok := d.GetOk("security_groups"); ok {
+		for _, id := range v.([]interface{}) {
+			actionPayload.SecurityGroups = append(actionPayload.SecurityGroups, id.(string))
+		}
+	}
+	_, err = client.NetworkInterface.Action(context.Background(), d.Id(), actionPayload)
+	if err != nil {
+		return fmt.Errorf("Error when add firewall network interface: %v", err)
+	}
 
 	return resourceBizFlyCloudNetworkInterfaceRead(d, meta)
 }
@@ -70,33 +69,35 @@ func resourceBizFlyCloudNetworkInterfaceRead(d *schema.ResourceData, meta interf
 
 func resourceBizFlyCloudNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-
-	networkID := d.Get("network_id").(string)
-	if networkID == "" {
-		return fmt.Errorf("Invalid network id specified")
-	}
-
-	unp := &gobizfly.NetworkInterfaceRequestPayload{
+	updatePayload := &gobizfly.UpdateNetworkInterfacePayload{
 		Name: d.Get("name").(string),
 	}
-
-	networkInterface, err := client.NetworkInterface.UpdateNetworkInterface(context.Background(), networkID, d.Id(), unp)
+	networkInterface, err := client.NetworkInterface.Update(context.Background(), d.Id(), updatePayload)
 	if err != nil {
 		return fmt.Errorf("Error when update network interface: %s, %v", d.Id(), err)
 	}
 	d.SetId(networkInterface.ID)
+
+	actionPayload := &gobizfly.ActionNetworkInterfacePayload{
+		Action:   d.Get("action").(string),
+		ServerID: d.Get("server_id").(string),
+	}
+	if v, ok := d.GetOk("security_groups"); ok {
+		for _, id := range v.([]interface{}) {
+			actionPayload.SecurityGroups = append(actionPayload.SecurityGroups, id.(string))
+		}
+	}
+	_, err = client.NetworkInterface.Action(context.Background(), d.Id(), actionPayload)
+	if err != nil {
+		return fmt.Errorf("Error when add firewall network interface: %v", err)
+	}
+
 	return resourceBizFlyCloudNetworkInterfaceRead(d, meta)
 }
 
 func resourceBizFlyCloudNetworkInterfaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-
-	networkID := d.Get("network_id").(string)
-	if networkID == "" {
-		return fmt.Errorf("Invalid network id specified")
-	}
-
-	err := client.NetworkInterface.DeleteNetworkInterface(context.Background(), networkID, d.Id())
+	err := client.NetworkInterface.Delete(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("Error when delete network interface: %v", err)
 	}

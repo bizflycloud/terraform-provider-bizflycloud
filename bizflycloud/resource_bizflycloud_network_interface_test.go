@@ -50,7 +50,7 @@ func testAccCheckBizFlyCloudNetworkInterfaceExists(n string, networkInterface *g
 		}
 		client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
 
-		retrieveNetworkInterface, err := client.NetworkInterface.GetNetworkInterface(context.Background(), "fcda80f4-88ee-4708-a55f-3c6bcdf0585e", rs.Primary.ID)
+		retrieveNetworkInterface, err := client.NetworkInterface.Get(context.Background(), rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -85,7 +85,7 @@ func testAccCheckBizFlyCloudNetworkInterfaceDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, err := client.NetworkInterface.GetNetworkInterface(context.Background(), "fcda80f4-88ee-4708-a55f-3c6bcdf0585e", rs.Primary.ID)
+		_, err := client.NetworkInterface.Get(context.Background(), rs.Primary.ID)
 		if err != nil {
 			if !errors.Is(err, gobizfly.ErrNotFound) {
 				return fmt.Errorf("Error: %v", err)

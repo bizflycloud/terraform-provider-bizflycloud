@@ -43,6 +43,10 @@ func resourceNetworkInterfaceSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Optional: true,
 		},
+		"server_id": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
 		"fixed_ip": {
 			Type:     schema.TypeString,
 			Optional: true,
