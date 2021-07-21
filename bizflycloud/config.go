@@ -19,9 +19,10 @@ package bizflycloud
 
 import (
 	"context"
-	"github.com/bizflycloud/gobizfly"
 	"log"
 	"time"
+
+	"github.com/bizflycloud/gobizfly"
 )
 
 type Config struct {
@@ -55,7 +56,7 @@ func (c *Config) Client() (*CombinedConfig, error) {
 		return nil, err
 	}
 
-	client.SetKeystoneToken(tok.KeystoneToken)
+	client.SetKeystoneToken(tok)
 
 	return &CombinedConfig{
 		client: client,
