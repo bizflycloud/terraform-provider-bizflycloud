@@ -9,8 +9,8 @@ terraform {
 provider "bizflycloud" {
   auth_method = "password"
   region_name = "HN"
-  email       = "svtt.tungds@vccloud.vn"
-  password    = "NEq.c151{[Mu"
+  email       = ""
+  password    = ""
 }
 
 data "bizflycloud_kubernetes_version" "test_k8s_version" {
