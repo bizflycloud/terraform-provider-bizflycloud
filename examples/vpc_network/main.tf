@@ -10,8 +10,10 @@ terraform {
 provider "bizflycloud" {
     auth_method = "password"
     region_name = "HN"
-    email = "username"
-    password = ""
+    # email = "username"
+    # password = ""
+    email = "toannd@vccloud.vn"
+    password = "Dactoan130396@"
 }
 
 data "bizflycloud_vpc_network" "vpc_network" {
@@ -30,7 +32,7 @@ resource "bizflycloud_network_interface" "network_interface" {
   network_id = "${bizflycloud_vpc_network.vpc_network.id}"
   attached_server = "21da0a9e-a59f-456f-a4c3-a0248a29eb9c"
   fixed_ip = "10.108.16.5"
-  action = "attach_server"
+  action = "add_firewall"
   security_groups = ["4b41c931-bf3d-443f-b311-df3817a3fbc0"]
 }
 
