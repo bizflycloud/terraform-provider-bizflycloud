@@ -46,7 +46,7 @@ func testAccCheckBizFlyCloudDNSExists(n string, extendedZone *gobizfly.ExtendedZ
 			return fmt.Errorf("Not found: %s", n)
 		}
 		if rs.Primary.ID == "" {
-			return fmt.Errorf("No volume ID is set")
+			return fmt.Errorf("No dns zone ID is set")
 		}
 		client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
 
