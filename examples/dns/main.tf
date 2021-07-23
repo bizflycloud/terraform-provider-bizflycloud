@@ -17,3 +17,4 @@ provider "bizflycloud" {
 resource "bizflycloud_dns" "dns_zone" {
     name = "abc.xyz"
 }
+
