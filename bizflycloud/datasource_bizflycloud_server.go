@@ -28,8 +28,93 @@ import (
 
 func datasourceBizFlyCloudServers() *schema.Resource {
 	return &schema.Resource{
-		Read:   dataSourceBizFlyCloudServerRead,
-		Schema: resourceBizFlyCloudServer().Schema,
+		Read: dataSourceBizFlyCloudServerRead,
+		Schema: map[string]*schema.Schema{
+			"id": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"name": {
+				Type:     schema.TypeString,
+				Required: false,
+			},
+			"flavor_name": {
+				Type:     schema.TypeString,
+				Required: false,
+			},
+			"ssh_key": {
+				Type:     schema.TypeString,
+				Optional: false,
+			},
+			"category": {
+				Type:     schema.TypeString,
+				Required: false,
+			},
+			"password": {
+				Type:     schema.TypeBool,
+				Optional: false,
+			},
+			"os_type": {
+				Type:     schema.TypeString,
+				Required: false,
+			},
+			"os_id": {
+				Type:     schema.TypeString,
+				Required: false,
+			},
+			"root_disk_type": {
+				Type:     schema.TypeString,
+				Required: false,
+			},
+			"root_disk_size": {
+				Type:     schema.TypeInt,
+				Required: false,
+			},
+			"availability_zone": {
+				Type:     schema.TypeString,
+				Required: false,
+			},
+			"user_id": {
+				Type:     schema.TypeString,
+				Computed: false,
+			},
+			"project_id": {
+				Type:     schema.TypeString,
+				Computed: false,
+			},
+			"status": {
+				Type:     schema.TypeString,
+				Computed: false,
+			},
+			"created_at": {
+				Type:     schema.TypeString,
+				Computed: false,
+			},
+			"updated_at": {
+				Type:     schema.TypeString,
+				Computed: false,
+			},
+			"volume_ids": {
+				Type:     schema.TypeSet,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Optional: false,
+				Computed: false,
+			},
+			"lan_ip": {
+				Type:     schema.TypeString,
+				Computed: false,
+			},
+			"wan_ipv4": {
+				Type:     schema.TypeSet,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Computed: false,
+			},
+			"wan_ipv6": {
+				Type:     schema.TypeSet,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Computed: false,
+			},
+		},
 	}
 }
 
