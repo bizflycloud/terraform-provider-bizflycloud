@@ -49,6 +49,11 @@ func dataSourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) e
 				continue
 			}
 			d.SetId(server.ID)
+			err := resourceBizFlyCloudServerRead(d, meta)
+			if err != nil {
+				return fmt.Errorf("Couldn't set data")
+			}
+			break
 		}
 	} else {
 		return fmt.Errorf("Server ID must be set")
