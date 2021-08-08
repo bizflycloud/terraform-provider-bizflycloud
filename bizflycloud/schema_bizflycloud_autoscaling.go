@@ -480,11 +480,11 @@ func resourceLaunchConfigurationSchema() map[string]*schema.Schema {
 				Schema: map[string]*schema.Schema{
 					"network_id": {
 						Type:     schema.TypeString,
-						Computed: true,
+						Required: true,
 					},
 					"security_groups": {
 						Type:     schema.TypeSet,
-						Computed: true,
+						Optional: true,
 						Elem:     &schema.Schema{Type: schema.TypeString},
 					},
 				},
