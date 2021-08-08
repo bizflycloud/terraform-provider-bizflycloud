@@ -94,6 +94,7 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_kubernetes_version":               datasourceBizFlyCloudKubernetesControllerVersions(),
 			"bizflycloud_network_interface":                dataSourceBizFlyCloudNetworkInterface(),
 			"bizflycloud_server":                           datasourceBizFlyCloudServers(),
+			"bizflycloud_autoscaling_nodes":                datasourceBizFlyCloudAutoscalingNodes(),
 		},
 	}
 	p.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {
