@@ -431,6 +431,7 @@ func resourceLaunchConfigurationSchema() map[string]*schema.Schema {
 					"volume_size": {
 						Type:     schema.TypeInt,
 						Required: true,
+						ForceNew: true,
 						ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 							switch v := val.(int); true {
 							case v < 20 || v%10 > 0:
@@ -481,10 +482,12 @@ func resourceLaunchConfigurationSchema() map[string]*schema.Schema {
 					"network_id": {
 						Type:     schema.TypeString,
 						Required: true,
+						ForceNew: true,
 					},
 					"security_groups": {
 						Type:     schema.TypeSet,
 						Optional: true,
+						ForceNew: true,
 						Elem:     &schema.Schema{Type: schema.TypeString},
 					},
 				},
@@ -515,10 +518,12 @@ func resourceLaunchConfigurationSchema() map[string]*schema.Schema {
 					"uuid": {
 						Type:     schema.TypeString,
 						Required: true,
+						ForceNew: true,
 					},
 					"os_name": {
 						Type:     schema.TypeString,
 						Computed: true,
+						ForceNew: true,
 					},
 				},
 			},
@@ -534,14 +539,17 @@ func resourceLaunchConfigurationSchema() map[string]*schema.Schema {
 						Type:     schema.TypeBool,
 						Optional: true,
 						Default:  true,
+						ForceNew: true,
 					},
 					"volume_size": {
 						Type:     schema.TypeInt,
 						Required: true,
+						ForceNew: true,
 					},
 					"volume_type": {
 						Type:     schema.TypeString,
 						Required: true,
+						ForceNew: true,
 					},
 				},
 			},
