@@ -21,7 +21,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"log"
 )
 
 func datasourceBizFlyCloudAutoscalingNodes() *schema.Resource {
@@ -49,16 +48,13 @@ func dataSourceBizFlyCloudNodesRead(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*CombinedConfig).gobizflyClient()
 	clusterId, okId := d.GetOk("cluster_id")
 	osNodes, err := client.AutoScaling.Nodes().List(context.Background(), clusterId.(string))
-	log.Printf("HAHA2 %v+\n", osNodes[0])
 	if err != nil {
-		log.Printf("HAHA3\n")
 		return err
 	}
 
 	if okId {
 		nodesResult := make([]map[string]interface{}, len(osNodes))
 		for i, node := range osNodes {
-			log.Printf("HAHA2 %v+\n", node)
 			nodesResult[i] = map[string]interface{}{
 				"name":         node.Name,
 				"id":           node.ID,
