@@ -36,83 +36,82 @@ func datasourceBizFlyCloudServers() *schema.Resource {
 			},
 			"name": {
 				Type:     schema.TypeString,
-				Required: false,
+				Computed: true,
 			},
 			"flavor_name": {
 				Type:     schema.TypeString,
-				Required: false,
+				Computed: true,
 			},
 			"ssh_key": {
 				Type:     schema.TypeString,
-				Optional: false,
+				Computed: true,
 			},
 			"category": {
 				Type:     schema.TypeString,
-				Required: false,
+				Computed: true,
 			},
 			"password": {
 				Type:     schema.TypeBool,
-				Optional: false,
+				Computed: true,
 			},
 			"os_type": {
 				Type:     schema.TypeString,
-				Required: false,
+				Computed: true,
 			},
 			"os_id": {
 				Type:     schema.TypeString,
-				Required: false,
+				Computed: true,
 			},
 			"root_disk_type": {
 				Type:     schema.TypeString,
-				Required: false,
+				Computed: true,
 			},
 			"root_disk_size": {
 				Type:     schema.TypeInt,
-				Required: false,
+				Computed: true,
 			},
 			"availability_zone": {
 				Type:     schema.TypeString,
-				Required: false,
+				Computed: true,
 			},
 			"user_id": {
 				Type:     schema.TypeString,
-				Computed: false,
+				Computed: true,
 			},
 			"project_id": {
 				Type:     schema.TypeString,
-				Computed: false,
+				Computed: true,
 			},
 			"status": {
 				Type:     schema.TypeString,
-				Computed: false,
+				Computed: true,
 			},
 			"created_at": {
 				Type:     schema.TypeString,
-				Computed: false,
+				Computed: true,
 			},
 			"updated_at": {
 				Type:     schema.TypeString,
-				Computed: false,
+				Computed: true,
 			},
 			"volume_ids": {
 				Type:     schema.TypeSet,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Optional: false,
-				Computed: false,
+				Computed: true,
 			},
 			"lan_ip": {
 				Type:     schema.TypeString,
-				Computed: false,
+				Computed: true,
 			},
 			"wan_ipv4": {
 				Type:     schema.TypeSet,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Computed: false,
+				Computed: true,
 			},
 			"wan_ipv6": {
 				Type:     schema.TypeSet,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Computed: false,
+				Computed: true,
 			},
 		},
 	}
