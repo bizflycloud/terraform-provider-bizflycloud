@@ -59,6 +59,7 @@ func dataSourceBizFlyCloudNodesRead(d *schema.ResourceData, meta interface{}) er
 				"name":         node.Name,
 				"id":           node.ID,
 				"profile_name": node.ProfileName,
+				//TODO: Seting this directly won't output the final output, need someone else to address this later
 				//"addresses":     node.Addresses,
 				"profile_id":    node.ProfileID,
 				"physical_id":   node.PhysicalID,
