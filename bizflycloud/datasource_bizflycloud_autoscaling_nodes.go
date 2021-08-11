@@ -34,8 +34,8 @@ func datasourceBizFlyCloudAutoscalingNodes() *schema.Resource {
 			"nodes": {
 				Type: schema.TypeList,
 				Elem: &schema.Schema{
-					Type:     schema.TypeMap,
-					Elem:     schema.TypeString,
+					Type: schema.TypeMap,
+					Elem: schema.TypeString,
 				},
 				Computed: true,
 			},
