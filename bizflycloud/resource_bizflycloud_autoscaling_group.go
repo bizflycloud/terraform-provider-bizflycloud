@@ -58,14 +58,14 @@ func resourceBizFlyCloudAutoscalingGroupCreate(d *schema.ResourceData, meta inte
 	}
 
 	if v, ok := d.GetOk("load_balancers"); ok && len(v.([]interface{})) > 0 {
-		ascr.LoadBalancerPolicyInformations = readLoadBalancersFromConfig(d)
+		ascr.LoadBalancerPolicies = readLoadBalancersFromConfig(d)
 	}
 
 	if _, ok := d.GetOk("scale_in_info"); ok {
-		ascr.ScaleInPolicyInformations = &[]gobizfly.ScalePolicyInformation{}
+		ascr.ScaleInPolicies = &[]gobizfly.ScalePolicy{}
 	}
 	if _, ok := d.GetOk("scale_out_info"); ok {
-		ascr.ScaleOutPolicyInformations = &[]gobizfly.ScalePolicyInformation{}
+		ascr.ScaleInPolicies = &[]gobizfly.ScalePolicy{}
 	}
 
 	task, err := client.AutoScaling.AutoScalingGroups().Create(context.Background(), ascr)
@@ -108,7 +108,7 @@ func resourceBizFlyCloudAutoscalingGroupUpdate(d *schema.ResourceData, meta inte
 	}
 
 	if v, ok := d.GetOk("load_balancers"); ok && len(v.([]interface{})) > 0 {
-		asur.LoadBalancerPolicyInformations = readLoadBalancersFromConfig(d)
+		asur.LoadBalancerPolicies = readLoadBalancersFromConfig(d)
 	}
 
 	// wait for auto scaling group to become active
@@ -193,8 +193,8 @@ func newStateRefreshfunc(d *schema.ResourceData, attribute string, meta interfac
 	}
 }
 
-func readLoadBalancersFromConfig(l *schema.ResourceData) *gobizfly.LoadBalancerPolicyInformation {
-	return &gobizfly.LoadBalancerPolicyInformation{
+func readLoadBalancersFromConfig(l *schema.ResourceData) *gobizfly.LoadBalancerPolicy {
+	return &gobizfly.LoadBalancerPolicy{
 		LoadBalancerID:  l.Get("load_balancers.0.load_balancer_id").(string),
 		ServerGroupID:   l.Get("load_balancers.0.server_group_id").(string),
 		ServerGroupPort: l.Get("load_balancers.0.server_group_port").(int),
