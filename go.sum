@@ -41,6 +41,8 @@ github.com/bizflycloud/gobizfly v0.0.0-20210716032810-cbdd481d8c3d h1:cyP6gCGXLO
 github.com/bizflycloud/gobizfly v0.0.0-20210716032810-cbdd481d8c3d/go.mod h1:dESSbBmjQ5OJBgRPCTgmxAeqxNnRzXIZuRK3CTW2DUs=
 github.com/bizflycloud/gobizfly v0.0.0-20210720024350-8ce7e366cdb7 h1:5I9qWlupMmwq+u4aXBLuNJpXnJ8KMaBM+ZH5GmVaf1M=
 github.com/bizflycloud/gobizfly v0.0.0-20210720024350-8ce7e366cdb7/go.mod h1:dESSbBmjQ5OJBgRPCTgmxAeqxNnRzXIZuRK3CTW2DUs=
+github.com/bizflycloud/gobizfly v0.0.0-20210813092554-c93ef307dc11 h1:vzq7/9l9R8z4whLzxGewaRGfjwMqFJGwQCXsrQns6Hk=
+github.com/bizflycloud/gobizfly v0.0.0-20210813092554-c93ef307dc11/go.mod h1:dESSbBmjQ5OJBgRPCTgmxAeqxNnRzXIZuRK3CTW2DUs=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cheggaaa/pb v1.0.27/go.mod h1:pQciLPpbU0oxA0h+VJYYLxO+XeDQb5pZijXscXHm81s=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
@@ -49,6 +51,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/docker/spdystream v0.0.0-20160310174837-449fdfce4d96/go.mod h1:Qh8CwZgvJUkLughtfhJv5dyTYa91l1fOUCrgjqmcifM=
 github.com/docopt/docopt-go v0.0.0-20180111231733-ee0de3bc6815/go.mod h1:WwZ+bS3ebgob9U8Nd0kOddGdZWjyMGR8Wziv+TBNwSE=
+github.com/duyleekun/gobizfly v0.0.0-20210808154841-86dc1a0e1d10 h1:P7dupjup+iBvkU1rS60HvvCrABEJnA0ve0I+J9pFM8w=
+github.com/duyleekun/gobizfly v0.0.0-20210808154841-86dc1a0e1d10/go.mod h1:dESSbBmjQ5OJBgRPCTgmxAeqxNnRzXIZuRK3CTW2DUs=
 github.com/elazarl/goproxy v0.0.0-20180725130230-947c36da3153/go.mod h1:/Zj4wYkgs4iZTTu3o/KG3Itv/qCCa8VVMlb3i9OVuzc=
 github.com/emicklei/go-restful v0.0.0-20170410110728-ff4f55a20633/go.mod h1:otzb+WCGbkyDHkqmQmT5YD2WR4BBwUdeQoFo8l/7tVs=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
