@@ -167,7 +167,7 @@ func newStateRefreshfunc(d *schema.ResourceData, attribute string, meta interfac
 			return nil, "", err
 		}
 		// if the task is not ready, we need to wait for a moment
-		if !resp.Ready {
+		if !resp.Ready && len(resp.Result.Action) > 0 {
 			log.Println("[DEBUG] auto scaling is not ready")
 			return nil, "", nil
 		}

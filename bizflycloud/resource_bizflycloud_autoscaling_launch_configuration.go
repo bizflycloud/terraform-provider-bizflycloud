@@ -152,9 +152,15 @@ func readBlockDeviceMappingFromConfig(bdm map[string]interface{}) *gobizfly.Auto
 }
 
 func readNetworksFromConfig(net map[string]interface{}) *gobizfly.AutoScalingNetworks {
+	securityGroupSet := net["security_groups"].(*schema.Set)
+	securityGroups := make([]*string, securityGroupSet.Len())
+	for _, i := range securityGroupSet.List() {
+		securityGroups = append(securityGroups, i.(*string))
+	}
+
 	network := &gobizfly.AutoScalingNetworks{
 		ID:             net["network_id"].(string),
-		SecurityGroups: net["security_groups"].([]*string),
+		SecurityGroups: securityGroups,
 	}
 
 	return network
