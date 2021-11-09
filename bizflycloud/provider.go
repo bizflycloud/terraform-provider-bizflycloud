@@ -85,6 +85,7 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_kubernetes":                       resourceBizFlyCloudKubernetes(),
 			"bizflycloud_vpc_network":                      resourceBizFlyCloudVPCNetwork(),
 			"bizflycloud_network_interface":                resourceBizFlyCloudNetworkInterface(),
+			"bizflycloud_dns":                              resourceBizFlyCloudDNS(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"bizflycloud_image":                            datasourceBizFlyCloudImages(),
