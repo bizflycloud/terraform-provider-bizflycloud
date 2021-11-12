@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/bizflycloud/gobizfly"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -29,10 +30,13 @@ import (
 
 func resourceBizFlyCloudVolume() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceBizFlyCloudVolumeCreate,
-		Read:          resourceBizFlyCloudVolumeRead,
-		Update:        resourceBizFlyCloudVolumeUpdate,
-		Delete:        resourceBizFlyCloudVolumeDelete,
+		Create: resourceBizFlyCloudVolumeCreate,
+		Read:   resourceBizFlyCloudVolumeRead,
+		Update: resourceBizFlyCloudVolumeUpdate,
+		Delete: resourceBizFlyCloudVolumeDelete,
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(20 * time.Minute),
+		},
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
 			"name": {

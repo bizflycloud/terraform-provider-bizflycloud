@@ -43,6 +43,7 @@ func resourceBizFlyCloudAutoscalingLaunchConfiguration() *schema.Resource {
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
 		Schema: resourceLaunchConfigurationSchema(),
 	}

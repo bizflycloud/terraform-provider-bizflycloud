@@ -3,6 +3,7 @@ package bizflycloud
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/bizflycloud/gobizfly"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -43,6 +44,9 @@ func resourceBizFlyCloudLoadBalancerListener() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
 	}
 }
