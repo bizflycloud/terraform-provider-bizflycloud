@@ -30,10 +30,10 @@ import (
 
 func resourceBizFlyCloudVolume() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceBizFlyCloudVolumeCreate,
-		Read:          resourceBizFlyCloudVolumeRead,
-		Update:        resourceBizFlyCloudVolumeUpdate,
-		Delete:        resourceBizFlyCloudVolumeDelete,
+		Create: resourceBizFlyCloudVolumeCreate,
+		Read:   resourceBizFlyCloudVolumeRead,
+		Update: resourceBizFlyCloudVolumeUpdate,
+		Delete: resourceBizFlyCloudVolumeDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
