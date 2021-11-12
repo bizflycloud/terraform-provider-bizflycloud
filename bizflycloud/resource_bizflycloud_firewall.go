@@ -20,7 +20,6 @@ package bizflycloud
 import (
 	"context"
 	"fmt"
-
 	"github.com/bizflycloud/gobizfly"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )

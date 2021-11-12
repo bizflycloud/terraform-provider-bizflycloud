@@ -24,6 +24,7 @@ import (
 	"github.com/bizflycloud/gobizfly"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"log"
+	"time"
 )
 
 func resourceBizFlyCloudKubernetes() *schema.Resource {
@@ -71,6 +72,9 @@ func resourceBizFlyCloudKubernetes() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
 	}
 }

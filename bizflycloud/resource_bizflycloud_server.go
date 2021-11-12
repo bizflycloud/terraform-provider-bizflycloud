@@ -128,6 +128,9 @@ func resourceBizFlyCloudServer() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(20 * time.Minute),
+		},
 	}
 }
 
