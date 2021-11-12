@@ -1,4 +1,4 @@
-// This file is part of gobizfly
+// This file is part of terraform-provider-bizflycloud
 //
 // Copyright (C) 2020  BizFly Cloud
 //
@@ -46,7 +46,7 @@ func datasourceBizFlyCloudAutoscalingNodes() *schema.Resource {
 func dataSourceBizFlyCloudNodesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	clusterId, okId := d.GetOk("cluster_id")
-	osNodes, err := client.AutoScaling.Nodes().List(context.Background(), clusterId.(string))
+	osNodes, err := client.AutoScaling.Nodes().List(context.Background(), clusterId.(string), false)
 	if err != nil {
 		return err
 	}

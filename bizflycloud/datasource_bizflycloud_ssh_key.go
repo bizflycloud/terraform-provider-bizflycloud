@@ -1,6 +1,6 @@
 // This file is part of terraform-provider-bizflycloud
 //
-// Copyright (C) 2020  BizFly Cloud
+// Copyright (C) 2021  BizFly Cloud
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,42 +19,49 @@ package bizflycloud
 
 import (
 	"context"
-	"fmt"
-	"strings"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func datasourceBizFlyCloudImages() *schema.Resource {
+func dataSourceBizFlyCloudSSHKey() *schema.Resource {
 	return &schema.Resource{
-		Read:   dataSourceBizFlyCloudImageRead,
-		Schema: imageSchema(),
+		Read: dataSourceBizflyCloudSSHKey,
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"public_key": {
+				Type:     schema.TypeString,
+				Computed: true,
+				Optional: true,
+			},
+			"fingerprint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+		},
 	}
 }
 
-func dataSourceBizFlyCloudImageRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBizflyCloudSSHKey(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	osImages, err := client.Server.ListOSImages(context.Background())
+	name := d.Get("name").(string)
+	resp, err := client.SSHKey.Get(context.Background(), name)
+	if err != nil {
+
+		return err
+	}
+	err = d.Set("public_key", resp.PublicKey)
 	if err != nil {
 		return err
 	}
-	distribution, okDist := d.GetOk("distribution")
-	version, okVer := d.GetOk("version")
-	if okDist && okVer {
-		for _, image := range osImages {
-			if !strings.EqualFold(strings.ToLower(image.OSDistribution), strings.ToLower(distribution.(string))) {
-				continue
-			}
-			for _, v := range image.Version {
-				if !strings.EqualFold(strings.ToLower(v.Name), strings.ToLower(version.(string))) {
-					continue
-				}
-				d.SetId(v.ID)
-				break
-			}
-		}
-	} else {
-		return fmt.Errorf("Distribution and Version must be set")
+	err = d.Set("fingerprint", resp.FingerPrint)
+	if err != nil {
+		return err
+	}
+	err = d.Set("name", resp.Name)
+	if err != nil {
+		return err
 	}
 	return nil
 }

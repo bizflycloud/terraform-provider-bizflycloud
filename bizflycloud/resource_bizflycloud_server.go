@@ -1,4 +1,4 @@
-// This file is part of gobizfly
+// This file is part of terraform-provider-bizflycloud
 //
 // Copyright (C) 2020  BizFly Cloud
 //
@@ -80,6 +80,10 @@ func resourceBizFlyCloudServer() *schema.Resource {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
+			"network_plan": {
+				Type: schema.TypeString,
+				Optional: true,
+			},
 			"availability_zone": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -150,7 +154,9 @@ func resourceBizFlyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 			Type: d.Get("root_disk_type").(string),
 			Size: d.Get("root_disk_size").(int),
 		},
+		NetworkPlan: d.Get("network_plan").(string),
 	}
+	fmt.Println(*scr)
 	log.Printf("[DEBUG] Create Cloud Server configuration: %#v", scr)
 
 	tasks, err := client.Server.Create(context.Background(), scr)
@@ -184,6 +190,7 @@ func resourceBizFlyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 			return err
 		}
 	}
+
 	return resourceBizFlyCloudServerRead(d, meta)
 }
 

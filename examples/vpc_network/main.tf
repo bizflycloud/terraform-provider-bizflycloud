@@ -10,7 +10,7 @@ terraform {
 provider "bizflycloud" {
     auth_method = "password"
     region_name = "HN"
-    email = "username"
+    email = ""
     password = ""
 }
 

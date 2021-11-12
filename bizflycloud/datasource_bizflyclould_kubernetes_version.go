@@ -1,4 +1,4 @@
-// This file is part of gobizfly
+// This file is part of terraform-provider-bizflycloud
 //
 // Copyright (C) 2021  BizFly Cloud
 //

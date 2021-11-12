@@ -1,4 +1,4 @@
-// This file is part of gobizfly
+// This file is part of terraform-provider-bizflycloud
 //
 // Copyright (C) 2020  BizFly Cloud
 //
@@ -44,7 +44,7 @@ func datasourceBizFlyCloudServers() *schema.Resource {
 			},
 			"ssh_key": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Optional: true,
 			},
 			"category": {
 				Type:     schema.TypeString,

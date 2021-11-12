@@ -1,4 +1,4 @@
-// This file is part of gobizfly
+// This file is part of terraform-provider-bizflycloud
 //
 // Copyright (C) 2020  BizFly Cloud
 //
@@ -95,6 +95,7 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_network_interface":                dataSourceBizFlyCloudNetworkInterface(),
 			"bizflycloud_server":                           datasourceBizFlyCloudServers(),
 			"bizflycloud_autoscaling_nodes":                datasourceBizFlyCloudAutoscalingNodes(),
+			"bizflycloud_ssh_key":                          dataSourceBizFlyCloudSSHKey(),
 		},
 	}
 	p.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {
