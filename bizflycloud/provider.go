@@ -95,7 +95,7 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_network_interface":                dataSourceBizFlyCloudNetworkInterface(),
 			"bizflycloud_server":                           datasourceBizFlyCloudServers(),
 			"bizflycloud_autoscaling_nodes":                datasourceBizFlyCloudAutoscalingNodes(),
-			"bizflycloud_ssh_key":                          dataSourceBizFlyCloudSSHKey(),
+			"bizflycloud_ssh_key":                          dataSourceBizflyClouldSSHKey(),
 		},
 	}
 	p.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {

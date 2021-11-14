@@ -22,46 +22,41 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceBizFlyCloudSSHKey() *schema.Resource {
+func dataSourceBizflyClouldSSHKey() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceBizflyCloudSSHKey,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"public_key": {
-				Type:     schema.TypeString,
-				Computed: true,
-				Optional: true,
-			},
 			"fingerprint": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"public_key": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
+		Read: dataSourceBizflyClouldSSHKeyRead,
 	}
 }
 
-func dataSourceBizflyCloudSSHKey(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBizflyClouldSSHKeyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	name := d.Get("name").(string)
-	resp, err := client.SSHKey.Get(context.Background(), name)
-	if err != nil {
-
-		return err
-	}
-	err = d.Set("public_key", resp.PublicKey)
+	sshKey, err := client.SSHKey.Get(context.Background(), d.Get("name").(string))
 	if err != nil {
 		return err
 	}
-	err = d.Set("fingerprint", resp.FingerPrint)
+	d.SetId(sshKey.Name)
+	err = d.Set("fingerprint", sshKey.FingerPrint)
 	if err != nil {
 		return err
 	}
-	err = d.Set("name", resp.Name)
+	err = d.Set("public_key", sshKey.PublicKey)
 	if err != nil {
 		return err
 	}
 	return nil
+
 }

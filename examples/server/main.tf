@@ -14,14 +14,14 @@ provider "bizflycloud" {
   password    = ""
 }
 
-data "bizflycloud_ssh_key" "test_ssh_key" {
-  name = "test1"
+data "bizflycloud_ssh_key" "ssh_key" {
+  name = "ssh_key_name"
 }
 
 resource "bizflycloud_server" "sapd-server" {
   name              = "sapd-tf-server-1"
   flavor_name       = "4c_2g"
-  ssh_key           = data.bizflycloud_ssh_key.test_ssh_key.name
+  ssh_key           = data.bizflycloud_ssh_key.ssh_key.name
   os_type           = "image"
   os_id             = "5f218529-ce32-4cb6-8557-920b16307d35"
   category          = "premium"
