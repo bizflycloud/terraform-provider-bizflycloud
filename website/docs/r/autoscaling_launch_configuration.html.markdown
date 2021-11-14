@@ -1,13 +1,13 @@
 ---
 layout: "bizflycloud"
-page_title: "BizFly Cloud: bizflycloud_autoscaling_launch_configuration"
+page_title: "Bizfly Cloud: bizflycloud_autoscaling_launch_configuration"
 sidebar_current: "docs-bizflycloud-resource-autoscaling-launch-configuration"
-description: - Provides a BizFly Cloud AutoScaling Launch Configuration. This can be used to create, modify, AutoScaling Group
+description: - Provides a Bizfly Cloud AutoScaling Launch Configuration. This can be used to create, modify, AutoScaling Group
 ---
 
 # bizflycloud\_autoscaling\_launch\_configuration
 
-Provides a BizFly Cloud AutoScaling Group resource. This can be used to create, modify, and delete.
+Provides a Bizfly Cloud AutoScaling Group resource. This can be used to create, modify, and delete.
 
 ## Example
 ```hcl

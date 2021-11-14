@@ -1,14 +1,14 @@
 ---
 layout: "bizflycloud"
-page_title: "BizFly Cloud: bizflycloud_loadbalancer_pool"
+page_title: "Bizfly Cloud: bizflycloud_loadbalancer_pool"
 sidebar_current: "docs-bizflycloud-resource-loadbalancer-pool"
 description: |-
-  Provides a BizFly Cloud Pool of Load Balancer resource. This can be used to create, modify, and delete pools of Load Balancer.
+  Provides a Bizfly Cloud Pool of Load Balancer resource. This can be used to create, modify, and delete pools of Load Balancer.
 ---
 
 # bizflycloud\_loadbalancer_pool
 
-Provides a BizFly Cloud Pool of Load Balancer resource. This can be used to create,
+Provides a Bizfly Cloud Pool of Load Balancer resource. This can be used to create,
 modify, and delete pools of Load Balancer.
 
 ## Example Create Pool for Load Balancer 

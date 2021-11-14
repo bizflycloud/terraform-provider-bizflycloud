@@ -1,14 +1,14 @@
 ---
 layout: "bizflycloud"
-page_title: "BizFly Cloud: bizflycloud_ssh_key"
+page_title: "Bizfly Cloud: bizflycloud_ssh_key"
 sidebar_current: "docs-bizflycloud-datasource-ssh-key"
 description: |-
-Provides a BizFly Cloud SSH Key datasource. This can be used to read SSH Key.
+Provides a Bizfly Cloud SSH Key datasource. This can be used to read SSH Key.
 ---
 
 # bizflycloud\_ssh\_key
 
-Get information about BizFly Cloud SSH Key resource.
+Get information about Bizfly Cloud SSH Key resource.
 
 ## Example Usage
 

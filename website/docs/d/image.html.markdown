@@ -1,14 +1,14 @@
 ---
 layout: "bizflycloud"
-page_title: "BizFly Cloud: bizflycloud_image"
+page_title: "Bizfly Cloud: bizflycloud_image"
 sidebar_current: "docs-bizflycloud-datasource-image"
 description: |-
-  Provides a BizFly Cloud Server resource. This can be used to create, modify, and delete Servers. Servers also support provisioning.
+  Provides a Bizfly Cloud Server resource. This can be used to create, modify, and delete Servers. Servers also support provisioning.
 ---
 
 # bizflycloud\_image
 
-Get ìnformation about BizFly Cloud OS Image. The image can be use to boot a cloud server or create a rootdisk volume from an OS image. 
+Get ìnformation about Bizfly Cloud OS Image. The image can be use to boot a cloud server or create a rootdisk volume from an OS image. 
 
 ## Example Usage
 

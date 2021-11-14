@@ -1,14 +1,14 @@
 ---
 layout: "bizflycloud"
-page_title: "BizFly Cloud: bizflycloud_vpc_network"
+page_title: "Bizfly Cloud: bizflycloud_vpc_network"
 sidebar_current: "docs-bizflycloud-resource-vpc-network"
 description: |-
-  Provides a BizFly Cloud VPC Network resource. This can be used to create, modify, and delete VPC Networks.
+  Provides a Bizfly Cloud VPC Network resource. This can be used to create, modify, and delete VPC Networks.
 ---
 
 # bizflycloud\_vpc\_network
 
-Provides a BizFly Cloud VPC Network resource. This can be used to create,
+Provides a Bizfly Cloud VPC Network resource. This can be used to create,
 modify, and delete VPC Network.
 
 ## Example Usage
