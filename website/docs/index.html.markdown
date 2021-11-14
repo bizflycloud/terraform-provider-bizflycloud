@@ -1,16 +1,16 @@
 ---
 layout: "bizflycloud"
-page_title: "Provider: BizFly Cloud"
+page_title: "Provider: Bizfly Cloud"
 sidebar_current: "docs-bizflycloud-index"
 description: |-
-  The BizFly Cloud provider is used to interact with the resources supported by BizFly Cloud. The provider needs to be configured with the proper credentials before it can be used.
+  The Bizfly Cloud provider is used to interact with the resources supported by Bizfly Cloud. The provider needs to be configured with the proper credentials before it can be used.
 ---
 
 
- BizFly Cloud Provider
+ Bizfly Cloud Provider
 
-The BizFly Cloud provider is used to interact with the
-resources supported by BizFly Cloud. The provider needs to be configured
+The Bizfly Cloud provider is used to interact with the
+resources supported by Bizfly Cloud. The provider needs to be configured
 with the proper credentials before it can be used.
 
 Use the navigation to the left to read about the available resources.
@@ -18,7 +18,7 @@ Use the navigation to the left to read about the available resources.
 ## Example Usage
 
 ```hcl
-# Configure the BizFly Cloud Provider
+# Configure the Bizfly Cloud Provider
 provider "bizflycloud" {
     auth_method = "password"
     region_name = "HN"
@@ -41,23 +41,23 @@ The following arguments are supported:
   * `BIZFLYCLOUD_AUTH_METHOD`
   
 * `api_endpoint` - (Optional) This can be used to override the base URL for
-  BizFly Cloud API requests (Defaults to the value of the `BIZFLYCLOUD_API_ENDPOINT`
+  Bizfly Cloud API requests (Defaults to the value of the `BIZFLYCLOUD_API_ENDPOINT`
   environment variable or `https://manage.bizflycloud.vn` if unset).
   
-* `email` - (Optional) This is your email to authenticate with BizFly Cloud.  Alternatively, this can also be specified using environment 
+* `email` - (Optional) This is your email to authenticate with Bizfly Cloud.  Alternatively, this can also be specified using environment 
   variables ordered by precedence:
   * `BIZFLYCLOUD_EMAIL`
 
-* `password` - (Optional) This is your password to authenticate with BizFly Cloud.  Alternatively, this can also be specified using environment 
+* `password` - (Optional) This is your password to authenticate with Bizfly Cloud.  Alternatively, this can also be specified using environment 
   variables ordered by precedence:
   * `BIZFLYCLOUD_PASSWORD`
 
 
-* `application_credential_id` - (Optional) This is your application credential ID authenticate with BizFly Cloud.  Alternatively, this can also be specified using environment 
+* `application_credential_id` - (Optional) This is your application credential ID authenticate with Bizfly Cloud.  Alternatively, this can also be specified using environment 
   variables ordered by precedence:
   * `BIZFLYCLOUD_APPLICATION_CREDENTIAL_ID`
 
-* `application_credential_secret` - (Optional) This is your application credential secret authenticate with BizFly Cloud.  Alternatively, this can also be specified using environment 
+* `application_credential_secret` - (Optional) This is your application credential secret authenticate with Bizfly Cloud.  Alternatively, this can also be specified using environment 
   variables ordered by precedence:
   * `BIZFLYCLOUD_APPLICATION_CREDENTIAL_SECRET`
 

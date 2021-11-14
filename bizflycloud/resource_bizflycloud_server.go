@@ -1,6 +1,6 @@
-// This file is part of gobizfly
+// This file is part of terraform-provider-bizflycloud
 //
-// Copyright (C) 2020  BizFly Cloud
+// Copyright (C) 2021  Bizfly Cloud
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -195,7 +195,7 @@ func resourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	server, err := client.Server.Get(context.Background(), d.Id())
 	if err != nil {
 		if errors.Is(err, gobizfly.ErrNotFound) {
-			log.Printf("[WARN] BizFly Cloud Server (%s) is not found", d.Id())
+			log.Printf("[WARN] Bizfly Cloud Server (%s) is not found", d.Id())
 			d.SetId("")
 			return nil
 		}

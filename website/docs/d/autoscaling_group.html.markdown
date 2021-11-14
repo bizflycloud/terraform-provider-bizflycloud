@@ -1,14 +1,14 @@
 ---
 layout: "bizflycloud"
-page_title: "BizFly Cloud: bizflycloud_autoscaling_group"
+page_title: "Bizfly Cloud: bizflycloud_autoscaling_group"
 sidebar_current: "docs-bizflycloud-datasource-autoscaling-group"
 description: |-
-  Provides a BizFly Cloud AutoScaling Group
+  Provides a Bizfly Cloud AutoScaling Group
 ---
 
 # bizflycloud\_autoscaling\_group
 
-Get ìnformation about BizFly Cloud AutoScaling Group.
+Get ìnformation about Bizfly Cloud AutoScaling Group.
 
 ## Example Usage
 

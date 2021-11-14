@@ -1,14 +1,14 @@
 ---
 layout: "bizflycloud"
-page_title: "BizFly Cloud: bizflycloud_server"
+page_title: "Bizfly Cloud: bizflycloud_server"
 sidebar_current: "docs-bizflycloud-resource-server"
 description: |-
-  Provides a BizFly Cloud Server resource. This can be used to create, modify, and delete Servers. Servers also support provisioning.
+  Provides a Bizfly Cloud Server resource. This can be used to create, modify, and delete Servers. Servers also support provisioning.
 ---
 
 # bizflycloud\_server
 
-Provides a BizFly Cloud Server resource. This can be used to create,
+Provides a Bizfly Cloud Server resource. This can be used to create,
 modify, and delete Server. Servers also support
 [provisioning](/docs/provisioners/index.html).
 
@@ -63,7 +63,7 @@ The following attributes are exported:
 
 ## Import
 
-BizFly Cloud SSH key resource can be imported using the SSH key name in the BizFly manage dashboard
+Bizfly Cloud SSH key resource can be imported using the SSH key name in the BizFly manage dashboard
 
 ```
 $ terraform import bizflycloud_ssh_key.example ssh-key-1
