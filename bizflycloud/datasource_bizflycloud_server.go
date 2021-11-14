@@ -44,7 +44,7 @@ func datasourceBizFlyCloudServers() *schema.Resource {
 			},
 			"ssh_key": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Optional: true,
 			},
 			"category": {
 				Type:     schema.TypeString,

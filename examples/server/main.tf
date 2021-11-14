@@ -10,8 +10,8 @@ terraform {
 provider "bizflycloud" {
   auth_method = "password"
   region_name = "HN"
-  email       = "svtt.tungds@vccloud.vn"
-  password    = "yfLZq8RAKU83-em-uhJyWAMjuAEnLq"
+  email       = ""
+  password    = ""
 }
 
 data "bizflycloud_ssh_key" "ssh_key" {
