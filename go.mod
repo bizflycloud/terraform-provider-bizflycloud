@@ -1,6 +1,6 @@
 module github.com/bizflycloud/terraform-provider-bizflycloud
 
-go 1.14
+go 1.16
 
 require (
 	github.com/bizflycloud/gobizfly v0.0.0-20210813092554-c93ef307dc11

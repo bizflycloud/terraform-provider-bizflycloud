@@ -1,14 +1,14 @@
 ---
 layout: "bizflycloud"
-page_title: "BizFly Cloud: bizflycloud_firewall"
+page_title: "Bizfly Cloud: bizflycloud_firewall"
 sidebar_current: "docs-bizflycloud-resource-firewall"
 description: |-
-  Provides a BizFly Cloud Firewall resource. This can be used to create, modify, and delete firewall.
+  Provides a Bizfly Cloud Firewall resource. This can be used to create, modify, and delete firewall.
 ---
 
 # bizflycloud\_firewall
 
-Provides a BizFly Cloud Firewal resource. This can be used to create,
+Provides a Bizfly Cloud Firewal resource. This can be used to create,
 modify, and delete firewall.
 
 ## Example Usage

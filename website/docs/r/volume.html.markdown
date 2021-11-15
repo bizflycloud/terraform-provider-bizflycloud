@@ -1,14 +1,14 @@
 ---
 layout: "bizflycloud"
-page_title: "BizFly Cloud: bizflycloud_volume"
+page_title: "Bizfly Cloud: bizflycloud_volume"
 sidebar_current: "docs-bizflycloud-resource-volume"
 description: |-
-  Provides a BizFly Cloud Volume resource. This can be used to create, modify, and delete volumes.
+  Provides a Bizfly Cloud Volume resource. This can be used to create, modify, and delete volumes.
 ---
 
 # bizflycloud\_volume
 
-Provides a BizFly Cloud Volume resource. This can be used to create,
+Provides a Bizfly Cloud Volume resource. This can be used to create,
 modify, and delete volume.
 ## Example Usage
 

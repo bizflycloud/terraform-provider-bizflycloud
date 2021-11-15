@@ -1,14 +1,14 @@
 ---
 layout: "bizflycloud"
-page_title: "BizFly Cloud: bizflycloud_kubernetes"
+page_title: "Bizfly Cloud: bizflycloud_kubernetes"
 sidebar_current: "docs-bizflycloud-resource-kubernetes"
 description: |-
-  Provide a BizFly Cloud Kubernetes Engine resource. This can be used to create, modify, and delete Clusters.
+  Provide a Bizfly Cloud Kubernetes Engine resource. This can be used to create, modify, and delete Clusters.
 ---
 
 # bizflycloud\_kubernetes
 
-Provides a BizFly Cloud Kubernetes Engine resource. This can be used to create, modify, and delete Cluster.
+Provides a Bizfly Cloud Kubernetes Engine resource. This can be used to create, modify, and delete Cluster.
 
 ## Example Usage
 
