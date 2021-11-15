@@ -124,6 +124,10 @@ func resourceBizFlyCloudServer() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Computed: true,
 			},
+			"network_plan": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -153,6 +157,7 @@ func resourceBizFlyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 			Type: d.Get("root_disk_type").(string),
 			Size: d.Get("root_disk_size").(int),
 		},
+		NetworkPlan: d.Get("network_plan").(string),
 	}
 	log.Printf("[DEBUG] Create Cloud Server configuration: %#v", scr)
 
