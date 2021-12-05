@@ -94,8 +94,19 @@ func readSubnets(subnets []gobizfly.Subnet) []map[string]interface{} {
 			"project_id":       s.ProjectID,
 			"ip_version":       s.IPVersion,
 			"gateway_ip":       s.GatewayIP,
-			"allocation_pools": s.AllocationPools,
+			"allocation_pools": flattenAllocationPools(s.AllocationPools),
 		})
 	}
 	return results
+}
+
+func flattenAllocationPools(allocationPools []gobizfly.AllocationPool) []map[string]interface{} {
+	var flatAllocationPools []map[string]interface{}
+	for _, p := range allocationPools {
+		flatAllocationPools = append(flatAllocationPools, map[string]interface{}{
+			"start": p.Start,
+			"end":   p.End,
+		})
+	}
+	return flatAllocationPools
 }
