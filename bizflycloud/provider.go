@@ -1,6 +1,6 @@
-// This file is part of gobizfly
+// This file is part of terraform-provider-bizflycloud
 //
-// Copyright (C) 2020  BizFly Cloud
+// Copyright (C) 2021  Bizfly Cloud
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -22,21 +22,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-// Provider returns a schema.Provider for BizFly Cloud.
+// Provider returns a schema.Provider for Bizfly Cloud.
 func Provider() terraform.ResourceProvider {
 	p := &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"api_endpoint": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The URL use for the BizFly Cloud API",
+				Description: "The URL use for the Bizfly Cloud API",
 				DefaultFunc: schema.EnvDefaultFunc("BIZFLYCLOUD_API_ENDPOINT", "https://manage.bizflycloud.vn/api"),
 			},
 			"auth_method": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("BIZFLYCLOUD_AUTH_METHOD", "password"),
-				Description: "Authentication method for BizFly Cloud API",
+				Description: "Authentication method for Bizfly Cloud API",
 			},
 			"email": {
 				Type:        schema.TypeString,
@@ -65,7 +65,7 @@ func Provider() terraform.ResourceProvider {
 			"region_name": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "BizFly Cloud Region Name. Default is HN",
+				Description: "Bizfly Cloud Region Name. Default is HN",
 				DefaultFunc: schema.EnvDefaultFunc("BIZFLYCLOUD_REGION_NAME", "HN"),
 			},
 		},
@@ -85,6 +85,7 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_kubernetes":                       resourceBizFlyCloudKubernetes(),
 			"bizflycloud_vpc_network":                      resourceBizFlyCloudVPCNetwork(),
 			"bizflycloud_network_interface":                resourceBizFlyCloudNetworkInterface(),
+			"bizflycloud_dns":                              resourceBizFlyCloudDNS(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"bizflycloud_image":                            datasourceBizFlyCloudImages(),
@@ -95,6 +96,7 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_network_interface":                dataSourceBizFlyCloudNetworkInterface(),
 			"bizflycloud_server":                           datasourceBizFlyCloudServers(),
 			"bizflycloud_autoscaling_nodes":                datasourceBizFlyCloudAutoscalingNodes(),
+			"bizflycloud_ssh_key":                          dataSourceBizflyClouldSSHKey(),
 		},
 	}
 	p.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {

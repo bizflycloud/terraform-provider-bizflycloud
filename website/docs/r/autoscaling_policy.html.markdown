@@ -1,11 +1,11 @@
 ---
 layout: "bizflycloud"
-page_title: "BizFly Cloud: bizflycloud_autoscaling_policy"
+page_title: "Bizfly Cloud: bizflycloud_autoscaling_policy"
 sidebar_current: "docs-bizflycloud-resource-autoscaling-policy"
-description: - Provide a BizFly Cloud AutoScaling Policy resource. This can be used to create, modify, and delete.
+description: - Provide a Bizfly Cloud AutoScaling Policy resource. This can be used to create, modify, and delete.
 ---
 
-Provides a BizFly Cloud AutoScaling Policy resource. This can be used to create, modify, and delete.
+Provides a Bizfly Cloud AutoScaling Policy resource. This can be used to create, modify, and delete.
 
 # bizflycloud\_autoscaling\_scalein\_policy
 

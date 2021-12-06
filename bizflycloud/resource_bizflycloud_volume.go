@@ -1,6 +1,6 @@
-// This file is part of gobizfly
+// This file is part of terraform-provider-bizflycloud
 //
-// Copyright (C) 2020  BizFly Cloud
+// Copyright (C) 2021  Bizfly Cloud
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/bizflycloud/gobizfly"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -29,10 +30,13 @@ import (
 
 func resourceBizFlyCloudVolume() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceBizFlyCloudVolumeCreate,
-		Read:          resourceBizFlyCloudVolumeRead,
-		Update:        resourceBizFlyCloudVolumeUpdate,
-		Delete:        resourceBizFlyCloudVolumeDelete,
+		Create: resourceBizFlyCloudVolumeCreate,
+		Read:   resourceBizFlyCloudVolumeRead,
+		Update: resourceBizFlyCloudVolumeUpdate,
+		Delete: resourceBizFlyCloudVolumeDelete,
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(20 * time.Minute),
+		},
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
 			"name": {

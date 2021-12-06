@@ -27,7 +27,7 @@ $ make build
 Using the provider
 ----------------------
 
-See the [BizFly Cloud Provider documentation](https://registry.terraform.io/providers/bizflycloud/bizflycloud/latest) to get started using the BizFly Cloud provider.
+See the [Bizfly Cloud Provider documentation](https://registry.terraform.io/providers/bizflycloud/bizflycloud/latest) to get started using the Bizfly Cloud provider.
 
 Developing the Provider
 ---------------------------

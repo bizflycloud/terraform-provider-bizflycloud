@@ -1,6 +1,6 @@
-// This file is part of gobizfly
+// This file is part of terraform-provider-bizflycloud
 //
-// Copyright (C) 2020  BizFly Cloud
+// Copyright (C) 2021  Bizfly Cloud
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ import (
 	"github.com/bizflycloud/gobizfly"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"log"
+	"time"
 )
 
 func resourceBizFlyCloudKubernetes() *schema.Resource {
@@ -71,6 +72,9 @@ func resourceBizFlyCloudKubernetes() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
 	}
 }

@@ -19,42 +19,44 @@ package bizflycloud
 
 import (
 	"context"
-	"fmt"
-	"strings"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func datasourceBizFlyCloudImages() *schema.Resource {
+func dataSourceBizflyClouldSSHKey() *schema.Resource {
 	return &schema.Resource{
-		Read:   dataSourceBizFlyCloudImageRead,
-		Schema: imageSchema(),
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"fingerprint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"public_key": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+		},
+		Read: dataSourceBizflyClouldSSHKeyRead,
 	}
 }
 
-func dataSourceBizFlyCloudImageRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBizflyClouldSSHKeyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	osImages, err := client.Server.ListOSImages(context.Background())
+	sshKey, err := client.SSHKey.Get(context.Background(), d.Get("name").(string))
 	if err != nil {
 		return err
 	}
-	distribution, okDist := d.GetOk("distribution")
-	version, okVer := d.GetOk("version")
-	if okDist && okVer {
-		for _, image := range osImages {
-			if !strings.EqualFold(strings.ToLower(image.OSDistribution), strings.ToLower(distribution.(string))) {
-				continue
-			}
-			for _, v := range image.Version {
-				if !strings.EqualFold(strings.ToLower(v.Name), strings.ToLower(version.(string))) {
-					continue
-				}
-				d.SetId(v.ID)
-				break
-			}
-		}
-	} else {
-		return fmt.Errorf("Distribution and Version must be set")
+	d.SetId(sshKey.Name)
+	err = d.Set("fingerprint", sshKey.FingerPrint)
+	if err != nil {
+		return err
+	}
+	err = d.Set("public_key", sshKey.PublicKey)
+	if err != nil {
+		return err
 	}
 	return nil
+
 }

@@ -1,14 +1,14 @@
 ---
 layout: "bizflycloud"
-page_title: "BizFly Cloud: bizflycloud_kubernetes_version"
+page_title: "Bizfly Cloud: bizflycloud_kubernetes_version"
 sidebar_current: "docs-bizflycloud-datasource-kubernetes_version"
 description: |-
-Provides a BizFly Cloud Kubernetes Version
+Provides a Bizfly Cloud Kubernetes Version
 ---
 
 # bizflycloud\_kubernetes\_version
 
-Get ìnformation about BizFly Cloud Kubernetes Version
+Get ìnformation about Bizfly Cloud Kubernetes Version
 
 ## Example Usage
 

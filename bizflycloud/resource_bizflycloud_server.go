@@ -1,6 +1,6 @@
-// This file is part of gobizfly
+// This file is part of terraform-provider-bizflycloud
 //
-// Copyright (C) 2020  BizFly Cloud
+// Copyright (C) 2021  Bizfly Cloud
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -124,9 +124,16 @@ func resourceBizFlyCloudServer() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Computed: true,
 			},
+			"network_plan": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
 	}
 }
@@ -150,6 +157,7 @@ func resourceBizFlyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 			Type: d.Get("root_disk_type").(string),
 			Size: d.Get("root_disk_size").(int),
 		},
+		NetworkPlan: d.Get("network_plan").(string),
 	}
 	log.Printf("[DEBUG] Create Cloud Server configuration: %#v", scr)
 
@@ -192,7 +200,7 @@ func resourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	server, err := client.Server.Get(context.Background(), d.Id())
 	if err != nil {
 		if errors.Is(err, gobizfly.ErrNotFound) {
-			log.Printf("[WARN] BizFly Cloud Server (%s) is not found", d.Id())
+			log.Printf("[WARN] Bizfly Cloud Server (%s) is not found", d.Id())
 			d.SetId("")
 			return nil
 		}
