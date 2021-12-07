@@ -40,7 +40,7 @@ func resourceBizFlyCloudAutoscalingGroup() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Delete: schema.DefaultTimeout(20 * time.Minute),
+			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
 		Schema: resourceAutoScalingGroupSchema(),
 	}
@@ -59,13 +59,6 @@ func resourceBizFlyCloudAutoscalingGroupCreate(d *schema.ResourceData, meta inte
 
 	if v, ok := d.GetOk("load_balancers"); ok && len(v.([]interface{})) > 0 {
 		ascr.LoadBalancerPolicies = readLoadBalancersFromConfig(d)
-	}
-
-	if _, ok := d.GetOk("scale_in_info"); ok {
-		ascr.ScaleInPolicies = &[]gobizfly.ScalePolicy{}
-	}
-	if _, ok := d.GetOk("scale_out_info"); ok {
-		ascr.ScaleInPolicies = &[]gobizfly.ScalePolicy{}
 	}
 
 	task, err := client.AutoScaling.AutoScalingGroups().Create(context.Background(), ascr)
@@ -167,7 +160,7 @@ func newStateRefreshfunc(d *schema.ResourceData, attribute string, meta interfac
 			return nil, "", err
 		}
 		// if the task is not ready, we need to wait for a moment
-		if !resp.Ready && len(resp.Result.Action) > 0 {
+		if !resp.Ready {
 			log.Println("[DEBUG] auto scaling is not ready")
 			return nil, "", nil
 		}
