@@ -76,22 +76,9 @@ func dataAutoScalingGroupSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"scale_in_info": {
-			Type:     schema.TypeList,
-			Computed: true,
-			Elem: &schema.Resource{
-				Schema: dataScaleInPolicySchema(),
-			},
-		},
-		"scale_out_info": {
-			Type:     schema.TypeList,
-			Computed: true,
-			Elem: &schema.Resource{
-				Schema: dataScaleOutPolicySchema(),
-			},
-		},
 	}
 }
+
 func resourceAutoScalingGroupSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
@@ -105,6 +92,7 @@ func resourceAutoScalingGroupSchema() map[string]*schema.Schema {
 		"launch_configuration_id": {
 			Type:     schema.TypeString,
 			Required: true,
+			ForceNew: true,
 		},
 		"launch_configuration_name": {
 			Type:     schema.TypeString,
@@ -136,20 +124,6 @@ func resourceAutoScalingGroupSchema() map[string]*schema.Schema {
 			Computed: true,
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
-			},
-		},
-		"scale_in_info": {
-			Type:     schema.TypeList,
-			Computed: true,
-			Elem: &schema.Resource{
-				Schema: dataScaleInPolicySchema(),
-			},
-		},
-		"scale_out_info": {
-			Type:     schema.TypeList,
-			Computed: true,
-			Elem: &schema.Resource{
-				Schema: dataScaleOutPolicySchema(),
 			},
 		},
 		"status": {
@@ -276,6 +250,57 @@ func resourceScaleInPolicySchema() map[string]*schema.Schema {
 func resourceScaleOutPolicySchema() map[string]*schema.Schema {
 	commonSchema := resourceScalePolicySchema()
 	return commonSchema
+}
+
+// Deletion Policy
+func dataDeletionPolicySchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"criteria": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"destroy_after_deletion": {
+			Type:     schema.TypeBool,
+			Computed: true,
+		},
+		"grace_period": {
+			Type:     schema.TypeInt,
+			Computed: true,
+		},
+		"reduce_desired_capacity": {
+			Type:     schema.TypeBool,
+			Computed: true,
+		},
+	}
+}
+
+func resourceDeletionPolicySchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"cluster_id": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"criteria": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"destroy_after_deletion": {
+			Type:     schema.TypeBool,
+			Computed: true,
+		},
+		"grace_period": {
+			Type:     schema.TypeInt,
+			Computed: true,
+		},
+		"reduce_desired_capacity": {
+			Type:     schema.TypeBool,
+			Computed: true,
+		},
+		"task_id": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 // Profiles
@@ -431,7 +456,6 @@ func resourceLaunchConfigurationSchema() map[string]*schema.Schema {
 					"volume_size": {
 						Type:     schema.TypeInt,
 						Required: true,
-						ForceNew: true,
 						ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 							switch v := val.(int); true {
 							case v < 20 || v%10 > 0:
@@ -475,7 +499,7 @@ func resourceLaunchConfigurationSchema() map[string]*schema.Schema {
 		},
 		"networks": {
 			Type:     schema.TypeList,
-			Optional: true,
+			Required: true,
 			ForceNew: true,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
@@ -486,8 +510,9 @@ func resourceLaunchConfigurationSchema() map[string]*schema.Schema {
 					},
 					"security_groups": {
 						Type:     schema.TypeSet,
-						Optional: true,
+						Required: false,
 						ForceNew: true,
+						Computed: true,
 						Elem:     &schema.Schema{Type: schema.TypeString},
 					},
 				},
@@ -518,12 +543,10 @@ func resourceLaunchConfigurationSchema() map[string]*schema.Schema {
 					"uuid": {
 						Type:     schema.TypeString,
 						Required: true,
-						ForceNew: true,
 					},
 					"os_name": {
 						Type:     schema.TypeString,
 						Computed: true,
-						ForceNew: true,
 					},
 				},
 			},
@@ -539,17 +562,14 @@ func resourceLaunchConfigurationSchema() map[string]*schema.Schema {
 						Type:     schema.TypeBool,
 						Optional: true,
 						Default:  true,
-						ForceNew: true,
 					},
 					"volume_size": {
 						Type:     schema.TypeInt,
 						Required: true,
-						ForceNew: true,
 					},
 					"volume_type": {
 						Type:     schema.TypeString,
 						Required: true,
-						ForceNew: true,
 					},
 				},
 			},

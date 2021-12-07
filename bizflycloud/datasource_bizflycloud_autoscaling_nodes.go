@@ -20,6 +20,7 @@ package bizflycloud
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -45,13 +46,13 @@ func datasourceBizFlyCloudAutoscalingNodes() *schema.Resource {
 
 func dataSourceBizFlyCloudNodesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	clusterId, okId := d.GetOk("cluster_id")
-	osNodes, err := client.AutoScaling.Nodes().List(context.Background(), clusterId.(string), false)
+	clusterID, okID := d.GetOk("cluster_id")
+	osNodes, err := client.AutoScaling.Nodes().List(context.Background(), clusterID.(string), false)
 	if err != nil {
 		return err
 	}
 
-	if okId {
+	if okID {
 		nodesResult := make([]map[string]interface{}, len(osNodes))
 		for i, node := range osNodes {
 			nodesResult[i] = map[string]interface{}{
@@ -66,7 +67,7 @@ func dataSourceBizFlyCloudNodesRead(d *schema.ResourceData, meta interface{}) er
 				"status_reason": node.StatusReason,
 			}
 		}
-		d.SetId(clusterId.(string))
+		d.SetId(clusterID.(string))
 		_ = d.Set("nodes", nodesResult)
 	} else {
 		return fmt.Errorf("Nodes ID must be set")

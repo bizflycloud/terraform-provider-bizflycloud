@@ -31,6 +31,8 @@ import (
 
 const (
 	requestPerSecond = "request_per_second"
+	timeSleep        = 10
+	maxRetry         = 6
 )
 
 func resourceBizFlyCloudAutoscalingScaleInPolicy() *schema.Resource {
@@ -45,7 +47,6 @@ func resourceBizFlyCloudAutoscalingScaleInPolicy() *schema.Resource {
 
 		Timeouts: &schema.ResourceTimeout{
 			Delete: schema.DefaultTimeout(10 * time.Minute),
-			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
 		Schema: resourceScaleInPolicySchema(),
 	}
@@ -61,11 +62,29 @@ func resourceBizFlyCloudAutoscalingScaleOutPolicy() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(15 * time.Minute),
 		},
 		Schema: resourceScaleOutPolicySchema(),
 	}
 }
+
+func resourceBizFlyCloudAutoscalingDeletionPolicy() *schema.Resource {
+	return &schema.Resource{
+		Create: resourceBizFlyCloudAutoscalingDeletionPolicyCreate,
+		Read:   resourceBizFlyCloudAutoscalingDeletionPolicyRead,
+		Update: resourceBizFlyCloudAutoscalingDeletionPolicyUpdate,
+		Delete: resourceBizFlyCloudAutoscalingDeletionPolicyDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Delete: schema.DefaultTimeout(15 * time.Minute),
+		},
+		Schema: resourceDeletionPolicySchema(),
+	}
+}
+
+// Scale Policy
 
 func resourceBizFlyCloudAutoscalingScaleInPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
@@ -96,12 +115,18 @@ func resourceBizFlyCloudAutoscalingScaleInPolicyCreate(d *schema.ResourceData, m
 			ScaleSize: d.Get("scale_size").(int),
 			Threshold: d.Get("threshold").(int),
 		}
-		task, err := client.AutoScaling.Policies().CreateLoadBalancers(context.Background(), clusterID, lbpcr)
-		if err != nil {
-			return fmt.Errorf("[ERROR] errors when create scale in policy for cluster: %s, error: %s", clusterID, err)
+		retry := maxRetry
+		for retry > 0 {
+			task, err := client.AutoScaling.Policies().CreateLoadBalancers(context.Background(), clusterID, lbpcr)
+			if err != nil {
+				fmt.Printf("[WARNING] errors when create scale in policy for cluster: %s, error: %s", clusterID, err)
+				retry = retry - 1
+				time.Sleep(timeSleep)
+				continue
+			}
+			_ = d.Set("task_id", task.TaskID)
+			break
 		}
-
-		_ = d.Set("task_id", task.TaskID)
 	} else {
 
 		pcr := &gobizfly.PolicyAutoScalingCreateRequest{
@@ -112,13 +137,18 @@ func resourceBizFlyCloudAutoscalingScaleInPolicyCreate(d *schema.ResourceData, m
 			ScaleSize:  d.Get("scale_size").(int),
 			Threshold:  d.Get("threshold").(int),
 		}
-
-		task, err := client.AutoScaling.Policies().CreateAutoScaling(context.Background(), clusterID, pcr)
-		if err != nil {
-			return fmt.Errorf("[ERROR] errors when create scale in policy for cluster: %s, error: %s", clusterID, err)
+		retry := maxRetry
+		for retry > 0 {
+			task, err := client.AutoScaling.Policies().CreateAutoScaling(context.Background(), clusterID, pcr)
+			if err != nil {
+				fmt.Printf("[WARNING] errors when create scale in policy for cluster: %s, error: %s", clusterID, err)
+				retry = retry - 1
+				time.Sleep(timeSleep)
+				continue
+			}
+			_ = d.Set("task_id", task.TaskID)
+			break
 		}
-
-		_ = d.Set("task_id", task.TaskID)
 	}
 
 	_, err := waitForAutoScalingGroupPolicyReady(d, meta)
@@ -153,7 +183,6 @@ func resourceBizFlyCloudAutoscalingScaleInPolicyUpdate(d *schema.ResourceData, m
 		}
 
 		lb := policies.LoadBalancerPolicies
-
 		lbpur := &gobizfly.LoadBalancersPolicyUpdateRequest{
 			CoolDown:   d.Get("cooldown").(int),
 			Event:      "CLUSTER_SCALE_IN",
@@ -167,12 +196,19 @@ func resourceBizFlyCloudAutoscalingScaleInPolicyUpdate(d *schema.ResourceData, m
 			ScaleSize: d.Get("scale_size").(int),
 			Threshold: d.Get("threshold").(int),
 		}
-		task, err := client.AutoScaling.Policies().UpdateLoadBalancers(context.Background(), clusterID, policyID, lbpur)
-		if err != nil {
-			return fmt.Errorf("[ERROR] errors when update scale in policy for cluster: %s, error: %s", clusterID, err)
-		}
 
-		_ = d.Set("task_id", task.TaskID)
+		retry := maxRetry
+		for retry > 0 {
+			task, err := client.AutoScaling.Policies().UpdateLoadBalancers(context.Background(), clusterID, policyID, lbpur)
+			if err != nil {
+				fmt.Printf("[WARNING] errors when update scale in policy for cluster: %s, error: %s", clusterID, err)
+				retry = retry - 1
+				time.Sleep(timeSleep)
+				continue
+			}
+			_ = d.Set("task_id", task.TaskID)
+			break
+		}
 	} else {
 
 		pur := &gobizfly.PolicyAutoScalingUpdateRequest{
@@ -184,12 +220,18 @@ func resourceBizFlyCloudAutoscalingScaleInPolicyUpdate(d *schema.ResourceData, m
 			Threshold:  d.Get("threshold").(int),
 		}
 
-		task, err := client.AutoScaling.Policies().UpdateAutoScaling(context.Background(), clusterID, policyID, pur)
-		if err != nil {
-			return fmt.Errorf("[ERROR] errors when update scale in policy for cluster: %s, error: %s", clusterID, err)
+		retry := maxRetry
+		for retry > 0 {
+			task, err := client.AutoScaling.Policies().UpdateAutoScaling(context.Background(), clusterID, policyID, pur)
+			if err != nil {
+				fmt.Printf("[WARNING] errors when update scale in policy for cluster: %s, error: %s", clusterID, err)
+				retry = retry - 1
+				time.Sleep(timeSleep)
+				continue
+			}
+			_ = d.Set("task_id", task.TaskID)
+			break
 		}
-
-		_ = d.Set("task_id", task.TaskID)
 	}
 
 	_, err := waitForAutoScalingGroupPolicyReady(d, meta)
@@ -229,12 +271,19 @@ func resourceBizFlyCloudAutoscalingScaleOutPolicyCreate(d *schema.ResourceData, 
 			ScaleSize: d.Get("scale_size").(int),
 			Threshold: d.Get("threshold").(int),
 		}
-		task, err := client.AutoScaling.Policies().CreateLoadBalancers(context.Background(), clusterID, lbpcr)
-		if err != nil {
-			return fmt.Errorf("[ERROR] errors when create scale out policy for cluster: %s, error: %s", clusterID, err)
-		}
 
-		_ = d.Set("task_id", task.TaskID)
+		retry := maxRetry
+		for retry > 0 {
+			task, err := client.AutoScaling.Policies().CreateLoadBalancers(context.Background(), clusterID, lbpcr)
+			if err != nil {
+				fmt.Printf("[WARNING] errors when create scale out policy for cluster: %s, error: %s", clusterID, err)
+				retry = retry - 1
+				time.Sleep(timeSleep)
+				continue
+			}
+			_ = d.Set("task_id", task.TaskID)
+			break
+		}
 	} else {
 
 		pcr := &gobizfly.PolicyAutoScalingCreateRequest{
@@ -246,12 +295,18 @@ func resourceBizFlyCloudAutoscalingScaleOutPolicyCreate(d *schema.ResourceData, 
 			Threshold:  d.Get("threshold").(int),
 		}
 
-		task, err := client.AutoScaling.Policies().CreateAutoScaling(context.Background(), clusterID, pcr)
-		if err != nil {
-			return fmt.Errorf("[ERROR] errors when create scale out policy for cluster: %s, error: %s", clusterID, err)
+		retry := maxRetry
+		for retry > 0 {
+			task, err := client.AutoScaling.Policies().CreateAutoScaling(context.Background(), clusterID, pcr)
+			if err != nil {
+				fmt.Printf("[WARNING] errors when create scale out policy for cluster: %s, error: %s", clusterID, err)
+				retry = retry - 1
+				time.Sleep(timeSleep)
+				continue
+			}
+			_ = d.Set("task_id", task.TaskID)
+			break
 		}
-
-		_ = d.Set("task_id", task.TaskID)
 	}
 
 	_, err := waitForAutoScalingGroupPolicyReady(d, meta)
@@ -300,12 +355,19 @@ func resourceBizFlyCloudAutoscalingScaleOutPolicyUpdate(d *schema.ResourceData, 
 			ScaleSize: d.Get("scale_size").(int),
 			Threshold: d.Get("threshold").(int),
 		}
-		task, err := client.AutoScaling.Policies().UpdateLoadBalancers(context.Background(), clusterID, policyID, lbpur)
-		if err != nil {
-			return fmt.Errorf("[ERROR] errors when update scale out policy for cluster: %s, error: %s", clusterID, err)
-		}
 
-		_ = d.Set("task_id", task.TaskID)
+		retry := maxRetry
+		for retry > 0 {
+			task, err := client.AutoScaling.Policies().UpdateLoadBalancers(context.Background(), clusterID, policyID, lbpur)
+			if err != nil {
+				fmt.Printf("[WARNING] errors when update scale out policy for cluster: %s, error: %s", clusterID, err)
+				retry = retry - 1
+				time.Sleep(timeSleep)
+				continue
+			}
+			_ = d.Set("task_id", task.TaskID)
+			break
+		}
 	} else {
 
 		pur := &gobizfly.PolicyAutoScalingUpdateRequest{
@@ -317,12 +379,18 @@ func resourceBizFlyCloudAutoscalingScaleOutPolicyUpdate(d *schema.ResourceData, 
 			Threshold:  d.Get("threshold").(int),
 		}
 
-		task, err := client.AutoScaling.Policies().UpdateAutoScaling(context.Background(), clusterID, policyID, pur)
-		if err != nil {
-			return fmt.Errorf("[ERROR] errors when update scale out policy for cluster: %s, error: %s", clusterID, err)
+		retry := maxRetry
+		for retry > 0 {
+			task, err := client.AutoScaling.Policies().UpdateAutoScaling(context.Background(), clusterID, policyID, pur)
+			if err != nil {
+				fmt.Printf("[WARNING] errors when update scale out policy for cluster: %s, error: %s", clusterID, err)
+				retry = retry - 1
+				time.Sleep(timeSleep)
+				continue
+			}
+			_ = d.Set("task_id", task.TaskID)
+			break
 		}
-
-		_ = d.Set("task_id", task.TaskID)
 	}
 
 	_, err := waitForAutoScalingGroupPolicyReady(d, meta)
@@ -346,6 +414,69 @@ func resourceBizFlyCloudAutoscalingScalePolicyDelete(d *schema.ResourceData, met
 		log.Printf("[WARNING] errors when delete scale policy %s for cluster: %s, error: %s", policyID, clusterID, err)
 	}
 
+	return nil
+}
+
+// Deletion Policy
+func resourceBizFlyCloudAutoscalingDeletionPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+	return resourceBizFlyCloudAutoscalingDeletionPolicyRead(d, meta)
+}
+
+func resourceBizFlyCloudAutoscalingDeletionPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*CombinedConfig).gobizflyClient()
+	clusterID := d.Get("cluster_id").(string)
+
+	if _, err := waitForAutoScalingGroupPolicyAvailableInteractive(d, meta); err != nil {
+		return fmt.Errorf("[ERROR] error when wait scaling policy available to interactive (%s): %s", d.Get("cluster_id"), err)
+	}
+
+	clusterPolicies, err := client.AutoScaling.Policies().List(context.Background(), clusterID)
+	if err != nil {
+		return fmt.Errorf("[ERROR] error when get policies of cluster (%s): %s", d.Get("cluster_id"), err)
+	}
+
+	deletionPolicy := clusterPolicies.DeletionPolicy
+	if deletionPolicy.ID != "" {
+		pdur := &gobizfly.PolicyDeletionUpdateRequest{
+			Criteria:              d.Get("criteria").(string),
+			DestroyAfterDeletion:  deletionPolicy.DestroyAfterDeletion,
+			GracePeriod:           deletionPolicy.GracePeriod,
+			ReduceDesiredCapacity: deletionPolicy.ReduceDesiredCapacity,
+		}
+
+		task, err := client.AutoScaling.Policies().UpdateDeletion(context.Background(), clusterID, deletionPolicy.ID, pdur)
+		if err != nil {
+			return fmt.Errorf("[ERROR] errors when update deletion policy for cluster: %s, error: %s", clusterID, err)
+		}
+
+		_ = d.Set("task_id", task.TaskID)
+	}
+
+	_, err = waitForAutoScalingGroupPolicyReady(d, meta)
+	if err != nil {
+		return fmt.Errorf("[ERROR] errors when update deletion policy for cluster: %s, error: %s", clusterID, err)
+	}
+
+	return resourceBizFlyCloudAutoscalingDeletionPolicyRead(d, meta)
+}
+
+func resourceBizFlyCloudAutoscalingDeletionPolicyRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*CombinedConfig).gobizflyClient()
+	clusterID := d.Get("cluster_id").(string)
+
+	if _, err := waitForAutoScalingGroupPolicyAvailableInteractive(d, meta); err != nil {
+		return fmt.Errorf("[ERROR] error when wait scaling policy available to interactive (%s): %s", d.Get("cluster_id"), err)
+	}
+	clusterPolicies, err := client.AutoScaling.Policies().List(context.Background(), clusterID)
+	if err != nil {
+		return fmt.Errorf("[ERROR] error when get policies of cluster (%s): %s", d.Get("cluster_id"), err)
+	}
+	d.SetId(clusterPolicies.DeletionPolicy.ID)
+
+	return nil
+}
+
+func resourceBizFlyCloudAutoscalingDeletionPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 

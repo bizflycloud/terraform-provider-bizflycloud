@@ -58,23 +58,3 @@ The following attributes are exported:
 * `min_size` - The min size value of AutoScaling Group which value was limited when do scale in
 * `node_ids` - List ID of members in AutoScaling Group
 * `status` - The status of AutoScaling Group
-* `scale_in_info` - List of AutoScaling Policy to do scale in included:
-    - `cooldown` - The time between two action continuous to do scale in
-    - `metric_type` - The metric type of policy included:
-        - `ram_used` - The metric is type percentage of ram used
-        - `cpu_used` - The metric is type percentage of cpu used
-        - `net_used` - The metric is type bandwidth of network
-        - `request_per_second` - The metric is type request per second of load balancer if it was configured
-    - `range_time` - The range time of policy when was reach to threshold value
-    - `threshold` - The threshold value was using make decision to do scale in
-    - `scale_size` - The number member to do remove when to do scale in
-* `scale_out_info` - List of AutoScaling Policy to do scale out
-    - `cooldown` - The time between two action continuous to do scale out
-    - `metric_type` - The metric type of policy included:
-        - `ram_used` - The metric is type percentage of ram used
-        - `cpu_used` - The metric is type percentage of cpu used
-        - `net_used` - The metric is type bandwidth of network
-        - `request_per_second` - The metric is type request per second of load balancer if it was configured
-    - `range_time` - The range time of policy when was reach to threshold value
-    - `threshold` - The threshold value was using make decision to do scale out
-    - `scale_size` - The number member to do remove when to do scale out

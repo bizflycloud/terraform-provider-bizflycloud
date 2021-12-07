@@ -63,21 +63,14 @@ func dataSourceBizFlyCloudAutoScalingGroupRead(d *schema.ResourceData, meta inte
 	_ = d.Set("node_ids", group.NodeIDs)
 	_ = d.Set("status", group.Status)
 
-	if err := d.Set("load_balancers", readLoadBalancerInfo(group.LoadBalancerPolicies)); err != nil {
+	if err := d.Set("load_balancers", readLoadBalancerInformation(group.LoadBalancerPolicies)); err != nil {
 		return fmt.Errorf("error setting load_balancers: %w", err)
 	}
 
-	if err := d.Set("scale_in_info", readScaleInPolicyInformation(group.ScaleInPolicies)); err != nil {
-		return fmt.Errorf("error setting scale_in_info: %w", err)
-	}
-
-	if err := d.Set("scale_out_info", readScaleOutPolicyInformation(group.ScaleOutPolicies)); err != nil {
-		return fmt.Errorf("error setting scale_out_info: %w", err)
-	}
 	return nil
 }
 
-func readLoadBalancerInfo(l gobizfly.LoadBalancerPolicy) []map[string]interface{} {
+func readLoadBalancerInformation(l gobizfly.LoadBalancerPolicy) []map[string]interface{} {
 	var results []map[string]interface{}
 	if l.LoadBalancerID != "" {
 		results = append(results, map[string]interface{}{
@@ -115,5 +108,20 @@ func readScaleOutPolicyInformation(policies []gobizfly.ScalePolicy) []map[string
 			"threshold":   p.Threshold,
 		})
 	}
+	return results
+}
+
+func readDeletionPolicyInformation(d gobizfly.DeletionPolicyInformation) []map[string]interface{} {
+	var results []map[string]interface{}
+
+	if d.ID != "" {
+		results = append(results, map[string]interface{}{
+			"criteria":                d.Criteria,
+			"destroy_after_deletion":  d.DestroyAfterDeletion,
+			"grace_period":            d.GracePeriod,
+			"reduce_desired_capacity": d.ReduceDesiredCapacity,
+		})
+	}
+
 	return results
 }

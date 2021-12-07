@@ -13,7 +13,7 @@ Provides a Bizfly Cloud AutoScaling Policy resource. This can be used to create,
 ```hcl
 # Create a new AutoScaling ScaleIn Policy
 resource "bizflycloud_autoscaling_scalein_policy" "name" {
-  cluster_id  = bizflycloud_autoscaling_group.maianh.id
+  cluster_id  = bizflycloud_autoscaling_group.hutao.id
   metric_type = "ram_used"
   threshold   = 10
   range_time  = 600
@@ -27,7 +27,7 @@ resource "bizflycloud_autoscaling_scalein_policy" "name" {
 ```hcl
 ### Create a new AutoScaling Scaleout Policy
 resource "bizflycloud_autoscaling_scaleout_policy" "name" {
-  cluster_id  = bizflycloud_autoscaling_group.maianh.id
+  cluster_id  = bizflycloud_autoscaling_group.hutao.id
   metric_type = "ram_used"
   threshold   = 90
   range_time  = 600
@@ -59,3 +59,21 @@ The following attributes are exported:
 * `range_time` - The range time of policy when was reach to threshold value
 * `threshold` - The threshold value was using make decision to do scale out/in
 * `scale_size` - The number member to do add/remove when to do scale out/in
+
+
+
+# bizflycloud\_autoscaling\_deletion\_policy
+
+```hcl
+# Update criteria in deletion policy
+resource "bizflycloud_autoscaling_deletion_policy" "deletion_policy" {
+  cluster_id = bizflycloud_autoscaling_group.hutao.id
+  criteria   = "YOUNGEST_FIRST"
+}
+```
+
+### Argument Reference
+
+The following arguments are supported:
+* `cluster_id` - (Required) The ID of AutoScaling Group
+* `criteria` - (Required) The criteria used in selecting node candidates for deletion
