@@ -171,43 +171,6 @@ func resourceAutoScalingLoadBalancerInfoSchema() map[string]*schema.Schema {
 	}
 }
 
-func dataScalePolicySchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"cooldown": {
-			Type:     schema.TypeInt,
-			Computed: true,
-		},
-		"metric_type": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"range_time": {
-			Type:     schema.TypeInt,
-			Computed: true,
-		},
-		"threshold": {
-			Type:     schema.TypeInt,
-			Computed: true,
-		},
-		"scale_size": {
-			Type:     schema.TypeInt,
-			Computed: true,
-		},
-	}
-}
-
-func dataScaleInPolicySchema() map[string]*schema.Schema {
-	commonSchema := dataScalePolicySchema()
-
-	return commonSchema
-}
-
-func dataScaleOutPolicySchema() map[string]*schema.Schema {
-	commonSchema := dataScalePolicySchema()
-
-	return commonSchema
-}
-
 func resourceScalePolicySchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"cluster_id": {
@@ -253,27 +216,6 @@ func resourceScaleOutPolicySchema() map[string]*schema.Schema {
 }
 
 // Deletion Policy
-func dataDeletionPolicySchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"criteria": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"destroy_after_deletion": {
-			Type:     schema.TypeBool,
-			Computed: true,
-		},
-		"grace_period": {
-			Type:     schema.TypeInt,
-			Computed: true,
-		},
-		"reduce_desired_capacity": {
-			Type:     schema.TypeBool,
-			Computed: true,
-		},
-	}
-}
-
 func resourceDeletionPolicySchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"cluster_id": {
