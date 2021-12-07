@@ -47,7 +47,7 @@ func datasourceBizFlyCloudAutoscalingNodes() *schema.Resource {
 func dataSourceBizFlyCloudNodesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	clusterID, okID := d.GetOk("cluster_id")
-	osNodes, err := client.AutoScaling.Nodes().List(context.Background(), clusterID.(string), false)
+	osNodes, err := client.AutoScaling.Nodes().List(context.Background(), clusterID.(string), true)
 	if err != nil {
 		return err
 	}
