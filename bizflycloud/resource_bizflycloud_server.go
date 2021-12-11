@@ -128,6 +128,16 @@ func resourceBizFlyCloudServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"wan_network_interfaces": {
+				Type:     schema.TypeList,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Optional: true,
+			},
+			"network_interfaces": {
+				Type:     schema.TypeList,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Optional: true,
+			},
 		},
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -157,7 +167,9 @@ func resourceBizFlyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 			Type: d.Get("root_disk_type").(string),
 			Size: d.Get("root_disk_size").(int),
 		},
-		NetworkPlan: d.Get("network_plan").(string),
+		NetworkPlan:          d.Get("network_plan").(string),
+		WanNetworkInterfaces: readNetworkInterfaces(d.Get("wan_network_interfaces").([]interface{})),
+		NetworkInterface:     readNetworkInterfaces(d.Get("network_interfaces").([]interface{})),
 	}
 	log.Printf("[DEBUG] Create Cloud Server configuration: %#v", scr)
 
@@ -449,4 +461,13 @@ func flatternBizFlyCloudIPs(ips []gobizfly.IP) *schema.Set {
 		flatternIPs.Add(ip.Address)
 	}
 	return flatternIPs
+}
+
+func readNetworkInterfaces(networkInterfaces []interface{}) []string {
+	networkInterfaceList := make([]string, 0)
+	for i := 0; i < len(networkInterfaces); i++ {
+		networkInterface := networkInterfaces[i].(string)
+		networkInterfaceList = append(networkInterfaceList, networkInterface)
+	}
+	return networkInterfaceList
 }

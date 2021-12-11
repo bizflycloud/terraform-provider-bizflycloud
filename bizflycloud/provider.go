@@ -87,6 +87,7 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_vpc_network":                      resourceBizFlyCloudVPCNetwork(),
 			"bizflycloud_network_interface":                resourceBizFlyCloudNetworkInterface(),
 			"bizflycloud_dns":                              resourceBizFlyCloudDNS(),
+			"bizflycloud_wan_ip":                           resourceBizFlyCloudWanIP(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"bizflycloud_image":                            datasourceBizFlyCloudImages(),
@@ -98,6 +99,7 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_server":                           datasourceBizFlyCloudServers(),
 			"bizflycloud_autoscaling_nodes":                datasourceBizFlyCloudAutoscalingNodes(),
 			"bizflycloud_ssh_key":                          dataSourceBizflyClouldSSHKey(),
+			"bizflycloud_wan_ip":                           dataSourceBizflyCloudWanIP(),
 		},
 	}
 	p.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {

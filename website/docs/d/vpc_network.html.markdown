@@ -8,7 +8,7 @@ description: |-
 
 # bizflycloud\_vpc\_network
 
-Get ìnformation about Bizfly Cloud VPC Network resource.
+Get information about Bizfly Cloud VPC Network resource.
 
 ## Example Usage
 
