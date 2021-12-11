@@ -33,14 +33,6 @@ github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d h1:xDfNPAt8lFiC1U
 github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d/go.mod h1:6QX/PXZ00z/TKoufEY6K/a0k6AhaJrQKdFe6OfVXsa4=
 github.com/bgentry/speakeasy v0.1.0 h1:ByYyxL9InA1OWqxJqqp2A5pYHUrCiAL6K3J+LKSsQkY=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
-github.com/bizflycloud/gobizfly v0.0.0-20210813092554-c93ef307dc11 h1:vzq7/9l9R8z4whLzxGewaRGfjwMqFJGwQCXsrQns6Hk=
-github.com/bizflycloud/gobizfly v0.0.0-20210813092554-c93ef307dc11/go.mod h1:dESSbBmjQ5OJBgRPCTgmxAeqxNnRzXIZuRK3CTW2DUs=
-github.com/bizflycloud/gobizfly v0.0.0-20211109063132-83a311ee0bab h1:XL63mDXS/AWPEnovpsm8RbqN7fgqTiE+kIrgZeVBu94=
-github.com/bizflycloud/gobizfly v0.0.0-20211109063132-83a311ee0bab/go.mod h1:dESSbBmjQ5OJBgRPCTgmxAeqxNnRzXIZuRK3CTW2DUs=
-github.com/bizflycloud/gobizfly v0.0.0-20211207034619-31f0d3852922 h1:2fEBL5jc9850X7hPP02yaV8zkKfBoKRo97GXZxJZmK0=
-github.com/bizflycloud/gobizfly v0.0.0-20211207034619-31f0d3852922/go.mod h1:dESSbBmjQ5OJBgRPCTgmxAeqxNnRzXIZuRK3CTW2DUs=
-github.com/bizflycloud/gobizfly v0.0.0-20211207151053-928f5bc4dc8e h1:9XAc4IIhpQ/eD00o3AuD2OGWfOHFxuNvYx7vgGz5uVo=
-github.com/bizflycloud/gobizfly v0.0.0-20211207151053-928f5bc4dc8e/go.mod h1:dESSbBmjQ5OJBgRPCTgmxAeqxNnRzXIZuRK3CTW2DUs=
 github.com/bizflycloud/gobizfly v0.0.0-20211210093929-c16a8580f3c4 h1:U+0jsFEtjm37Xl748lzOfl/21W+i2eRY1BQT6uOjfDU=
 github.com/bizflycloud/gobizfly v0.0.0-20211210093929-c16a8580f3c4/go.mod h1:dESSbBmjQ5OJBgRPCTgmxAeqxNnRzXIZuRK3CTW2DUs=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
