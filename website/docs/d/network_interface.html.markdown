@@ -23,7 +23,7 @@ data "bizflycloud_network_interface" "network_interface" {
 
 The following arguments are supported:
 
-* `network_id` - The Network ID of network interface.
+* `ip_address` - (Required) The IP address of network interface.
 
 ## Attributes Reference
 
