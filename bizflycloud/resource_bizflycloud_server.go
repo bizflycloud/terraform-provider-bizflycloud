@@ -111,7 +111,8 @@ func resourceBizFlyCloudServer() *schema.Resource {
 				Computed: true,
 			},
 			"lan_ip": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeSet,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 				Computed: true,
 			},
 			"wan_ipv4": {
@@ -129,12 +130,17 @@ func resourceBizFlyCloudServer() *schema.Resource {
 				Optional: true,
 			},
 			"wan_network_interfaces": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Optional: true,
 			},
 			"network_interfaces": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Optional: true,
+			},
+			"vpc_network_ids": {
+				Type:     schema.TypeSet,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Optional: true,
 			},
@@ -168,8 +174,9 @@ func resourceBizFlyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 			Size: d.Get("root_disk_size").(int),
 		},
 		NetworkPlan:          d.Get("network_plan").(string),
-		WanNetworkInterfaces: readNetworkInterfaces(d.Get("wan_network_interfaces").([]interface{})),
-		NetworkInterface:     readNetworkInterfaces(d.Get("network_interfaces").([]interface{})),
+		WanNetworkInterfaces: readStringArray(d.Get("wan_network_interfaces").(*schema.Set).List()),
+		NetworkInterface:     readStringArray(d.Get("network_interfaces").(*schema.Set).List()),
+		VPCNetworkIds:        readStringArray(d.Get("vpc_network_ids").(*schema.Set).List()),
 	}
 	log.Printf("[DEBUG] Create Cloud Server configuration: %#v", scr)
 
@@ -233,12 +240,14 @@ func resourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error setting `volume_ids`: %+v", err)
 	}
 
-	_ = d.Set("lan_ip", server.IPAddresses.LanAddresses[0].Address)
+	if err := d.Set("lan_ip", flatternBizFlyCloudIPs(server.IPAddresses.LanAddresses)); err != nil {
+		return fmt.Errorf("Error setting `lan_ip`: %+v", err)
+	}
 	if err := d.Set("wan_ipv4", flatternBizFlyCloudIPs(server.IPAddresses.WanV4Addresses)); err != nil {
-		return fmt.Errorf("Error setting `wan_ipv4`: #{err}")
+		return fmt.Errorf("Error setting `wan_ipv4`: %+v", err)
 	}
 	if err := d.Set("wan_ipv6", flatternBizFlyCloudIPs(server.IPAddresses.WanV6Addresses)); err != nil {
-		return fmt.Errorf("Error setting `wan_ipv6`: ${err}")
+		return fmt.Errorf("Error setting `wan_ipv6`: %+v", err)
 	}
 	return nil
 }
@@ -258,6 +267,34 @@ func resourceBizFlyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error updating cloud server with task id (%s): %s", d.Id(), err)
 		}
 	}
+	if d.HasChange("vpc_network_ids") {
+		oldVPCIds, newVPCIds := d.GetChange("vpc_network_ids")
+		oldIDSet := newSet(oldVPCIds.(*schema.Set).List())
+		newIDSet := newSet(newVPCIds.(*schema.Set).List())
+		var (
+			attachVPCs []string
+			detachVPCs []string
+		)
+		for vpcId := range leftDiff(oldIDSet, newIDSet) {
+			detachVPCs = append(detachVPCs, vpcId)
+		}
+		for vpcId := range leftDiff(newIDSet, oldIDSet) {
+			attachVPCs = append(attachVPCs, vpcId)
+		}
+		if len(detachVPCs) > 0 {
+			_, err := client.Server.RemoveVPC(context.Background(), d.Id(), detachVPCs)
+			if err != nil {
+				return fmt.Errorf("Error removing VPCs from server [%s]: %v", d.Id(), err)
+			}
+		}
+		if len(attachVPCs) > 0 {
+			_, err := client.Server.AddVPC(context.Background(), d.Id(), attachVPCs)
+			if err != nil {
+				return fmt.Errorf("Error adding VPCs to server [%s]: %v", d.Id(), err)
+			}
+		}
+	}
+
 	if d.HasChange("category") {
 		// Change category of the server
 		task, err := client.Server.ChangeCategory(context.Background(), id, d.Get("category").(string))
@@ -270,28 +307,58 @@ func resourceBizFlyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error updating cloud server with task id (%s): %s", d.Id(), err)
 		}
 	}
+	if d.HasChange("network_interfaces") {
+		oldNetworkInterfaceIds, newNetworkInterfaceIds := d.GetChange("network_interfaces")
+		oldIDSet := newSet(oldNetworkInterfaceIds.(*schema.Set).List())
+		newIDSet := newSet(newNetworkInterfaceIds.(*schema.Set).List())
+		detachNetworkInterfacesPayload := &gobizfly.ActionNetworkInterfacePayload{
+			Action: "detach_server",
+		}
+		attachNetworkInterfacesPayload := &gobizfly.ActionNetworkInterfacePayload{
+			Action:   "attach_server",
+			ServerID: d.Id(),
+		}
+		for networkInterfaceId := range leftDiff(oldIDSet, newIDSet) {
+			_, err := client.NetworkInterface.Action(context.Background(), networkInterfaceId, detachNetworkInterfacesPayload)
+			if err != nil {
+				return fmt.Errorf("Error removing network interface from server [%s]: %v", d.Id(), err)
+			}
+		}
+		for networkInterfaceId := range leftDiff(newIDSet, oldIDSet) {
+			_, err := client.NetworkInterface.Action(context.Background(), networkInterfaceId, attachNetworkInterfacesPayload)
+			if err != nil {
+				return fmt.Errorf("Error adding network interface to server [%s]: %v", d.Id(), err)
+			}
+		}
+	}
+	if d.HasChange("wan_network_interfaces") {
+		oldWanIpIds, newWanIpIds := d.GetChange("wan_network_interfaces")
+		oldIdSet := newSet(oldWanIpIds.(*schema.Set).List())
+		newIdSet := newSet(newWanIpIds.(*schema.Set).List())
+		detachWanIpPayload := &gobizfly.ActionWanIpPayload{
+			Action: "detach_server",
+		}
+		for wanIpId := range leftDiff(oldIdSet, newIdSet) {
+			err := client.WanIP.Action(context.Background(), wanIpId, detachWanIpPayload)
+			if err != nil {
+				return fmt.Errorf("Error removing wan ip from server [%s]: %v", d.Id(), err)
+			}
+		}
+		var attachWanIps []string
+		for wanIpId := range leftDiff(newIdSet, oldIdSet) {
+			attachWanIps = append(attachWanIps, wanIpId)
+		}
+		if len(attachWanIps) > 0 {
+			err := client.Server.AttachWanIps(context.Background(), d.Id(), attachWanIps)
+			if err != nil {
+				return fmt.Errorf("Error attaching wan ip to server [%s]: %v", d.Id(), err)
+			}
+		}
+	}
 
 	// if volume_ids is changed, update the attached volumes
 	if d.HasChange("volume_ids") {
 		oldIDs, newIDs := d.GetChange("volume_ids")
-		newSet := func(ids []interface{}) map[string]struct{} {
-			out := make(map[string]struct{}, len(ids))
-			for _, id := range ids {
-				out[id.(string)] = struct{}{}
-			}
-			return out
-		}
-
-		// leftDiff returns all elements in Left that are not in Right
-		leftDiff := func(left, right map[string]struct{}) map[string]struct{} {
-			out := make(map[string]struct{})
-			for l := range left {
-				if _, ok := right[l]; !ok {
-					out[l] = struct{}{}
-				}
-			}
-			return out
-		}
 
 		oldIDSet := newSet(oldIDs.(*schema.Set).List())
 		newIDSet := newSet(newIDs.(*schema.Set).List())
@@ -463,11 +530,29 @@ func flatternBizFlyCloudIPs(ips []gobizfly.IP) *schema.Set {
 	return flatternIPs
 }
 
-func readNetworkInterfaces(networkInterfaces []interface{}) []string {
-	networkInterfaceList := make([]string, 0)
-	for i := 0; i < len(networkInterfaces); i++ {
-		networkInterface := networkInterfaces[i].(string)
-		networkInterfaceList = append(networkInterfaceList, networkInterface)
+func readStringArray(items []interface{}) []string {
+	stringArray := make([]string, 0)
+	for i := 0; i < len(items); i++ {
+		networkInterface := items[i].(string)
+		stringArray = append(stringArray, networkInterface)
 	}
-	return networkInterfaceList
+	return stringArray
+}
+
+func newSet(ids []interface{}) map[string]struct{} {
+	out := make(map[string]struct{}, len(ids))
+	for _, id := range ids {
+		out[id.(string)] = struct{}{}
+	}
+	return out
+}
+
+func leftDiff(left, right map[string]struct{}) map[string]struct{} {
+	out := make(map[string]struct{})
+	for l := range left {
+		if _, ok := right[l]; !ok {
+			out[l] = struct{}{}
+		}
+	}
+	return out
 }
