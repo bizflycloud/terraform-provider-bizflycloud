@@ -4,25 +4,49 @@ import "github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
 func dataVPCNetworkSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
+		"cidr": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"name": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
 		"id": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"name": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
-		"description": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
-		"cidr": {
-			Type:     schema.TypeString,
-			Optional: true,
+		"subnets": {
+			Type:     schema.TypeList,
+			Computed: true,
+			Elem: &schema.Resource{
+				Schema: dataSubnetsInfoSchema(),
+			},
 		},
 		"is_default": {
 			Type:     schema.TypeBool,
-			Optional: true,
+			Computed: true,
+		},
+		"status": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"created_at": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"updated_at": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"mtu": {
+			Type:     schema.TypeInt,
+			Computed: true,
+		},
+		"availability_zones": {
+			Type:     schema.TypeList,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			Computed: true,
 		},
 	}
 }

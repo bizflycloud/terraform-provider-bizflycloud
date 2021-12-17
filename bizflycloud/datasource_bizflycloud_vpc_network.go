@@ -21,17 +21,14 @@ func dataSourceBizFlyCloudVPCNetwork() *schema.Resource {
 func dataSourceBizFlyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
-	if v, ok := d.GetOk("id"); ok {
-		d.SetId(v.(string))
-	}
-
-	var network *gobizfly.VPC
+	var matchVPC *gobizfly.VPC
+	cidr := d.Get("cidr")
 
 	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		var err error
 
 		log.Printf("[DEBUG] Reading vpc network: %s", d.Id())
-		network, err = client.VPC.Get(context.Background(), d.Id())
+		vpcs, err := client.VPC.List(context.Background())
 
 		// Retry on any API "not found" errors, but only on new resources.
 		if d.IsNewResource() && errors.Is(err, gobizfly.ErrNotFound) {
@@ -39,6 +36,11 @@ func dataSourceBizFlyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{
 		}
 		if err != nil {
 			return resource.NonRetryableError(err)
+		}
+		for _, vpc := range vpcs {
+			if vpc.Subnets[0].CIDR == cidr {
+				matchVPC = vpc
+			}
 		}
 		return nil
 	})
@@ -56,34 +58,37 @@ func dataSourceBizFlyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{
 	}
 
 	// Prevent panics.
-	if network == nil {
+	if matchVPC == nil {
 		return fmt.Errorf("Error read vpc network (%s): empty response", d.Id())
 	}
 
-	d.SetId(network.ID)
-	_ = d.Set("name", network.Name)
-	_ = d.Set("description", network.Description)
-	_ = d.Set("is_default", network.IsDefault)
-	_ = d.Set("mtu", network.MTU)
-	_ = d.Set("status", network.Status)
-	_ = d.Set("created_at", network.CreatedAt)
-	_ = d.Set("updated_at", network.UpdatedAt)
+	d.SetId(matchVPC.ID)
+	_ = d.Set("name", matchVPC.Name)
+	_ = d.Set("description", matchVPC.Description)
+	_ = d.Set("is_default", matchVPC.IsDefault)
+	_ = d.Set("mtu", matchVPC.MTU)
+	_ = d.Set("status", matchVPC.Status)
+	_ = d.Set("created_at", matchVPC.CreatedAt)
+	_ = d.Set("updated_at", matchVPC.UpdatedAt)
+	_ = d.Set("cidr", matchVPC.Subnets[0].CIDR)
+	_ = d.Set("mtu", matchVPC.MTU)
 
-	if err := d.Set("availability_zones", readAvailabilityZones(network.AvailabilityZones)); err != nil {
+	if err := d.Set("availability_zones", readAvailabilityZones(matchVPC.AvailabilityZones)); err != nil {
 		return fmt.Errorf("error setting availability_zones: %w", err)
 	}
 
-	if err := d.Set("subnets", readSubnets(network.Subnets)); err != nil {
+	if err := d.Set("subnets", readSubnets(matchVPC.Subnets)); err != nil {
 		return fmt.Errorf("error setting subnets: %w", err)
 	}
 
 	return nil
 }
 
-func readAvailabilityZones(availabilityZone []string) []string {
-	var results []string
-	results = append(results, availabilityZone...)
-
+func readAvailabilityZones(availabilityZone []string) []interface{} {
+	var results []interface{}
+	for _, az := range availabilityZone {
+		results = append(results, az)
+	}
 	return results
 }
 
