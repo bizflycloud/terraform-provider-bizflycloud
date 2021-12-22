@@ -16,16 +16,19 @@ modify, and delete Server. Servers also support
 
 ```hcl
 # Create a new Web Server
-resource "bizflycloud_server" "web" {
-    name = "sapd-tf-server"
-    flavor_name = "4c_2g"
-    ssh_key = "sapd1"
-    os_type = "image"
-    os_id = "5f218529-ce32-4cb6-8557-920b16307d35"
-    category = "premium"
-    availability_zone = "HN1"
-    root_disk_type = "HDD"
-    root_disk_size = 20
+resource "bizflycloud_server" "tf_server1" {
+  name                   = "tf_server_2"
+  flavor_name            = "2c_2g"
+  ssh_key                = data.bizflycloud_ssh_key.ssh_key.name
+  os_type                = "image"
+  os_id                  = "5f218529-ce32-4cb6-8557-920b16307d35"
+  category               = "premium"
+  availability_zone      = "HN1"
+  root_disk_type         = "HDD"
+  root_disk_size         = 20
+  network_plan           = "free_bandwidth"
+  wan_network_interfaces = [data.bizflycloud_wan_ip.wan_ip.id, data.bizflycloud_wan_ip.wan_ip_2.id]
+  network_interfaces = [data.bizflycloud_network_interface.lan_ip_1.id, data.bizflycloud_network_interface.lan_ip_2.id]
 }
 ```
 
@@ -43,6 +46,10 @@ The following arguments are supported:
 * `root_disk_type` - (Required) The type of Root disk volume: SSD or HDD
 * `root_disk_size` - (Required) The size of Root disk volume.
 * `volume_ids` - (Optional) A list of the attached block storage volumes
+* `network_plan` - (Optional) The network plan for the server. The default value is free_datatransfer.
+* `wan_network_interfaces` - (Optional) A list of the WAN IP IDs.
+* `network_interfaces` - (Optional) A list of the LAN IP IDs.
+* `vpc_network_ids` - (Optional) A list of the VPC network IDs.
 
 ## Attributes Reference
 
@@ -60,6 +67,11 @@ The following attributes are exported:
 * `lan_ip` - Lan IP of the server
 * `wan_ipv4` - A list of the WAN IP v4 of the server
 * `wan_ipv6` - A list of the WAN IP v6 of the server
+* `network_plan` - The network plan for the server. The default value is free_datatransfer.
+* `wan_network_interfaces` - A list of the WAN IP IDs.
+* `network_interfaces` - A list of the LAN IP IDs.
+* `vpc_network_ids` - A list of the VPC network IDs.
+
 
 ## Import
 

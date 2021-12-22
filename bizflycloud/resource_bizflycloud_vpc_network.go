@@ -2,7 +2,10 @@ package bizflycloud
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"log"
 	"time"
 
 	"github.com/bizflycloud/gobizfly"
@@ -60,9 +63,60 @@ func resourceBizFlyCloudVPCNetworkCreate(d *schema.ResourceData, meta interface{
 }
 
 func resourceBizFlyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{}) error {
-	if err := dataSourceBizFlyCloudVPCNetworkRead(d, meta); err != nil {
-		return err
+	client := meta.(*CombinedConfig).gobizflyClient()
+	var vpc *gobizfly.VPC
+	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		var err error
+
+		log.Printf("[DEBUG] Reading vpc: %s", d.Id())
+		vpc, err = client.VPC.Get(context.Background(), d.Id())
+
+		// Retry on any API "not found" errors, but only on new resources.
+		if d.IsNewResource() && errors.Is(err, gobizfly.ErrNotFound) {
+			return resource.RetryableError(err)
+		}
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
+
+	// Prevent confusing Terraform error messaging to operators by
+	// Only ignoring API "not found" errors if not a new resource
+	if !d.IsNewResource() && errors.Is(err, gobizfly.ErrNotFound) {
+		log.Printf("[WARN] vpc network %s is not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
 	}
+
+	if err != nil {
+		return fmt.Errorf("Error read vpc network VPC %s: %w", d.Id(), err)
+	}
+
+	// Prevent panics.
+	if vpc == nil {
+		return fmt.Errorf("Error read vpc network (%s): empty response", d.Id())
+	}
+
+	d.SetId(vpc.ID)
+	_ = d.Set("name", vpc.Name)
+	_ = d.Set("description", vpc.Description)
+	_ = d.Set("is_default", vpc.IsDefault)
+	_ = d.Set("mtu", vpc.MTU)
+	_ = d.Set("status", vpc.Status)
+	_ = d.Set("created_at", vpc.CreatedAt)
+	_ = d.Set("updated_at", vpc.UpdatedAt)
+	_ = d.Set("cidr", vpc.Subnets[0].CIDR)
+	_ = d.Set("mtu", vpc.MTU)
+
+	if err := d.Set("availability_zones", readAvailabilityZones(vpc.AvailabilityZones)); err != nil {
+		return fmt.Errorf("error setting availability_zones: %w", err)
+	}
+
+	if err := d.Set("subnets", readSubnets(vpc.Subnets)); err != nil {
+		return fmt.Errorf("error setting subnets: %w", err)
+	}
+
 	return nil
 }
 

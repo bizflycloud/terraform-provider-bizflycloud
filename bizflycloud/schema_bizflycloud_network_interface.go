@@ -6,25 +6,49 @@ func dataNetworkInterfaceSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
-			Optional: true,
 			Computed: true,
 		},
 		"network_id": {
 			Type:     schema.TypeString,
-			Optional: true,
 			Computed: true,
 		},
 		"name": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"attached_server": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
-		"fixed_ip": {
+		"ip_address": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Required: true,
+		},
+		"security_groups": {
+			Type:     schema.TypeList,
+			Computed: true,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"created_at": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"updated_at": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"status": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"fixed_ips": {
+			Type:     schema.TypeList,
+			Computed: true,
+			Elem: &schema.Resource{
+				Schema: dataFixedIpsInfoSchema(),
+			},
 		},
 	}
 }

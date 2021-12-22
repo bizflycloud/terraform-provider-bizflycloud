@@ -15,7 +15,7 @@ Get information about Bizfly Cloud VPC Network resource.
 ```hcl
 # Get information of VPC Network from datasource
 data "bizflycloud_vpc_network" "vpc_network" {
-  name = bizflycloud_vpc_network.vpc_network.name
+   = "10.20.9.0/24"
 }
 ```
 
@@ -23,8 +23,7 @@ data "bizflycloud_vpc_network" "vpc_network" {
 
 The following arguments are supported:
 
-* `id` - (Computed) The ID of VPC Network
-* `name` - (Required) The name of VPC Network.
+* `cidr` - (Required) The CIDR of VPC Network
 
 ## Attributes Reference
 

@@ -20,20 +20,24 @@ func dataSourceBizFlyCloudNetworkInterface() *schema.Resource {
 
 func dataSourceBizFlyCloudNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	var networkInterface *gobizfly.NetworkInterface
+	var matchNetworkInterface *gobizfly.NetworkInterface
 
-	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		var err error
-
-		log.Printf("[DEBUG] Reading network interface: %s", d.Id())
-		networkInterface, err = client.NetworkInterface.Get(context.Background(), d.Id())
-
-		// Retry on any API "not found" errors, but only on new resources.
+	err := resource.Retry(d.Timeout(schema.TimeoutRead), func() *resource.RetryError {
+		ipAddress := d.Get("ip_address").(string)
+		networkInterfaces, err := client.NetworkInterface.List(context.Background(), &gobizfly.ListNetworkInterfaceOptions{})
 		if d.IsNewResource() && errors.Is(err, gobizfly.ErrNotFound) {
 			return resource.RetryableError(err)
 		}
 		if err != nil {
 			return resource.NonRetryableError(err)
+		}
+		for _, networkInterface := range networkInterfaces {
+			if networkInterface.FixedIps[0].IPAddress == ipAddress {
+				matchNetworkInterface = networkInterface
+			}
+		}
+		if matchNetworkInterface == nil {
+			return resource.NonRetryableError(errors.New("no match network interface found"))
 		}
 		return nil
 	})
@@ -51,27 +55,24 @@ func dataSourceBizFlyCloudNetworkInterfaceRead(d *schema.ResourceData, meta inte
 	}
 
 	// Prevent panics.
-	if networkInterface == nil {
+	if matchNetworkInterface == nil {
 		return fmt.Errorf("Error read network interface network (%s): empty response", d.Id())
 	}
 
-	d.SetId(networkInterface.ID)
-	_ = d.Set("name", networkInterface.Name)
-	_ = d.Set("attached_server", networkInterface.AttachedServer)
-	_ = d.Set("fixed_ip", networkInterface.FixedIps)
-	_ = d.Set("mac_address", networkInterface.MacAddress)
-	_ = d.Set("admin_state_up", networkInterface.AdminStateUp)
-	_ = d.Set("status", networkInterface.Status)
-	_ = d.Set("device_id", networkInterface.DeviceID)
-	_ = d.Set("port_security_enabled", networkInterface.PortSecurityEnabled)
-	_ = d.Set("created_at", networkInterface.CreatedAt)
-	_ = d.Set("updated_at", networkInterface.UpdatedAt)
+	d.SetId(matchNetworkInterface.ID)
+	_ = d.Set("name", matchNetworkInterface.Name)
+	_ = d.Set("network_id", matchNetworkInterface.NetworkID)
+	_ = d.Set("attached_server", matchNetworkInterface.AttachedServer)
+	_ = d.Set("fixed_ip", matchNetworkInterface.FixedIps[0].IPAddress)
+	_ = d.Set("status", matchNetworkInterface.Status)
+	_ = d.Set("created_at", matchNetworkInterface.CreatedAt)
+	_ = d.Set("updated_at", matchNetworkInterface.UpdatedAt)
 
-	if err := d.Set("fixed_ips", readFixedIps(networkInterface.FixedIps)); err != nil {
+	if err := d.Set("fixed_ips", readFixedIps(matchNetworkInterface.FixedIps)); err != nil {
 		return fmt.Errorf("error setting fixed_ips: %w", err)
 	}
 
-	if err := d.Set("security_groups", readSecurityGroups(networkInterface.SecurityGroups)); err != nil {
+	if err := d.Set("security_groups", readSecurityGroups(matchNetworkInterface.SecurityGroups)); err != nil {
 		return fmt.Errorf("error setting security_groups: %w", err)
 	}
 

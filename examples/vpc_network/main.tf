@@ -15,7 +15,7 @@ provider "bizflycloud" {
 }
 
 data "bizflycloud_vpc_network" "vpc_network" {
-  name = bizflycloud_vpc_network.vpc_network.name
+  cidr = "10.20.8.0/24"
 }
 
 resource "bizflycloud_vpc_network" "vpc_network" {
@@ -34,7 +34,7 @@ resource "bizflycloud_network_interface" "network_interface" {
   security_groups = ["4b41c931-bf3d-443f-b311-df3817a3fbc0"]
 }
 
-data "bizflycloud_network_interface" "network_interface" {
-  network_id = bizflycloud_network_interface.network_interface.network_id
+data "bizflycloud_network_interface" "lan_ip_2" {
+  ip_address = "10.27.214.158"
 }
 
