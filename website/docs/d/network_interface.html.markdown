@@ -14,9 +14,10 @@ Get ìnformation about Bizfly Cloud Network Interface resource.
 
 ```hcl
 # Get information of Network Interface
-data "bizflycloud_network_interface" "network_interface" {
-  network_id = bizflycloud_network_interface.network_interface.network_id
+data "bizflycloud_network_interface" "lan_ip_2" {
+  ip_address = "10.27.214.158"
 }
+
 ```
 
 ## Argument Reference
