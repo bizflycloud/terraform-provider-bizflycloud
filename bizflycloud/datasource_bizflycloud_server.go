@@ -119,10 +119,7 @@ func datasourceBizFlyCloudServers() *schema.Resource {
 
 func dataSourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	osServers, err := client.Server.List(context.Background(), &gobizfly.ListOptions{
-		Page:  0,
-		Limit: 1000,
-	})
+	osServers, err := client.Server.List(context.Background(), &gobizfly.ServerListOptions{})
 	if err != nil {
 		return err
 	}
