@@ -225,6 +225,22 @@ func resourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 		}
 		return fmt.Errorf("Error retrieving server: %v", err)
 	}
+	NetworkInterfaces, err := client.NetworkInterface.List(context.Background(), &gobizfly.ListNetworkInterfaceOptions{
+		Type:   "LAN_WAN",
+		Status: "ACTIVE",
+	})
+
+	var lanNetworkInterfaceIds, wanNetworkInterfaceIds []string
+	for _, networkInterface := range NetworkInterfaces {
+		if networkInterface.DeviceID == d.Id() {
+			if networkInterface.Type == "LAN" {
+				lanNetworkInterfaceIds = append(lanNetworkInterfaceIds, networkInterface.ID)
+			} else if networkInterface.Type == "WAN" {
+				wanNetworkInterfaceIds = append(wanNetworkInterfaceIds, networkInterface.ID)
+			}
+		}
+	}
+
 	_ = d.Set("name", server.Name)
 	_ = d.Set("key_name", server.KeyName)
 	_ = d.Set("status", server.Status)
@@ -235,6 +251,8 @@ func resourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	_ = d.Set("availability_zone", server.AvailabilityZone)
 	_ = d.Set("created_at", server.CreatedAt)
 	_ = d.Set("updated_at", server.UpdatedAt)
+	_ = d.Set("network_interfaces", lanNetworkInterfaceIds)
+	_ = d.Set("wan_network_interfaces", wanNetworkInterfaceIds)
 
 	if err := d.Set("volume_ids", flatternBizFlyCloudVolumeIDs(server.AttachedVolumes)); err != nil {
 		return fmt.Errorf("Error setting `volume_ids`: %+v", err)
@@ -391,12 +409,15 @@ func resourceBizFlyCloudServerDelete(d *schema.ResourceData, meta interface{}) e
 			rootDiskID = v.ID
 		}
 	}
-	err = client.Server.Delete(context.Background(), d.Id(), []string{rootDiskID})
+	task, err := client.Server.Delete(context.Background(), d.Id(), []string{rootDiskID})
 	if err != nil {
 		return fmt.Errorf("Error delete cloud server %v", err)
 	}
-	// TODO check server is deleted
-	// remove rootdisk of the server
+
+	_, err = waitforServerDelete(d, meta, task.TaskID)
+	if err != nil && !errors.Is(err, gobizfly.ErrNotFound) {
+		return fmt.Errorf("Error delete cloud server with task id (%s): %s", d.Id(), err)
+	}
 	return nil
 }
 
@@ -408,6 +429,19 @@ func waitForServerCreate(d *schema.ResourceData, meta interface{}) (interface{},
 		Refresh:    newServerStateRefreshfunc(d, "status", meta),
 		Timeout:    600 * time.Second,
 		Delay:      20 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+	return stateConf.WaitForState()
+}
+
+func waitforServerDelete(d *schema.ResourceData, meta interface{}, taskID string) (interface{}, error) {
+	log.Printf("[INFO] Waiting for server with task id (%s) to be deleted", d.Id())
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"false"},
+		Target:     []string{"true"},
+		Refresh:    waitToDeleteServerRefreshFunc(d, meta, taskID),
+		Timeout:    600 * time.Second,
+		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
 	return stateConf.WaitForState()
@@ -494,6 +528,25 @@ func updateServerStateRefreshfunc(d *schema.ResourceData, attribute string, meta
 		return nil, "", nil
 	}
 }
+
+func waitToDeleteServerRefreshFunc(d *schema.ResourceData, meta interface{}, taskID string) resource.StateRefreshFunc {
+	client := meta.(*CombinedConfig).gobizflyClient()
+	return func() (interface{}, string, error) {
+
+		resp, err := client.Server.GetTask(context.Background(), taskID)
+		if err != nil {
+			return nil, "false", err
+		}
+		server, err := client.Server.Get(context.Background(), d.Id())
+		if errors.Is(err, gobizfly.ErrNotFound) {
+			return server, "true", nil
+		} else if err != nil {
+			return nil, "false", err
+		}
+		return server, strconv.FormatBool(resp.Ready), nil
+	}
+}
+
 func formatFlavor(s string) string {
 	// This function will be removed in the near future when the API format for us
 	if strings.Contains(s, ".") {
