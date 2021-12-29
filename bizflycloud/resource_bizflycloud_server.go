@@ -225,13 +225,16 @@ func resourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 		}
 		return fmt.Errorf("Error retrieving server: %v", err)
 	}
-	NetworkInterfaces, err := client.NetworkInterface.List(context.Background(), &gobizfly.ListNetworkInterfaceOptions{
+	networkInterfaces, err := client.NetworkInterface.List(context.Background(), &gobizfly.ListNetworkInterfaceOptions{
 		Type:   "LAN_WAN",
 		Status: "ACTIVE",
 	})
+	if err != nil {
+		return fmt.Errorf("Error retrieving network interfaces: %v", err)
+	}
 
 	var lanNetworkInterfaceIds, wanNetworkInterfaceIds []string
-	for _, networkInterface := range NetworkInterfaces {
+	for _, networkInterface := range networkInterfaces {
 		if networkInterface.DeviceID == d.Id() {
 			if networkInterface.Type == "LAN" {
 				lanNetworkInterfaceIds = append(lanNetworkInterfaceIds, networkInterface.ID)
