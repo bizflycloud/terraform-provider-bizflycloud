@@ -19,7 +19,7 @@ data "bizflycloud_ssh_key" "ssh_key" {
 }
 
 resource "bizflycloud_server" "tf_server1" {
-  name                   = "tf_server_2"
+  name                   = "tf_server_4"
   flavor_name            = "2c_2g"
   ssh_key                = data.bizflycloud_ssh_key.ssh_key.name
   os_type                = "image"
