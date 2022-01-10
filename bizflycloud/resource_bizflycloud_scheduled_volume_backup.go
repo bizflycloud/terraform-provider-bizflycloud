@@ -77,7 +77,7 @@ func resourceBizflyCloudScheduledVolumeBackupCreate(d *schema.ResourceData, meta
 	log.Printf("[DEBUG] Create scheduled volume backup payload: %#v\n", brq)
 	backup, err := client.ScheduledVolumeBackup.Create(context.Background(), brq)
 	if err != nil {
-		fmt.Errorf("[DEBUG] Error creating scheduled volume backup: %s", err)
+		return fmt.Errorf("[DEBUG] Error creating scheduled volume backup: %s", err)
 	}
 	log.Println("[DEBUG] set id " + backup.ID)
 	d.SetId(backup.ID)
