@@ -88,6 +88,7 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_network_interface":                resourceBizFlyCloudNetworkInterface(),
 			"bizflycloud_dns":                              resourceBizFlyCloudDNS(),
 			"bizflycloud_wan_ip":                           resourceBizFlyCloudWanIP(),
+			"bizflycloud_scheduled_volume_backup":          resourceBizflyCloudScheduledVolumeBackup(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"bizflycloud_image":                            datasourceBizFlyCloudImages(),
