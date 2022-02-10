@@ -54,4 +54,11 @@ override.tf.json
 # Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
 # example: *tfplan*
 
+### Goland ###
+# Covers JetBrains IDEs: Goland
+# Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
+
+# Ignores the whole .idea folder and all .iml files
+.idea/
+
 # End of https://www.toptal.com/developers/gitignore/api/go,terraform
