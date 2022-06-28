@@ -27,6 +27,7 @@ resource "bizflycloud_server" "tf_server1" {
   root_disk_type         = "HDD"
   root_disk_size         = 20
   network_plan           = "free_bandwidth"
+  billing_plan           = "saving_plan"
   wan_network_interfaces = [data.bizflycloud_wan_ip.wan_ip.id, data.bizflycloud_wan_ip.wan_ip_2.id]
   network_interfaces = [data.bizflycloud_network_interface.lan_ip_1.id, data.bizflycloud_network_interface.lan_ip_2.id]
 }
@@ -50,6 +51,7 @@ The following arguments are supported:
 * `wan_network_interfaces` - (Optional) A list of the WAN IP IDs.
 * `network_interfaces` - (Optional) A list of the LAN IP IDs.
 * `vpc_network_ids` - (Optional) A list of the VPC network IDs.
+* `billing_plan` - (Optional) The billing plan applied for the server (saving_plan/on_demand). Default value is saving_plan
 
 ## Attributes Reference
 
@@ -71,6 +73,10 @@ The following attributes are exported:
 * `wan_network_interfaces` - A list of the WAN IP IDs.
 * `network_interfaces` - A list of the LAN IP IDs.
 * `vpc_network_ids` - A list of the VPC network IDs.
+* `billing_plan` - The billing plan applied for the server
+* `zone_name` - The zone name of the server
+* `is_available` - The state that the server is available (not in a VM action)
+* `locked` - Is the server locked state
 
 
 ## Import
