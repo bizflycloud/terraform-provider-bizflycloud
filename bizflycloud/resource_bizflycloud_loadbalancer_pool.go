@@ -130,13 +130,11 @@ func resourceBizFlyCloudLoadBalancerPoolCreate(d *schema.ResourceData, meta inte
 	lbID := d.Get("load_balancer_id").(string)
 	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID, loadbalancerResource)
 	poolName := d.Get("name").(string)
-	poolDescription := d.Get("description").(string)
 
 	pcr := gobizfly.PoolCreateRequest{
 		Name:        &poolName,
 		LBAlgorithm: d.Get("algorithm").(string),
 		Protocol:    d.Get("protocol").(string),
-		Description: &poolDescription,
 	}
 	// Get session persistent
 	sessionPersistent := d.Get("persistent").([]interface{})
@@ -232,15 +230,15 @@ func resourceBizFlyCloudLoadBalancerPoolUpdate(d *schema.ResourceData, meta inte
 				}
 				hmur := gobizfly.HealthMonitorUpdateRequest{
 					Name:           healthMonitor["name"].(string),
-					TimeOut:        healthMonitor["timeout"].(int),
-					MaxRetries:     healthMonitor["max_retries"].(int),
-					MaxRetriesDown: healthMonitor["max_retries_down"].(int),
-					Delay:          healthMonitor["delay"].(int),
+					TimeOut:        healthMonitor["timeout"].(*int),
+					MaxRetries:     healthMonitor["max_retries"].(*int),
+					MaxRetriesDown: healthMonitor["max_retries_down"].(*int),
+					Delay:          healthMonitor["delay"].(*int),
 				}
 				if hm.Type == "HTTP" {
-					hmur.HTTPMethod = healthMonitor["http_method"].(string)
-					hmur.URLPath = healthMonitor["url_path"].(string)
-					hmur.ExpectedCodes = healthMonitor["expected_code"].(string)
+					hmur.HTTPMethod = healthMonitor["http_method"].(*string)
+					hmur.URLPath = healthMonitor["url_path"].(*string)
+					hmur.ExpectedCodes = healthMonitor["expected_code"].(*string)
 				}
 
 				_, err = client.HealthMonitor.Update(context.Background(), healthMonitor["id"].(string), &hmur)
