@@ -144,6 +144,22 @@ func resourceBizFlyCloudServer() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Optional: true,
 			},
+			"billing_plan": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"is_available": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"zone_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"locked": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 		},
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -177,6 +193,7 @@ func resourceBizFlyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 		WanNetworkInterfaces: readStringArray(d.Get("wan_network_interfaces").(*schema.Set).List()),
 		NetworkInterface:     readStringArray(d.Get("network_interfaces").(*schema.Set).List()),
 		VPCNetworkIds:        readStringArray(d.Get("vpc_network_ids").(*schema.Set).List()),
+		BillingPlan:          d.Get("billing_plan").(string),
 	}
 	log.Printf("[DEBUG] Create Cloud Server configuration: %#v", scr)
 
@@ -256,6 +273,10 @@ func resourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	_ = d.Set("updated_at", server.UpdatedAt)
 	_ = d.Set("network_interfaces", lanNetworkInterfaceIds)
 	_ = d.Set("wan_network_interfaces", wanNetworkInterfaceIds)
+	_ = d.Set("billing_plan", server.BillingPlan)
+	_ = d.Set("zone_name", server.ZoneName)
+	_ = d.Set("is_available", server.IsAvailable)
+	_ = d.Set("locked", server.Locked)
 
 	if err := d.Set("volume_ids", flatternBizFlyCloudVolumeIDs(server.AttachedVolumes)); err != nil {
 		return fmt.Errorf("Error setting `volume_ids`: %+v", err)

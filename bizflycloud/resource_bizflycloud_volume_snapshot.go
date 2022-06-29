@@ -54,6 +54,22 @@ func resourceBizFlyCloudVolumeSnapshot() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"snapshot_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"zone_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"region_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -84,6 +100,10 @@ func resourceBizFlyCloudVolumeSnapshotRead(d *schema.ResourceData, meta interfac
 	_ = d.Set("size", snapshot.Size)
 	_ = d.Set("status", snapshot.Status)
 	_ = d.Set("volume_id", snapshot.VolumeId)
+	_ = d.Set("snapshot_type", snapshot.SnapshotType)
+	_ = d.Set("type", snapshot.Type)
+	_ = d.Set("zone_name", snapshot.ZoneName)
+	_ = d.Set("region_name", snapshot.RegionName)
 	_ = d.Set("created_at", snapshot.CreateAt)
 	_ = d.Set("updated_at", snapshot.UpdatedAt)
 	return nil
