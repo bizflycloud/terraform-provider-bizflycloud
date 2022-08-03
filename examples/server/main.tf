@@ -18,15 +18,20 @@ data "bizflycloud_ssh_key" "ssh_key" {
   name = "test1"
 }
 
+data "bizflycloud_volume_type" "example_volume_type" {
+  name = "HDD"
+  category = "premium"
+}
+
 resource "bizflycloud_server" "tf_server1" {
-  name                   = "tf_server_4"
+  name                   = "tf_server_7"
   flavor_name            = "2c_2g"
   ssh_key                = data.bizflycloud_ssh_key.ssh_key.name
   os_type                = "image"
-  os_id                  = "5f218529-ce32-4cb6-8557-920b16307d35"
+  os_id                  = "d646476d-850c-423e-b02c-6b86aeda3717"
   category               = "premium"
   availability_zone      = "HN1"
-  root_disk_type         = "HDD"
+  root_disk_volume_type         = data.bizflycloud_volume_type.example_volume_type.type
   root_disk_size         = 20
   network_plan           = "free_bandwidth"
   billing_plan          = "on_demand"
@@ -37,7 +42,7 @@ resource "bizflycloud_server" "tf_server1" {
 resource "bizflycloud_volume" "volume1" {
   name              = "sapd-volume-tf5"
   size              = 20
-  type              = "HDD"
+  type              = data.bizflycloud_volume_type.example_volume_type.type
   category          = "premium"
   availability_zone = "HN2"
 }

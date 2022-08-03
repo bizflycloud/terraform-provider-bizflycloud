@@ -73,8 +73,13 @@ func resourceBizFlyCloudServer() *schema.Resource {
 				Required: true,
 			},
 			"root_disk_type": {
+				Type:       schema.TypeString,
+				Optional:   true,
+				Deprecated: "use root_disk_volume_type instead",
+			},
+			"root_disk_volume_type": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"root_disk_size": {
 				Type:     schema.TypeInt,
@@ -174,6 +179,14 @@ func resourceBizFlyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	// Build up creation options
+	rootDiskPayload := gobizfly.ServerDisk{Size: d.Get("root_disk_size").(int)}
+	if v, ok := d.GetOk("root_disk_type"); ok {
+		rootDiskType := v.(string)
+		rootDiskPayload.Type = &rootDiskType
+	} else {
+		rootDiskVolumeType := d.Get("root_disk_volume_type").(string)
+		rootDiskPayload.VolumeType = &rootDiskVolumeType
+	}
 	scr := &gobizfly.ServerCreateRequest{
 		Name:       d.Get("name").(string),
 		FlavorName: d.Get("flavor_name").(string),
@@ -183,12 +196,9 @@ func resourceBizFlyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 			Type: d.Get("os_type").(string),
 			ID:   d.Get("os_id").(string),
 		},
-		AvailabilityZone: d.Get("availability_zone").(string),
-		Password:         d.Get("password").(bool),
-		RootDisk: &gobizfly.ServerDisk{
-			Type: d.Get("root_disk_type").(string),
-			Size: d.Get("root_disk_size").(int),
-		},
+		AvailabilityZone:     d.Get("availability_zone").(string),
+		Password:             d.Get("password").(bool),
+		RootDisk:             &rootDiskPayload,
 		NetworkPlan:          d.Get("network_plan").(string),
 		WanNetworkInterfaces: readStringArray(d.Get("wan_network_interfaces").(*schema.Set).List()),
 		NetworkInterface:     readStringArray(d.Get("network_interfaces").(*schema.Set).List()),
@@ -448,12 +458,13 @@ func resourceBizFlyCloudServerDelete(d *schema.ResourceData, meta interface{}) e
 func waitForServerCreate(d *schema.ResourceData, meta interface{}) (interface{}, error) {
 	log.Printf("[INFO] Waiting for server with task id (%s) to be created", d.Id())
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"BUILD"},
-		Target:     []string{"ACTIVE"},
-		Refresh:    newServerStateRefreshfunc(d, "status", meta),
-		Timeout:    600 * time.Second,
-		Delay:      20 * time.Second,
-		MinTimeout: 3 * time.Second,
+		Pending:        []string{"BUILD"},
+		Target:         []string{"ACTIVE"},
+		Refresh:        newServerStateRefreshfunc(d, "status", meta),
+		Timeout:        1200 * time.Second,
+		Delay:          20 * time.Second,
+		MinTimeout:     3 * time.Second,
+		NotFoundChecks: 100,
 	}
 	return stateConf.WaitForState()
 }
