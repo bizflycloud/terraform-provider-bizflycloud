@@ -24,7 +24,7 @@ resource "bizflycloud_server" "tf_server1" {
   os_id                  = "5f218529-ce32-4cb6-8557-920b16307d35"
   category               = "premium"
   availability_zone      = "HN1"
-  root_disk_type         = "HDD"
+  root_disk_volume_type         = "PREMIUM-HDD1"
   root_disk_size         = 20
   network_plan           = "free_bandwidth"
   billing_plan           = "saving_plan"
@@ -44,7 +44,8 @@ The following arguments are supported:
 * `category` - (Required) The category of a server: basic, premium, enterprise
 * `ssh_key` - (Optional) The name of SSH Key for the server
 * `availability_zone` - (Required) The availability zone of the server. Example: HN1, HN2, HCM1
-* `root_disk_type` - (Required) The type of Root disk volume: SSD or HDD
+* `root_disk_type` - (Deprecated) The type of Root disk volume: SSD or HDD
+* `root_disk_volume_type` - (Required) The type of root disk volume. Get from data source volume type
 * `root_disk_size` - (Required) The size of Root disk volume.
 * `volume_ids` - (Optional) A list of the attached block storage volumes
 * `network_plan` - (Optional) The network plan for the server. The default value is free_datatransfer.
