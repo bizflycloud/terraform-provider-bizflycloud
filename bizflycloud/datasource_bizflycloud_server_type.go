@@ -62,9 +62,9 @@ func dataSourceBizflyCloudServerTypeRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error reading server type %s: %s", d.Get("name").(string), err)
 	}
 	d.SetId(matchServerType.ID)
-	d.Set("name", matchServerType.Name)
-	d.Set("enabled", matchServerType.Enabled)
-	d.Set("compute_class", matchServerType.ComputeClass)
-	d.Set("priority", matchServerType.Priority)
+	_ = d.Set("name", matchServerType.Name)
+	_ = d.Set("enabled", matchServerType.Enabled)
+	_ = d.Set("compute_class", matchServerType.ComputeClass)
+	_ = d.Set("priority", matchServerType.Priority)
 	return nil
 }

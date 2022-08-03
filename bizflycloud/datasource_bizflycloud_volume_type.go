@@ -46,10 +46,10 @@ func datasourceBizflyCloudVolumeTypesRead(d *schema.ResourceData, meta interface
 		for _, volumeType := range volumeTypes {
 			if volumeType.Name == name && volumeType.Category == category {
 				d.SetId(volumeType.Type)
-				d.Set("name", volumeType.Name)
-				d.Set("category", volumeType.Category)
-				d.Set("type", volumeType.Type)
-				d.Set("availability_zones", volumeType.AvailabilityZones)
+				_ = d.Set("name", volumeType.Name)
+				_ = d.Set("category", volumeType.Category)
+				_ = d.Set("type", volumeType.Type)
+				_ = d.Set("availability_zones", volumeType.AvailabilityZones)
 				return nil
 			}
 		}
