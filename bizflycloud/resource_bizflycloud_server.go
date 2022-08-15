@@ -287,6 +287,7 @@ func resourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	_ = d.Set("zone_name", server.ZoneName)
 	_ = d.Set("is_available", server.IsAvailable)
 	_ = d.Set("locked", server.Locked)
+	_ = d.Set("network_plan", server.NetworkPlan)
 
 	if err := d.Set("volume_ids", flatternBizFlyCloudVolumeIDs(server.AttachedVolumes)); err != nil {
 		return fmt.Errorf("Error setting `volume_ids`: %+v", err)
@@ -425,6 +426,20 @@ func resourceBizFlyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 			if err != nil {
 				return fmt.Errorf("Error detaching volume %q from server (%s): %v", volumeID, id, err)
 			}
+		}
+	}
+	if d.HasChanges("network_plan") {
+		_, newNetworkPlan := d.GetChange("network_plan")
+		err := client.Server.ChangeNetworkPlan(context.Background(), d.Id(), newNetworkPlan.(string))
+		if err != nil {
+			return fmt.Errorf("error changing network plan of server [%s]: %v", d.Id(), err)
+		}
+	}
+	if d.HasChange("billing_plan") {
+		_, newBillingPlan := d.GetChange("billing_plan")
+		err := client.Server.SwitchBillingPlan(context.Background(), d.Id(), newBillingPlan.(string))
+		if err != nil {
+			return fmt.Errorf("error changing billing plan of server [%s]: %v", d.Id(), err)
 		}
 	}
 	return resourceBizFlyCloudServerRead(d, meta)
