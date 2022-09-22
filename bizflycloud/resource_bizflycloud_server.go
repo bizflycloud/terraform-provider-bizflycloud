@@ -134,16 +134,6 @@ func resourceBizFlyCloudServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"wan_network_interfaces": {
-				Type:     schema.TypeSet,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Optional: true,
-			},
-			"network_interfaces": {
-				Type:     schema.TypeSet,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Optional: true,
-			},
 			"vpc_network_ids": {
 				Type:     schema.TypeSet,
 				Elem:     &schema.Schema{Type: schema.TypeString},
@@ -196,14 +186,12 @@ func resourceBizFlyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 			Type: d.Get("os_type").(string),
 			ID:   d.Get("os_id").(string),
 		},
-		AvailabilityZone:     d.Get("availability_zone").(string),
-		Password:             d.Get("password").(bool),
-		RootDisk:             &rootDiskPayload,
-		NetworkPlan:          d.Get("network_plan").(string),
-		WanNetworkInterfaces: readStringArray(d.Get("wan_network_interfaces").(*schema.Set).List()),
-		NetworkInterface:     readStringArray(d.Get("network_interfaces").(*schema.Set).List()),
-		VPCNetworkIds:        readStringArray(d.Get("vpc_network_ids").(*schema.Set).List()),
-		BillingPlan:          d.Get("billing_plan").(string),
+		AvailabilityZone: d.Get("availability_zone").(string),
+		Password:         d.Get("password").(bool),
+		RootDisk:         &rootDiskPayload,
+		NetworkPlan:      d.Get("network_plan").(string),
+		VPCNetworkIds:    readStringArray(d.Get("vpc_network_ids").(*schema.Set).List()),
+		BillingPlan:      d.Get("billing_plan").(string),
 	}
 	log.Printf("[DEBUG] Create Cloud Server configuration: %#v", scr)
 
@@ -252,24 +240,6 @@ func resourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 		}
 		return fmt.Errorf("Error retrieving server: %v", err)
 	}
-	networkInterfaces, err := client.NetworkInterface.List(context.Background(), &gobizfly.ListNetworkInterfaceOptions{
-		Type:   "LAN_WAN",
-		Status: "ACTIVE",
-	})
-	if err != nil {
-		return fmt.Errorf("Error retrieving network interfaces: %v", err)
-	}
-
-	var lanNetworkInterfaceIds, wanNetworkInterfaceIds []string
-	for _, networkInterface := range networkInterfaces {
-		if networkInterface.DeviceID == d.Id() {
-			if networkInterface.Type == "LAN" {
-				lanNetworkInterfaceIds = append(lanNetworkInterfaceIds, networkInterface.ID)
-			} else if networkInterface.Type == "WAN" {
-				wanNetworkInterfaceIds = append(wanNetworkInterfaceIds, networkInterface.ID)
-			}
-		}
-	}
 
 	_ = d.Set("name", server.Name)
 	_ = d.Set("key_name", server.KeyName)
@@ -281,8 +251,6 @@ func resourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	_ = d.Set("availability_zone", server.AvailabilityZone)
 	_ = d.Set("created_at", server.CreatedAt)
 	_ = d.Set("updated_at", server.UpdatedAt)
-	_ = d.Set("network_interfaces", lanNetworkInterfaceIds)
-	_ = d.Set("wan_network_interfaces", wanNetworkInterfaceIds)
 	_ = d.Set("billing_plan", server.BillingPlan)
 	_ = d.Set("zone_name", server.ZoneName)
 	_ = d.Set("is_available", server.IsAvailable)
@@ -358,54 +326,6 @@ func resourceBizFlyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 		_, err = waitForServerUpdate(d, meta, task.TaskID)
 		if err != nil {
 			return fmt.Errorf("Error updating cloud server with task id (%s): %s", d.Id(), err)
-		}
-	}
-	if d.HasChange("network_interfaces") {
-		oldNetworkInterfaceIds, newNetworkInterfaceIds := d.GetChange("network_interfaces")
-		oldIDSet := newSet(oldNetworkInterfaceIds.(*schema.Set).List())
-		newIDSet := newSet(newNetworkInterfaceIds.(*schema.Set).List())
-		detachNetworkInterfacesPayload := &gobizfly.ActionNetworkInterfacePayload{
-			Action: "detach_server",
-		}
-		attachNetworkInterfacesPayload := &gobizfly.ActionNetworkInterfacePayload{
-			Action:   "attach_server",
-			ServerID: d.Id(),
-		}
-		for networkInterfaceId := range leftDiff(oldIDSet, newIDSet) {
-			_, err := client.NetworkInterface.Action(context.Background(), networkInterfaceId, detachNetworkInterfacesPayload)
-			if err != nil {
-				return fmt.Errorf("Error removing network interface from server [%s]: %v", d.Id(), err)
-			}
-		}
-		for networkInterfaceId := range leftDiff(newIDSet, oldIDSet) {
-			_, err := client.NetworkInterface.Action(context.Background(), networkInterfaceId, attachNetworkInterfacesPayload)
-			if err != nil {
-				return fmt.Errorf("Error adding network interface to server [%s]: %v", d.Id(), err)
-			}
-		}
-	}
-	if d.HasChange("wan_network_interfaces") {
-		oldWanIpIds, newWanIpIds := d.GetChange("wan_network_interfaces")
-		oldIdSet := newSet(oldWanIpIds.(*schema.Set).List())
-		newIdSet := newSet(newWanIpIds.(*schema.Set).List())
-		detachWanIpPayload := &gobizfly.ActionWanIpPayload{
-			Action: "detach_server",
-		}
-		for wanIpId := range leftDiff(oldIdSet, newIdSet) {
-			err := client.WanIP.Action(context.Background(), wanIpId, detachWanIpPayload)
-			if err != nil {
-				return fmt.Errorf("Error removing wan ip from server [%s]: %v", d.Id(), err)
-			}
-		}
-		var attachWanIps []string
-		for wanIpId := range leftDiff(newIdSet, oldIdSet) {
-			attachWanIps = append(attachWanIps, wanIpId)
-		}
-		if len(attachWanIps) > 0 {
-			err := client.Server.AttachWanIps(context.Background(), d.Id(), attachWanIps)
-			if err != nil {
-				return fmt.Errorf("Error attaching wan ip to server [%s]: %v", d.Id(), err)
-			}
 		}
 	}
 
