@@ -109,6 +109,10 @@ func resourceBizFlyCloudServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"user_data": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"volume_ids": {
 				Type:     schema.TypeSet,
 				Elem:     &schema.Schema{Type: schema.TypeString},
@@ -192,6 +196,7 @@ func resourceBizFlyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 		NetworkPlan:      d.Get("network_plan").(string),
 		VPCNetworkIds:    readStringArray(d.Get("vpc_network_ids").(*schema.Set).List()),
 		BillingPlan:      d.Get("billing_plan").(string),
+		UserData:         d.Get("user_data").(string),
 	}
 	log.Printf("[DEBUG] Create Cloud Server configuration: %#v", scr)
 

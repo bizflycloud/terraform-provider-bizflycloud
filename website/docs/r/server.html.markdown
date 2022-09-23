@@ -53,6 +53,7 @@ The following arguments are supported:
 * `vpc_network_ids` - (Optional) A list of the VPC network IDs.
 * `billing_plan` - (Optional) The billing plan applied for the server (saving_plan/on_demand). Default value is
   saving_plan
+* `user_data` - (Optional) The user data to provide when launching the server.
 
 ## Attributes Reference
 
