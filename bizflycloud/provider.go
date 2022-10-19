@@ -68,6 +68,12 @@ func Provider() terraform.ResourceProvider {
 				Description: "Bizfly Cloud Region Name. Default is HN",
 				DefaultFunc: schema.EnvDefaultFunc("BIZFLYCLOUD_REGION_NAME", "HN"),
 			},
+			"project_name": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Bizfly Cloud Project Name",
+				DefaultFunc: schema.EnvDefaultFunc("BIZFLYCLOUD_PROJECT_NAME", nil),
+			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"bizflycloud_server":                           resourceBizFlyCloudServer(),
@@ -127,6 +133,7 @@ func providerConfigure(d *schema.ResourceData, terraformVersion string) (interfa
 		AppCredentialSecret: d.Get("application_credential_secret").(string),
 		RegionName:          d.Get("region_name").(string),
 		TerraformVersion:    terraformVersion,
+		ProjectName:         d.Get("project_name").(string),
 	}
 	return config.Client()
 }

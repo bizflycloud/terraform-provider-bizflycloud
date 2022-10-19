@@ -34,6 +34,7 @@ type Config struct {
 	AppCredentialSecret string
 	APIEndpoint         string
 	TerraformVersion    string
+	ProjectName         string
 }
 
 type CombinedConfig struct {
@@ -43,15 +44,21 @@ type CombinedConfig struct {
 func (c *CombinedConfig) gobizflyClient() *gobizfly.Client { return c.client }
 
 func (c *Config) Client() (*CombinedConfig, error) {
-	client, err := gobizfly.NewClient(gobizfly.WithTenantName(c.Email), gobizfly.WithRegionName(c.RegionName), gobizfly.WithAPIUrl(c.APIEndpoint)) // nolint
+	client, err := gobizfly.NewClient(gobizfly.WithTenantName(c.ProjectName), gobizfly.WithRegionName(c.RegionName), gobizfly.WithAPIUrl(c.APIEndpoint)) // nolint
 
 	if err != nil {
 		log.Fatal(err)
 	}
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancelFunc()
+	log.Println("[INFO] Authenticating with Bizfly Cloud API")
 	tok, err := client.Token.Create(ctx, &gobizfly.TokenCreateRequest{
-		AuthMethod: c.AuthMethod, Username: c.Email, Password: c.Password, AppCredID: c.AppCredentialID, AppCredSecret: c.AppCredentialSecret})
+		AuthMethod:    c.AuthMethod,
+		Username:      c.Email,
+		Password:      c.Password,
+		AppCredID:     c.AppCredentialID,
+		AppCredSecret: c.AppCredentialSecret,
+		ProjectName:   c.ProjectName})
 	if err != nil {
 		return nil, err
 	}

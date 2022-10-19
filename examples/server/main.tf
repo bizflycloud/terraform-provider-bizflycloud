@@ -7,11 +7,23 @@ terraform {
   }
 }
 
+variable "EMAIL" {
+  type = string
+}
+
+variable "PASSWORD" {
+  type = string
+}
+
+variable "PROJECT_NAME" {
+  type = string
+}
+
 provider "bizflycloud" {
-  auth_method = "password"
-  region_name = "HN"
-  email       = ""
-  password    = ""
+  auth_method  = "password"
+  email        = var.EMAIL
+  password     = var.PASSWORD
+  project_name = var.PROJECT_NAME
 }
 
 resource "bizflycloud_firewall" "sample_firewall_1" {
@@ -29,19 +41,18 @@ data "bizflycloud_volume_type" "example_volume_type" {
 }
 
 resource "bizflycloud_server" "tf_server1" {
-  name                   = "tf_server_1"
-  flavor_name            = "2c_2g"
-  ssh_key                = data.bizflycloud_ssh_key.ssh_key.name
-  os_type                = "image"
-  os_id                  = "d646476d-850c-423e-b02c-6b86aeda3717"
-  category               = "premium"
-  availability_zone      = "HN1"
-  root_disk_volume_type  = data.bizflycloud_volume_type.example_volume_type.type
-  root_disk_size         = 20
-  network_plan           = "free_bandwidth"
-  billing_plan           = "on_demand"
-  vpc_network_ids = [data.bizflycloud_vpc_network.vpc_network.id, data.bizflycloud_vpc_network.vpc_network_1.id]
-  user_data = "!/bin/bash"
+  name                  = "tf_server_2"
+  flavor_name           = "2c_2g"
+  os_type               = "image"
+  os_id                 = "6236f33d-6692-451d-8337-07aad666fe9f"
+  category              = "premium"
+  availability_zone     = "HN1"
+  root_disk_volume_type = data.bizflycloud_volume_type.example_volume_type.type
+  root_disk_size        = 20
+  network_plan          = "free_bandwidth"
+  billing_plan          = "on_demand"
+  vpc_network_ids       = [data.bizflycloud_vpc_network.vpc_network.id, data.bizflycloud_vpc_network.vpc_network_1.id]
+  user_data             = "!/bin/bash"
 }
 
 resource "bizflycloud_volume" "volume1" {
