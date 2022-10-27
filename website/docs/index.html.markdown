@@ -24,6 +24,7 @@ provider "bizflycloud" {
     region_name = "HN"
     email = "email@domain.com"
     password = "password"
+    project_id = "project_id"
 }
 
 # Create a database server
@@ -64,4 +65,6 @@ The following arguments are supported:
 * `region_name` - (Required) This is the region of resource you are working.   Alternatively, this can also be specified using environment variables ordered by precedence:
   * `BIZFLYCLOUD_REGION_NAME`
 
+* `project_id` - (Optional) This is the project ID of resource you are working.   Alternatively, this can also be specified using environment variables ordered by precedence:
+  * `BIZFLYCLOUD_PROJECT_ID`
 
