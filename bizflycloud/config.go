@@ -34,7 +34,7 @@ type Config struct {
 	AppCredentialSecret string
 	APIEndpoint         string
 	TerraformVersion    string
-	ProjectName         string
+	ProjectID           string
 }
 
 type CombinedConfig struct {
@@ -44,7 +44,9 @@ type CombinedConfig struct {
 func (c *CombinedConfig) gobizflyClient() *gobizfly.Client { return c.client }
 
 func (c *Config) Client() (*CombinedConfig, error) {
-	client, err := gobizfly.NewClient(gobizfly.WithTenantName(c.ProjectName), gobizfly.WithRegionName(c.RegionName), gobizfly.WithAPIUrl(c.APIEndpoint)) // nolint
+	client, err := gobizfly.NewClient(gobizfly.WithProjectId(c.ProjectID),
+		gobizfly.WithRegionName(c.RegionName),
+		gobizfly.WithAPIUrl(c.APIEndpoint)) // nolint
 
 	if err != nil {
 		log.Fatal(err)
@@ -58,7 +60,9 @@ func (c *Config) Client() (*CombinedConfig, error) {
 		Password:      c.Password,
 		AppCredID:     c.AppCredentialID,
 		AppCredSecret: c.AppCredentialSecret,
-		ProjectName:   c.ProjectName})
+		ProjectID:     c.ProjectID,
+	},
+	)
 	if err != nil {
 		return nil, err
 	}
