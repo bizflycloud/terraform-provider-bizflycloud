@@ -35,10 +35,6 @@ func resourceBizFlyCloudFirewall() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"servers_count": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
 			"rules_count": {
 				Type:     schema.TypeInt,
 				Computed: true,
@@ -64,12 +60,6 @@ func resourceBizFlyCloudFirewall() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: firewallRuleSchema(),
 				},
-			},
-			"target_server_ids": {
-				Type:     schema.TypeSet,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Optional: true,
-				Computed: true,
 			},
 			"network_interfaces": {
 				Type:     schema.TypeSet,
@@ -102,11 +92,6 @@ func firewallRequestBuilder(d *schema.ResourceData) gobizfly.FirewallRequestPayl
 	firewallOpts := gobizfly.FirewallRequestPayload{}
 	if v, ok := d.GetOk("name"); ok {
 		firewallOpts.Name = v.(string)
-	}
-	if v, ok := d.GetOk("target_server_ids"); ok {
-		for _, id := range v.(*schema.Set).List() {
-			firewallOpts.Targets = append(firewallOpts.Targets, id.(string))
-		}
 	}
 	if v, ok := d.GetOk("network_interfaces"); ok {
 		for _, id := range v.(*schema.Set).List() {
@@ -144,7 +129,6 @@ func resourceBizFlyCloudFirewallRead(d *schema.ResourceData, meta interface{}) e
 	_ = d.Set("rules_count", firewall.BaseFirewall.RulesCount)
 	_ = d.Set("network_interface_count", firewall.BaseFirewall.NetworkInterfaceCount)
 
-	_ = d.Set("target_servers", flatternBizFlyCloudServers(firewall.Servers))
 	_ = d.Set("target_network_interface", flatternBizFlyCloudNetworkInterfaces(firewall.NetworkInterface))
 	if len(firewall.InBound) > 0 {
 		_ = d.Set("ingress", convertFWRule(firewall.InBound))
@@ -201,14 +185,6 @@ func convertFWRule(rules []gobizfly.FirewallRule) []map[string]interface{} {
 		}
 	}
 	return result
-}
-
-func flatternBizFlyCloudServers(servers []*gobizfly.Server) *schema.Set {
-	flattenedServers := schema.NewSet(schema.HashString, []interface{}{})
-	for _, server := range servers {
-		flattenedServers.Add(server.ID)
-	}
-	return flattenedServers
 }
 
 func flatternBizFlyCloudNetworkInterfaces(networkInterfaces []*gobizfly.NetworkInterface) *schema.Set {
