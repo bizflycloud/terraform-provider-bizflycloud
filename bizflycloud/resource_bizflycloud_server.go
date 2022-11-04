@@ -159,6 +159,11 @@ func resourceBizFlyCloudServer() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"network_interface_ids": {
+				Type:     schema.TypeSet,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Computed: true,
+			},
 		},
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -245,6 +250,21 @@ func resourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 		}
 		return fmt.Errorf("Error retrieving server: %v", err)
 	}
+	networkInterfaces, _ := client.NetworkInterface.List(context.Background(), &gobizfly.ListNetworkInterfaceOptions{
+		Type: "LAN_WAN",
+	})
+	vpc_network_ids := make([]string, 0)
+
+	networkInterfaceIds := make([]string, 0)
+	for _, networkInterface := range networkInterfaces {
+		if networkInterface.DeviceID == d.Id() {
+			networkInterfaceIds = append(networkInterfaceIds, networkInterface.ID)
+		}
+		if networkInterface.Type == "LAN" {
+			vpc_network_ids = append(vpc_network_ids, networkInterface.NetworkID)
+		}
+	}
+	vpc_network_ids = uniqueList(vpc_network_ids)
 
 	_ = d.Set("name", server.Name)
 	_ = d.Set("key_name", server.KeyName)
@@ -261,6 +281,8 @@ func resourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	_ = d.Set("is_available", server.IsAvailable)
 	_ = d.Set("locked", server.Locked)
 	_ = d.Set("network_plan", server.NetworkPlan)
+	_ = d.Set("network_interface_ids", networkInterfaceIds)
+	_ = d.Set("vpc_network_ids", vpc_network_ids)
 
 	if err := d.Set("volume_ids", flatternBizFlyCloudVolumeIDs(server.AttachedVolumes)); err != nil {
 		return fmt.Errorf("Error setting `volume_ids`: %+v", err)
@@ -581,6 +603,18 @@ func leftDiff(left, right map[string]struct{}) map[string]struct{} {
 		if _, ok := right[l]; !ok {
 			out[l] = struct{}{}
 		}
+	}
+	return out
+}
+
+func uniqueList(list []string) []string {
+	unique := make(map[string]struct{})
+	for _, v := range list {
+		unique[v] = struct{}{}
+	}
+	out := make([]string, 0, len(unique))
+	for v := range unique {
+		out = append(out, v)
 	}
 	return out
 }
