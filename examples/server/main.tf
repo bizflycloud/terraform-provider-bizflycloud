@@ -23,7 +23,6 @@ provider "bizflycloud" {
   auth_method  = "password"
   email        = var.EMAIL
   password     = var.PASSWORD
-  project_id   = var.PROJECT_ID
 }
 
 resource "bizflycloud_firewall" "sample_firewall_1" {
