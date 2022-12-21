@@ -137,6 +137,7 @@ func resourceBizFlyCloudServer() *schema.Resource {
 			"network_plan": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Default:  "free_datatransfer",
 			},
 			"vpc_network_ids": {
 				Type:     schema.TypeSet,
@@ -146,6 +147,7 @@ func resourceBizFlyCloudServer() *schema.Resource {
 			"billing_plan": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Default:  "saving_plan",
 			},
 			"is_available": {
 				Type:     schema.TypeBool,
