@@ -315,7 +315,7 @@ func updateCloudDatabaseNodeStateRefreshFunc(d *schema.ResourceData, key string,
 			}
 
 		case "flavor_name":
-			if strings.Contains(node.Flavor, newValue.(string)) == false {
+			if !strings.Contains(node.Flavor, newValue.(string)) {
 				log.Println("[DEBUG] Cloud database node is updating")
 				return nil, "", nil
 			}
