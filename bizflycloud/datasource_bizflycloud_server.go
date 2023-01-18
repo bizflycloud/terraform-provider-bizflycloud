@@ -105,7 +105,8 @@ func datasourceBizFlyCloudServers() *schema.Resource {
 				Computed: true,
 			},
 			"lan_ip": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeSet,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 				Computed: true,
 			},
 			"wan_ipv4": {
@@ -137,7 +138,7 @@ func dataSourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) e
 			d.SetId(server.ID)
 			err := resourceBizFlyCloudServerRead(d, meta)
 			if err != nil {
-				return fmt.Errorf("Couldn't set data")
+				return fmt.Errorf("couldn't set data %+v", err)
 			}
 			break
 		}
