@@ -68,9 +68,10 @@ func dataSourceBizFlyCloudDatabaseInstanceRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
+// ConvertStruct - export to json
 func ConvertStruct(structData interface{}) map[string]interface{} {
 	var mapData map[string]interface{}
 	data, _ := json.Marshal(structData)
-	json.Unmarshal(data, &mapData)
+	_ = json.Unmarshal(data, &mapData)
 	return mapData
 }
