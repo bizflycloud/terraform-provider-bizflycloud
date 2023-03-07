@@ -145,5 +145,9 @@ func providerConfigure(d *schema.ResourceData, terraformVersion string) (interfa
 		TerraformVersion:    terraformVersion,
 		ProjectID:           d.Get("project_id").(string),
 	}
-	return config.Client()
+	combinedClient, err := config.Client()
+	if err != nil {
+		return nil, err
+	}
+	return combinedClient, nil
 }
