@@ -7,7 +7,7 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v2
       with:
         ref: ${{ github.event.pull_request.head.ref }}
 
@@ -15,6 +15,6 @@ jobs:
       uses: terraform-docs/gh-actions@main
       with:
         working-dir: .
-        output-file: README.md
+        output-file: docs.md
         output-method: inject
         git-push: "true"
