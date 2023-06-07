@@ -14,7 +14,7 @@ jobs:
     - name: Render terraform docs and push changes back to PR
       uses: terraform-docs/gh-actions@main
       with:
-        working-dir: .
+        working-dir: bizflycloud
         output-file: docs.md
-        output-method: inject
+        output-method: replace
         git-push: "true"
