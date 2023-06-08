@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/bizflycloud/gobizfly"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"log"
 	"time"
@@ -200,14 +201,43 @@ func resourceBizFlyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 		for _, pool := range cluster.WorkerPools {
 			isOldPool[pool.Name] = true
 		}
+		newPoolMap := make(map[string]gobizfly.WorkerPool, len(newPools))
 		for _, pool := range newPools {
+			newPoolMap[pool.Name] = pool
 			if !isOldPool[pool.Name] {
 				addPools = append(addPools, pool)
 			} else {
 				isNewPool[pool.Name] = true
 			}
 		}
-		log.Printf("[DEBUG] add Pools %v", addPools)
+
+		for _, oldPool := range cluster.WorkerPools {
+			if isNewPool[oldPool.Name] {
+				// Check that the pool has any change
+				newStatePool := newPoolMap[oldPool.Name]
+				if oldPool.MaxSize != newStatePool.MaxSize ||
+					oldPool.MinSize != newStatePool.MinSize ||
+					oldPool.DesiredSize != newStatePool.DesiredSize {
+					fmt.Printf("[DEBUG] Old pool state: %+v\nNew pool state: %+v", oldPool, newStatePool)
+					updateRequest := &gobizfly.UpdateWorkerPoolRequest{
+						DesiredSize: newStatePool.DesiredSize,
+						MinSize:     newStatePool.MinSize,
+						MaxSize:     newStatePool.MaxSize,
+					}
+					log.Printf("[DEBUG] update pool %+v to %+v", oldPool, updateRequest)
+					err := client.KubernetesEngine.UpdateClusterWorkerPool(context.Background(), d.Id(),
+						oldPool.UID, updateRequest)
+					if err != nil {
+						return fmt.Errorf("error update pool: %+v", err)
+					}
+					_, err = waitForPoolUpdate(d, oldPool.UID, meta)
+					if err != nil {
+						return fmt.Errorf("error waiting for pool update: %+v", err)
+					}
+				}
+			}
+		}
+		log.Printf("[DEBUG] add Pools %+v", addPools)
 		if len(addPools) > 0 {
 			awrq := &gobizfly.AddWorkerPoolsRequest{
 				WorkerPools: addPools,
@@ -219,7 +249,7 @@ func resourceBizFlyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 		for _, pool := range cluster.WorkerPools {
 			if isOldPool[pool.Name] && !isNewPool[pool.Name] {
-				log.Printf("[DEBUG] remove pool %v", pool)
+				log.Printf("[DEBUG] remove pool %+v", pool)
 				err := client.KubernetesEngine.DeleteClusterWorkerPool(context.Background(), d.Id(), pool.UID)
 				if err != nil {
 					return fmt.Errorf("Error delete pool: %v", err)
@@ -255,4 +285,28 @@ func readWorkerPoolFromConfig(l *schema.ResourceData) []gobizfly.WorkerPool {
 		pools = append(pools, pool)
 	}
 	return pools
+}
+
+func waitForPoolUpdate(d *schema.ResourceData, poolID string, meta interface{}) (interface{}, error) {
+	log.Printf("[INFO] Waiting for pool updating %s", poolID)
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"PENDING_PROVISION", "PROVISIONING", "PENDING_UPDATE", "UPDATING"},
+		Target:     []string{"PROVISIONED"},
+		Refresh:    newPoolStatusRefreshFunc(d, poolID, meta),
+		Timeout:    1200 * time.Second,
+		Delay:      20 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+	return stateConf.WaitForState()
+}
+
+func newPoolStatusRefreshFunc(d *schema.ResourceData, poolID string, meta interface{}) resource.StateRefreshFunc {
+	client := meta.(*CombinedConfig).gobizflyClient()
+	return func() (interface{}, string, error) {
+		pool, err := client.KubernetesEngine.GetClusterWorkerPool(context.Background(), d.Id(), poolID)
+		if err != nil {
+			return nil, "", err
+		}
+		return pool, pool.ProvisionStatus, nil
+	}
 }
