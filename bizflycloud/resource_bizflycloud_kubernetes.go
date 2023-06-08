@@ -230,7 +230,10 @@ func resourceBizFlyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 					if err != nil {
 						return fmt.Errorf("error update pool: %+v", err)
 					}
-					waitForPoolUpdate(d, oldPool.UID, meta)
+					_, err = waitForPoolUpdate(d, oldPool.UID, meta)
+					if err != nil {
+						return fmt.Errorf("error waiting for pool update: %+v", err)
+					}
 				}
 			}
 		}
