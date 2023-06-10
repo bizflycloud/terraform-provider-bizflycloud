@@ -68,6 +68,21 @@ func (c *Config) Client() (*CombinedConfig, error) {
 	}
 
 	client.SetKeystoneToken(tok)
+	userInfo, err := client.Account.GetUserInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	allowedToRegion := false
+	log.Println("[DEBUG] Checking if you are allowed to access this region")
+	log.Println("[DEBUG] Allowed Region: ", userInfo.UserRegions)
+	for _, region := range userInfo.UserRegions {
+		if c.RegionName == region.Code {
+			allowedToRegion = true
+		}
+	}
+	if !allowedToRegion {
+		log.Fatal("You are not allowed to access this region")
+	}
 
 	return &CombinedConfig{
 		client: client,
