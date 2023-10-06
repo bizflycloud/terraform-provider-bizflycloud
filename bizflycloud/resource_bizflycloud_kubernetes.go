@@ -21,11 +21,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/bizflycloud/gobizfly"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"log"
 	"time"
+
+	"github.com/bizflycloud/gobizfly"
+	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourceBizFlyCloudKubernetes() *schema.Resource {
@@ -127,8 +129,40 @@ func workerPoolSchema() map[string]*schema.Schema {
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
+		"labels": {
+			Type:     schema.TypeMap,
+			Optional: true,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"taints": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: taintsSchema(),
+			},
+		},
 	}
 }
+
+func taintsSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"effect": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"key": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"value": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+	}
+}
+
 func resourceBizFlyClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
@@ -215,14 +249,19 @@ func resourceBizFlyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 			if isNewPool[oldPool.Name] {
 				// Check that the pool has any change
 				newStatePool := newPoolMap[oldPool.Name]
-				if oldPool.MaxSize != newStatePool.MaxSize ||
-					oldPool.MinSize != newStatePool.MinSize ||
-					oldPool.DesiredSize != newStatePool.DesiredSize {
+				isUpdateLabels := !cmp.Equal(newStatePool.Labels, oldPool.Labels)
+				isUpdateTaints := !cmp.Equal(newStatePool.Taints, oldPool.Taints)
+				isUpdatePool := (oldPool.MaxSize != newStatePool.MaxSize) || (oldPool.MinSize != newStatePool.MinSize) ||
+					(oldPool.DesiredSize != newStatePool.DesiredSize) || isUpdateLabels || isUpdateTaints
+
+				if isUpdatePool {
 					fmt.Printf("[DEBUG] Old pool state: %+v\nNew pool state: %+v", oldPool, newStatePool)
 					updateRequest := &gobizfly.UpdateWorkerPoolRequest{
 						DesiredSize: newStatePool.DesiredSize,
 						MinSize:     newStatePool.MinSize,
 						MaxSize:     newStatePool.MaxSize,
+						Labels:      newStatePool.Labels,
+						Taints:      newStatePool.Taints,
 					}
 					log.Printf("[DEBUG] update pool %+v to %+v", oldPool, updateRequest)
 					err := client.KubernetesEngine.UpdateClusterWorkerPool(context.Background(), d.Id(),
@@ -269,6 +308,8 @@ func readWorkerPoolFromConfig(l *schema.ResourceData) []gobizfly.WorkerPool {
 			tagPattern := pattern + fmt.Sprintf("tags.%d", j)
 			tags = append(tags, l.Get(tagPattern).(string))
 		}
+		labels := readLabelsConfig(l, pattern)
+		taints := readTaintsConfig(l, pattern)
 		pool := gobizfly.WorkerPool{
 			Name:              l.Get(pattern + "name").(string),
 			Flavor:            l.Get(pattern + "flavor").(string),
@@ -281,10 +322,44 @@ func readWorkerPoolFromConfig(l *schema.ResourceData) []gobizfly.WorkerPool {
 			MinSize:           l.Get(pattern + "min_size").(int),
 			MaxSize:           l.Get(pattern + "max_size").(int),
 			Tags:              tags,
+			Labels:            labels,
+			Taints:            taints,
 		}
 		pools = append(pools, pool)
 	}
 	return pools
+}
+
+func readTaintsConfig(l *schema.ResourceData, pattern string) []gobizfly.Taint {
+	taints := make([]gobizfly.Taint, 0)
+	taintsData := l.Get(pattern + "taints")
+	if taintsData == nil {
+		return nil
+	}
+
+	for i := 0; i < len(taintsData.([]interface{})); i++ {
+		taintPattern := fmt.Sprintf("%staints.%d.", pattern, i)
+		taint := gobizfly.Taint{
+			Effect: l.Get(taintPattern + "effect").(string),
+			Key:    l.Get(taintPattern + "key").(string),
+			Value:  l.Get(taintPattern + "value").(string),
+		}
+		taints = append(taints, taint)
+	}
+	return taints
+}
+
+func readLabelsConfig(l *schema.ResourceData, pattern string) map[string]string {
+	labels := make(map[string]string)
+	labelsData := l.Get(pattern + "labels")
+	if labelsData == nil {
+		return nil
+	}
+
+	for key, val := range labelsData.(map[string]interface{}) {
+		labels[key] = fmt.Sprintf("%v", val)
+	}
+	return labels
 }
 
 func waitForPoolUpdate(d *schema.ResourceData, poolID string, meta interface{}) (interface{}, error) {
