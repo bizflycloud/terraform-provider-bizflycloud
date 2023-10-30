@@ -18,53 +18,78 @@
 package bizflycloud
 
 import (
+	"github.com/YakDriver/regexache"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataElemCloudDatabaseDataStore() map[string]*schema.Schema {
+func dataCloudDatabaseBackupScheduleSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"type": {
+		"first_execution_time": {
 			Type:     schema.TypeString,
-			Computed: true,
+			Optional: true,
 		},
-		"name": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"version_id": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-	}
-
-}
-
-func dataCloudDatabaseDatastoreSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
+			Required: true,
+		},
+		"instance_id": {
+			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"type": {
+		"instance_name": {
 			Type:     schema.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"MariaDB",
-				"MongoDB",
-				"MySQL",
-				"Postgres",
-				"Redis",
-			}, false),
+			Computed: true,
+		},
+		"limit_backup": {
+			Type:     schema.TypeInt,
+			Computed: true,
 		},
 		"name": {
 			Type:     schema.TypeString,
-			Required: true,
+			Optional: true,
 		},
-		"version_id": {
+		"next_execution_time": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"node_id": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"node_name": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"cron_expression": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
 	}
+}
 
+func resourceCloudDatabaseBackupScheduleSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+		"node_id": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+		"limit_backup": {
+			Type:     schema.TypeInt,
+			Required: true,
+			ForceNew: true,
+		},
+		"cron_expression": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringMatch(regexache.MustCompile(`^[0-9A-Za-z_\s #()*+,/?^|-]*$`), "see https://crontab.guru"),
+		},
+	}
 }

@@ -37,19 +37,19 @@ func init() {
 	})
 }
 
-func TestAccBizFlyCloudCloudDatabaseBackup_Basic(t *testing.T) {
+func TestAccBizflyCloudCloudDatabaseBackup_Basic(t *testing.T) {
 	var backup gobizfly.CloudDatabaseBackup
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckBizFlyCloudCloudDatabaseBackupDestroy,
+		CheckDestroy: testAccCheckBizflyCloudCloudDatabaseBackupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBizFlyCloudCloudDatabaseBackupBasicConfig(rInt),
+				Config: testAccBizflyCloudCloudDatabaseBackupBasicConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBizFlyCloudCloudDatabaseBackupExists("bizflycloud_cloud_database_backup.foobar", &backup),
-					testAccCheckBizFlyCloudCloudDatabaseBackupAttributes(&backup),
+					testAccCheckBizflyCloudCloudDatabaseBackupExists("bizflycloud_cloud_database_backup.foobar", &backup),
+					testAccCheckBizflyCloudCloudDatabaseBackupAttributes(&backup),
 					resource.TestCheckResourceAttr(
 						"bizflycloud_cloud_database_backup.foobar", "name", fmt.Sprintf("tf-testAccCloudDatabaseBackup-%d", rInt)),
 					resource.TestCheckResourceAttr(
@@ -62,7 +62,7 @@ func TestAccBizFlyCloudCloudDatabaseBackup_Basic(t *testing.T) {
 	})
 }
 
-func testAccCheckBizFlyCloudCloudDatabaseBackupExists(n string, backup *gobizfly.CloudDatabaseBackup) resource.TestCheckFunc {
+func testAccCheckBizflyCloudCloudDatabaseBackupExists(n string, backup *gobizfly.CloudDatabaseBackup) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -86,7 +86,7 @@ func testAccCheckBizFlyCloudCloudDatabaseBackupExists(n string, backup *gobizfly
 	}
 }
 
-func testAccCheckBizFlyCloudCloudDatabaseBackupAttributes(backup *gobizfly.CloudDatabaseBackup) resource.TestCheckFunc {
+func testAccCheckBizflyCloudCloudDatabaseBackupAttributes(backup *gobizfly.CloudDatabaseBackup) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if backup.NodeID != nodeID {
 			return fmt.Errorf("bad cloud database backup source: %s", backup.NodeID)
@@ -96,7 +96,7 @@ func testAccCheckBizFlyCloudCloudDatabaseBackupAttributes(backup *gobizfly.Cloud
 	}
 }
 
-func testAccCheckBizFlyCloudCloudDatabaseBackupDestroy(s *terraform.State) error {
+func testAccCheckBizflyCloudCloudDatabaseBackupDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
 
 	for _, rs := range s.RootModule().Resources {
@@ -120,7 +120,7 @@ func testAccCheckBizFlyCloudCloudDatabaseBackupDestroy(s *terraform.State) error
 	return nil
 }
 
-func testAccBizFlyCloudCloudDatabaseBackupBasicConfig(rInt int) string {
+func testAccBizflyCloudCloudDatabaseBackupBasicConfig(rInt int) string {
 	return fmt.Sprintf(`
 		resource "bizflycloud_cloud_database_backup" "foobar" {
             name = "tf-testAccCloudDatabaseBackup-%d"

@@ -30,11 +30,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceBizFlyCloudDatabaseBackup() *schema.Resource {
+func resourceBizflyCloudDatabaseBackup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBizFlyCloudCloudDatabaseBackupCreate,
-		Read:   resourceBizFlyCloudCloudDatabaseBackupRead,
-		Delete: resourceBizFlyCloudCloudDatabaseBackupDelete,
+		Create: resourceBizflyCloudCloudDatabaseBackupCreate,
+		Delete: resourceBizflyCloudCloudDatabaseBackupDelete,
+		Read:   resourceBizflyCloudCloudDatabaseBackupRead,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -46,14 +46,16 @@ func resourceBizFlyCloudDatabaseBackup() *schema.Resource {
 	}
 }
 
-func resourceBizFlyCloudCloudDatabaseBackupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudCloudDatabaseBackupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	bac := &gobizfly.CloudDatabaseBackupCreate{
-		BackupName: d.Get("name").(string),
-		NodeID:     d.Get("node_id").(string),
-		ParentID:   d.Get("parent_id").(string),
-		InstanceID: d.Get("instance_id").(string),
+		Name:   d.Get("name").(string),
+		NodeID: d.Get("node_id").(string),
+	}
+
+	if d.Get("parent_id").(string) != "" {
+		bac.ParentID = d.Get("parent_id").(string)
 	}
 
 	var resourceType string
@@ -75,7 +77,7 @@ func resourceBizFlyCloudCloudDatabaseBackupCreate(d *schema.ResourceData, meta i
 		backup, err := client.CloudDatabase.Backups().Create(context.Background(), resourceType, resourceID, bac)
 
 		if err != nil {
-			retry -= 1
+			retry--
 			if retry > 0 {
 				time.Sleep(timeSleep)
 				return resource.RetryableError(fmt.Errorf("[ERROR] create cloud database backup %s failed: %s. Retrying", d.Get("name"), err))
@@ -93,7 +95,7 @@ func resourceBizFlyCloudCloudDatabaseBackupCreate(d *schema.ResourceData, meta i
 			return resource.NonRetryableError(fmt.Errorf("[ERROR] create cloud database backup (%s) failed: %s. Can't retry", d.Get("name").(string), err))
 		}
 
-		err = resourceBizFlyCloudCloudDatabaseBackupRead(d, meta)
+		err = resourceBizflyCloudCloudDatabaseBackupRead(d, meta)
 		if err != nil {
 			return resource.NonRetryableError(fmt.Errorf("[ERROR] read cloud database backup (%s) failed: %s. Can't retry", d.Get("name").(string), err))
 		}
@@ -103,14 +105,14 @@ func resourceBizFlyCloudCloudDatabaseBackupCreate(d *schema.ResourceData, meta i
 
 }
 
-func resourceBizFlyCloudCloudDatabaseBackupRead(d *schema.ResourceData, meta interface{}) error {
-	if err := dataSourceBizFlyCloudDatabaseBackupRead(d, meta); err != nil {
+func resourceBizflyCloudCloudDatabaseBackupRead(d *schema.ResourceData, meta interface{}) error {
+	if err := dataSourceBizflyCloudDatabaseBackupRead(d, meta); err != nil {
 		return err
 	}
 	return nil
 }
 
-func resourceBizFlyCloudCloudDatabaseBackupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudCloudDatabaseBackupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	id := d.Id()
 
@@ -120,7 +122,7 @@ func resourceBizFlyCloudCloudDatabaseBackupDelete(d *schema.ResourceData, meta i
 		_, err := client.CloudDatabase.Backups().Delete(context.Background(), id)
 
 		if err != nil {
-			retry -= 1
+			retry--
 			if retry > 0 {
 				time.Sleep(timeSleep)
 				return resource.RetryableError(fmt.Errorf("[ERROR] delete cloud database backup %s failed: %v. Retrying", id, err))
@@ -142,8 +144,8 @@ func resourceBizFlyCloudCloudDatabaseBackupDelete(d *schema.ResourceData, meta i
 func waitForCloudDatabaseBackupCreate(d *schema.ResourceData, meta interface{}) (interface{}, error) {
 	log.Printf("[INFO] Waiting for cloud database instance (%s) to be ready", d.Get("name").(string))
 	stateConf := &resource.StateChangeConf{
-		Pending:        []string{"false", "BUILDING"},
-		Target:         []string{"true", "COMPLETED"},
+		Pending:        []string{"false"},
+		Target:         []string{"true", "COMPLETED", "ERROR"},
 		Refresh:        newCloudDatabaseBackupStateRefreshFunc(d, meta),
 		Timeout:        d.Timeout(schema.TimeoutCreate),
 		Delay:          30 * time.Second,
@@ -171,7 +173,7 @@ func newCloudDatabaseBackupStateRefreshFunc(d *schema.ResourceData, meta interfa
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	return func() (interface{}, string, error) {
-		err := resourceBizFlyCloudCloudDatabaseBackupRead(d, meta)
+		err := resourceBizflyCloudCloudDatabaseBackupRead(d, meta)
 		if err != nil {
 			return nil, "", err
 		}

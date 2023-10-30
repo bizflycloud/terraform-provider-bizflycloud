@@ -19,52 +19,55 @@ package bizflycloud
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataElemCloudDatabaseDataStore() map[string]*schema.Schema {
+func resourceCloudDatabaseConfigurationSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"type": {
+		"created_at": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"name": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"version_id": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-	}
-
-}
-
-func dataCloudDatabaseDatastoreSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"id": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"type": {
-			Type:     schema.TypeString,
+		"datastore": {
+			Type:     schema.TypeMap,
 			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"MariaDB",
-				"MongoDB",
-				"MySQL",
-				"Postgres",
-				"Redis",
-			}, false),
+			Elem:     &schema.Resource{Schema: dataElemCloudDatabaseDataStore()},
 		},
 		"name": {
 			Type:     schema.TypeString,
 			Required: true,
+			ForceNew: true,
 		},
-		"version_id": {
-			Type:     schema.TypeString,
+		"nodes": {
+			Type:     schema.TypeList,
 			Computed: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"name": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"id": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+		"parameter": {
+			Type:     schema.TypeSet,
+			Required: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"name": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"value": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+				},
+			},
 		},
 	}
-
 }

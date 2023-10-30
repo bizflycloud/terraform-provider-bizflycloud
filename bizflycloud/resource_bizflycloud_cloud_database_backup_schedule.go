@@ -29,11 +29,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceBizFlyCloudDatabaseSchedule() *schema.Resource {
+func resourceBizflyCloudDatabaseBackupSchedule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBizFlyCloudCloudDatabaseScheduleCreate,
-		Read:   resourceBizFlyCloudCloudDatabaseScheduleRead,
-		Delete: resourceBizFlyCloudCloudDatabaseScheduleDelete,
+		Create: resourceBizflyCloudCloudDatabaseBackupScheduleCreate,
+		Delete: resourceBizflyCloudCloudDatabaseBackupScheduleDelete,
+		Read:   resourceBizflyCloudCloudDatabaseBackupScheduleRead,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -41,30 +41,26 @@ func resourceBizFlyCloudDatabaseSchedule() *schema.Resource {
 			Create: schema.DefaultTimeout(40 * time.Minute),
 			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
-		Schema: resourceCloudDatabaseScheduleSchema(),
+		Schema: resourceCloudDatabaseBackupScheduleSchema(),
 	}
 }
 
-func resourceBizFlyCloudCloudDatabaseScheduleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudCloudDatabaseBackupScheduleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
-	scc := &gobizfly.CloudDatabaseScheduleCreate{
-		DayOfMonth:   readIntArray(d.Get("day_of_month").(*schema.Set).List()),
-		DayOfWeek:    readIntArray(d.Get("day_of_week").(*schema.Set).List()),
-		Hour:         readIntArray(d.Get("hour").(*schema.Set).List()),
-		LimitBackup:  d.Get("limit_backup").(int),
-		Minute:       readIntArray(d.Get("minute").(*schema.Set).List()),
-		ScheduleName: d.Get("name").(string),
-		ScheduleType: d.Get("schedule_type").(string),
+	scc := &gobizfly.CloudDatabaseBackupScheduleCreate{
+		CronExpression: d.Get("cron_expression").(string),
+		LimitBackup:    d.Get("limit_backup").(int),
+		Name:           d.Get("name").(string),
 	}
 
 	// retry
 	retry := maxRetry
 	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		schedule, err := client.CloudDatabase.Schedules().Create(context.Background(), d.Get("node_id").(string), scc)
+		schedule, err := client.CloudDatabase.BackupSchedules().Create(context.Background(), d.Get("node_id").(string), scc)
 
 		if err != nil {
-			retry -= 1
+			retry--
 			if retry > 0 {
 				time.Sleep(timeSleep)
 				return resource.RetryableError(fmt.Errorf("[ERROR] create cloud database schedule %s failed: %s. Retrying", d.Get("name"), err))
@@ -76,7 +72,7 @@ func resourceBizFlyCloudCloudDatabaseScheduleCreate(d *schema.ResourceData, meta
 		log.Printf("[DEBUG] creating cloud database schedule %s", schedule.Name)
 		d.SetId(schedule.ID)
 
-		err = resourceBizFlyCloudCloudDatabaseScheduleRead(d, meta)
+		err = resourceBizflyCloudCloudDatabaseBackupScheduleRead(d, meta)
 		if err != nil {
 			return resource.NonRetryableError(fmt.Errorf("[ERROR] create cloud database schedule (%s) failed: %s. Can't retry", d.Get("name").(string), err))
 		}
@@ -85,24 +81,24 @@ func resourceBizFlyCloudCloudDatabaseScheduleCreate(d *schema.ResourceData, meta
 	})
 }
 
-func resourceBizFlyCloudCloudDatabaseScheduleRead(d *schema.ResourceData, meta interface{}) error {
-	if err := dataSourceBizFlyCloudDatabaseScheduleRead(d, meta); err != nil {
+func resourceBizflyCloudCloudDatabaseBackupScheduleRead(d *schema.ResourceData, meta interface{}) error {
+	if err := dataSourceBizflyCloudDatabaseBackupScheduleRead(d, meta); err != nil {
 		return err
 	}
 	return nil
 }
 
-func resourceBizFlyCloudCloudDatabaseScheduleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudCloudDatabaseBackupScheduleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	id := d.Id()
 
 	// retry
 	retry := maxRetry
 	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		_, err := client.CloudDatabase.Schedules().Delete(context.Background(), id, &gobizfly.CloudDatabaseScheduleDelete{})
+		_, err := client.CloudDatabase.BackupSchedules().Delete(context.Background(), id, &gobizfly.CloudDatabaseBackupScheduleDelete{})
 
 		if err != nil {
-			retry -= 1
+			retry--
 			if retry > 0 {
 				time.Sleep(timeSleep)
 				return resource.RetryableError(fmt.Errorf("[ERROR] delete cloud database schedule %s failed: %v. Retrying", id, err))
