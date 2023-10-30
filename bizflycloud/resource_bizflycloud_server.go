@@ -36,12 +36,12 @@ const (
 	attachTypeRootDisk = "rootdisk"
 )
 
-func resourceBizFlyCloudServer() *schema.Resource {
+func resourceBizflyCloudServer() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceBizFlyCloudServerCreate,
-		Read:          resourceBizFlyCloudServerRead,
-		Update:        resourceBizFlyCloudServerUpdate,
-		Delete:        resourceBizFlyCloudServerDelete,
+		Create:        resourceBizflyCloudServerCreate,
+		Read:          resourceBizflyCloudServerRead,
+		Update:        resourceBizflyCloudServerUpdate,
+		Delete:        resourceBizflyCloudServerDelete,
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -176,7 +176,7 @@ func resourceBizFlyCloudServer() *schema.Resource {
 	}
 }
 
-func resourceBizFlyCloudServerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudServerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	// Build up creation options
@@ -238,10 +238,10 @@ func resourceBizFlyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 			return err
 		}
 	}
-	return resourceBizFlyCloudServerRead(d, meta)
+	return resourceBizflyCloudServerRead(d, meta)
 }
 
-func resourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	server, err := client.Server.Get(context.Background(), d.Id())
 	if err != nil {
@@ -286,23 +286,23 @@ func resourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	_ = d.Set("network_interface_ids", networkInterfaceIds)
 	_ = d.Set("vpc_network_ids", vpc_network_ids)
 
-	if err := d.Set("volume_ids", flatternBizFlyCloudVolumeIDs(server.AttachedVolumes)); err != nil {
+	if err := d.Set("volume_ids", flatternBizflyCloudVolumeIDs(server.AttachedVolumes)); err != nil {
 		return fmt.Errorf("Error setting `volume_ids`: %+v", err)
 	}
 
-	if err := d.Set("lan_ip", flatternBizFlyCloudIPs(server.IPAddresses.LanAddresses)); err != nil {
+	if err := d.Set("lan_ip", flatternBizflyCloudIPs(server.IPAddresses.LanAddresses)); err != nil {
 		return fmt.Errorf("Error setting `lan_ip`: %+v", err)
 	}
-	if err := d.Set("wan_ipv4", flatternBizFlyCloudIPs(server.IPAddresses.WanV4Addresses)); err != nil {
+	if err := d.Set("wan_ipv4", flatternBizflyCloudIPs(server.IPAddresses.WanV4Addresses)); err != nil {
 		return fmt.Errorf("Error setting `wan_ipv4`: %+v", err)
 	}
-	if err := d.Set("wan_ipv6", flatternBizFlyCloudIPs(server.IPAddresses.WanV6Addresses)); err != nil {
+	if err := d.Set("wan_ipv6", flatternBizflyCloudIPs(server.IPAddresses.WanV6Addresses)); err != nil {
 		return fmt.Errorf("Error setting `wan_ipv6`: %+v", err)
 	}
 	return nil
 }
 
-func resourceBizFlyCloudServerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	id := d.Id()
 	if d.HasChange("flavor_name") {
@@ -391,10 +391,10 @@ func resourceBizFlyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("error changing billing plan of server [%s]: %v", d.Id(), err)
 		}
 	}
-	return resourceBizFlyCloudServerRead(d, meta)
+	return resourceBizflyCloudServerRead(d, meta)
 }
 
-func resourceBizFlyCloudServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	// destroy the cloud server
 	server, err := client.Server.Get(context.Background(), d.Id())
@@ -474,7 +474,7 @@ func newServerStateRefreshfunc(d *schema.ResourceData, attribute string, meta in
 		}
 		// server is ready now, set ID for resourceData
 		d.SetId(resp.Result.Server.ID)
-		err = resourceBizFlyCloudServerRead(d, meta)
+		err = resourceBizflyCloudServerRead(d, meta)
 		if err != nil {
 			return nil, "", err
 		}
@@ -508,7 +508,7 @@ func updateServerStateRefreshfunc(d *schema.ResourceData, attribute string, meta
 			log.Println("[DEBUG] Cloud Server is not ready")
 			return nil, "", nil
 		}
-		err = resourceBizFlyCloudServerRead(d, meta)
+		err = resourceBizflyCloudServerRead(d, meta)
 		if err != nil {
 			return nil, "", err
 		}
@@ -554,7 +554,7 @@ func formatFlavor(s string) string {
 	return strings.Join(strings.Split(s, "_")[:2], "_")
 }
 
-func flatternBizFlyCloudVolumeIDs(volumeids []gobizfly.AttachedVolume) *schema.Set {
+func flatternBizflyCloudVolumeIDs(volumeids []gobizfly.AttachedVolume) *schema.Set {
 	flattenedVolumes := schema.NewSet(schema.HashString, []interface{}{})
 	for _, v := range volumeids {
 		if v.AttachedType == attachTypeDataDisk {
@@ -574,7 +574,7 @@ func attachVolumes(id string, volumeids []string, client *gobizfly.Client) error
 	return nil
 }
 
-func flatternBizFlyCloudIPs(ips []gobizfly.IP) *schema.Set {
+func flatternBizflyCloudIPs(ips []gobizfly.IP) *schema.Set {
 	flatternIPs := schema.NewSet(schema.HashString, []interface{}{})
 	for _, ip := range ips {
 		flatternIPs.Add(ip.Address)

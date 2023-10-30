@@ -35,12 +35,12 @@ const (
 	maxRetry         = 6
 )
 
-func resourceBizFlyCloudAutoscalingScaleInPolicy() *schema.Resource {
+func resourceBizflyCloudAutoscalingScaleInPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBizFlyCloudAutoscalingScaleInPolicyCreate,
-		Read:   resourceBizFlyCloudAutoscalingScaleInPolicyRead,
-		Update: resourceBizFlyCloudAutoscalingScaleInPolicyUpdate,
-		Delete: resourceBizFlyCloudAutoscalingScalePolicyDelete,
+		Create: resourceBizflyCloudAutoscalingScaleInPolicyCreate,
+		Read:   resourceBizflyCloudAutoscalingScaleInPolicyRead,
+		Update: resourceBizflyCloudAutoscalingScaleInPolicyUpdate,
+		Delete: resourceBizflyCloudAutoscalingScalePolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -52,12 +52,12 @@ func resourceBizFlyCloudAutoscalingScaleInPolicy() *schema.Resource {
 	}
 }
 
-func resourceBizFlyCloudAutoscalingScaleOutPolicy() *schema.Resource {
+func resourceBizflyCloudAutoscalingScaleOutPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBizFlyCloudAutoscalingScaleOutPolicyCreate,
-		Read:   resourceBizFlyCloudAutoscalingScaleOutPolicyRead,
-		Update: resourceBizFlyCloudAutoscalingScaleOutPolicyUpdate,
-		Delete: resourceBizFlyCloudAutoscalingScalePolicyDelete,
+		Create: resourceBizflyCloudAutoscalingScaleOutPolicyCreate,
+		Read:   resourceBizflyCloudAutoscalingScaleOutPolicyRead,
+		Update: resourceBizflyCloudAutoscalingScaleOutPolicyUpdate,
+		Delete: resourceBizflyCloudAutoscalingScalePolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -68,12 +68,12 @@ func resourceBizFlyCloudAutoscalingScaleOutPolicy() *schema.Resource {
 	}
 }
 
-func resourceBizFlyCloudAutoscalingDeletionPolicy() *schema.Resource {
+func resourceBizflyCloudAutoscalingDeletionPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBizFlyCloudAutoscalingDeletionPolicyCreate,
-		Read:   resourceBizFlyCloudAutoscalingDeletionPolicyRead,
-		Update: resourceBizFlyCloudAutoscalingDeletionPolicyUpdate,
-		Delete: resourceBizFlyCloudAutoscalingDeletionPolicyDelete,
+		Create: resourceBizflyCloudAutoscalingDeletionPolicyCreate,
+		Read:   resourceBizflyCloudAutoscalingDeletionPolicyRead,
+		Update: resourceBizflyCloudAutoscalingDeletionPolicyUpdate,
+		Delete: resourceBizflyCloudAutoscalingDeletionPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -86,7 +86,7 @@ func resourceBizFlyCloudAutoscalingDeletionPolicy() *schema.Resource {
 
 // Scale Policy
 
-func resourceBizFlyCloudAutoscalingScaleInPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudAutoscalingScaleInPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	clusterID := d.Get("cluster_id").(string)
 
@@ -156,14 +156,14 @@ func resourceBizFlyCloudAutoscalingScaleInPolicyCreate(d *schema.ResourceData, m
 		return fmt.Errorf("[ERROR] errors when create scale in policy for cluster: %s, error: %s", clusterID, err)
 	}
 
-	return resourceBizFlyCloudAutoscalingScaleInPolicyRead(d, meta)
+	return resourceBizflyCloudAutoscalingScaleInPolicyRead(d, meta)
 }
 
-func resourceBizFlyCloudAutoscalingScaleInPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudAutoscalingScaleInPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceBizFlyCloudAutoscalingScaleInPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudAutoscalingScaleInPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	clusterID := d.Get("cluster_id").(string)
 	policyID := d.Id()
@@ -239,10 +239,10 @@ func resourceBizFlyCloudAutoscalingScaleInPolicyUpdate(d *schema.ResourceData, m
 		return fmt.Errorf("[ERROR] errors when update scale in policy for cluster: %s, error: %s", clusterID, err)
 	}
 
-	return resourceBizFlyCloudAutoscalingScaleInPolicyRead(d, meta)
+	return resourceBizflyCloudAutoscalingScaleInPolicyRead(d, meta)
 }
 
-func resourceBizFlyCloudAutoscalingScaleOutPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudAutoscalingScaleOutPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	clusterID := d.Get("cluster_id").(string)
 
@@ -314,14 +314,14 @@ func resourceBizFlyCloudAutoscalingScaleOutPolicyCreate(d *schema.ResourceData, 
 		return fmt.Errorf("[ERROR] errors when create scale out policy for cluster: %s, error: %s", clusterID, err)
 	}
 
-	return resourceBizFlyCloudAutoscalingScaleOutPolicyRead(d, meta)
+	return resourceBizflyCloudAutoscalingScaleOutPolicyRead(d, meta)
 }
 
-func resourceBizFlyCloudAutoscalingScaleOutPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudAutoscalingScaleOutPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceBizFlyCloudAutoscalingScaleOutPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudAutoscalingScaleOutPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	clusterID := d.Get("cluster_id").(string)
 	policyID := d.Id()
@@ -398,10 +398,10 @@ func resourceBizFlyCloudAutoscalingScaleOutPolicyUpdate(d *schema.ResourceData, 
 		return fmt.Errorf("[ERROR] errors when update scale out policy for cluster: %s, error: %s", clusterID, err)
 	}
 
-	return resourceBizFlyCloudAutoscalingScaleInPolicyRead(d, meta)
+	return resourceBizflyCloudAutoscalingScaleInPolicyRead(d, meta)
 }
 
-func resourceBizFlyCloudAutoscalingScalePolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudAutoscalingScalePolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	clusterID := d.Get("cluster_id").(string)
 	policyID := d.Id()
@@ -418,11 +418,11 @@ func resourceBizFlyCloudAutoscalingScalePolicyDelete(d *schema.ResourceData, met
 }
 
 // Deletion Policy
-func resourceBizFlyCloudAutoscalingDeletionPolicyCreate(d *schema.ResourceData, meta interface{}) error {
-	return resourceBizFlyCloudAutoscalingDeletionPolicyRead(d, meta)
+func resourceBizflyCloudAutoscalingDeletionPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+	return resourceBizflyCloudAutoscalingDeletionPolicyRead(d, meta)
 }
 
-func resourceBizFlyCloudAutoscalingDeletionPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudAutoscalingDeletionPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	clusterID := d.Get("cluster_id").(string)
 
@@ -457,10 +457,10 @@ func resourceBizFlyCloudAutoscalingDeletionPolicyUpdate(d *schema.ResourceData, 
 		return fmt.Errorf("[ERROR] errors when update deletion policy for cluster: %s, error: %s", clusterID, err)
 	}
 
-	return resourceBizFlyCloudAutoscalingDeletionPolicyRead(d, meta)
+	return resourceBizflyCloudAutoscalingDeletionPolicyRead(d, meta)
 }
 
-func resourceBizFlyCloudAutoscalingDeletionPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudAutoscalingDeletionPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	clusterID := d.Get("cluster_id").(string)
 
@@ -476,7 +476,7 @@ func resourceBizFlyCloudAutoscalingDeletionPolicyRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceBizFlyCloudAutoscalingDeletionPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudAutoscalingDeletionPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 

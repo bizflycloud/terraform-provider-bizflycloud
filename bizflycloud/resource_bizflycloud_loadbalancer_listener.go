@@ -9,12 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceBizFlyCloudLoadBalancerListener() *schema.Resource {
+func resourceBizflyCloudLoadBalancerListener() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBizFlyCloudLoadBalancerListenerCreate,
-		Read:   resourceBizFlyCloudLoadBalancerListenerRead,
-		Update: resourceBizFlyCloudLoadBalancerListenerUpdate,
-		Delete: resourceBizFlyCloudLoadBalancerListenerDelete,
+		Create: resourceBizflyCloudLoadBalancerListenerCreate,
+		Read:   resourceBizflyCloudLoadBalancerListenerRead,
+		Update: resourceBizflyCloudLoadBalancerListenerUpdate,
+		Delete: resourceBizflyCloudLoadBalancerListenerDelete,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -51,7 +51,7 @@ func resourceBizFlyCloudLoadBalancerListener() *schema.Resource {
 	}
 }
 
-func resourceBizFlyCloudLoadBalancerListenerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudLoadBalancerListenerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	lbID := d.Get("load_balancer_id").(string)
 	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID, loadbalancerResource)
@@ -72,10 +72,10 @@ func resourceBizFlyCloudLoadBalancerListenerCreate(d *schema.ResourceData, meta 
 		return fmt.Errorf("Error when creating listener: %v", err)
 	}
 	d.SetId(listener.ID)
-	return resourceBizFlyCloudLoadBalancerListenerRead(d, meta)
+	return resourceBizflyCloudLoadBalancerListenerRead(d, meta)
 }
 
-func resourceBizFlyCloudLoadBalancerListenerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudLoadBalancerListenerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	listener, err := client.Listener.Get(context.Background(), d.Id())
 	if err != nil {
@@ -91,7 +91,7 @@ func resourceBizFlyCloudLoadBalancerListenerRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceBizFlyCloudLoadBalancerListenerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudLoadBalancerListenerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	lbID := d.Get("load_balancer_id").(string)
 	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID, loadbalancerResource)
@@ -105,10 +105,10 @@ func resourceBizFlyCloudLoadBalancerListenerUpdate(d *schema.ResourceData, meta 
 	if err != nil {
 		return fmt.Errorf("Error when updating listener: %v", err)
 	}
-	return resourceBizFlyCloudLoadBalancerListenerRead(d, meta)
+	return resourceBizflyCloudLoadBalancerListenerRead(d, meta)
 }
 
-func resourceBizFlyCloudLoadBalancerListenerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudLoadBalancerListenerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	lbID := d.Get("load_balancer_id").(string)
 	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID, loadbalancerResource)

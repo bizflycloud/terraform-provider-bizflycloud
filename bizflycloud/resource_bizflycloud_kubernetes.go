@@ -30,12 +30,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceBizFlyCloudKubernetes() *schema.Resource {
+func resourceBizflyCloudKubernetes() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBizFlyClusterCreate,
-		Read:   resourceBizFlyCloudClusterRead,
-		Delete: resourceBizFlyCloudClusterDelete,
-		Update: resourceBizFlyCloudClusterUpdate,
+		Create: resourceBizflyClusterCreate,
+		Read:   resourceBizflyCloudClusterRead,
+		Delete: resourceBizflyCloudClusterDelete,
+		Update: resourceBizflyCloudClusterUpdate,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -163,7 +163,7 @@ func taintsSchema() map[string]*schema.Schema {
 	}
 }
 
-func resourceBizFlyClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	// Build up creation options
@@ -188,10 +188,10 @@ func resourceBizFlyClusterCreate(d *schema.ResourceData, meta interface{}) error
 	}
 	log.Println("[DEBUG] set id " + cluster.UID)
 	d.SetId(cluster.UID)
-	return resourceBizFlyCloudClusterRead(d, meta)
+	return resourceBizflyCloudClusterRead(d, meta)
 }
 
-func resourceBizFlyCloudClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	log.Printf("[DEBUG] cluster ID %s", d.Id())
 	cluster, err := client.KubernetesEngine.Get(context.Background(), d.Id())
@@ -212,7 +212,7 @@ func resourceBizFlyCloudClusterRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceBizFlyCloudClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	err := client.KubernetesEngine.Delete(context.Background(), d.Id())
 	if err != nil {
@@ -221,7 +221,7 @@ func resourceBizFlyCloudClusterDelete(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceBizFlyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	cluster, err := client.KubernetesEngine.Get(context.Background(), d.Id())
 	if err != nil {
@@ -296,7 +296,7 @@ func resourceBizFlyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 	}
-	return resourceBizFlyCloudClusterRead(d, meta)
+	return resourceBizflyCloudClusterRead(d, meta)
 }
 
 func readWorkerPoolFromConfig(l *schema.ResourceData) []gobizfly.WorkerPool {

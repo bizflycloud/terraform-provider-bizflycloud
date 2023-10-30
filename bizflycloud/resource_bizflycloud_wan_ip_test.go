@@ -18,19 +18,19 @@ func init() {
 	})
 }
 
-func TestAccBizFlyCloudWanIP(t *testing.T) {
+func TestAccBizflyCloudWanIP(t *testing.T) {
 	var wanIP gobizfly.WanIP
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckBizFlyCloudWanIPDestroy,
+		CheckDestroy: testAccCheckBizflyCloudWanIPDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBizFlyCloudWanIPConfig(rInt),
+				Config: testAccBizflyCloudWanIPConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBizFlyCloudWanIPExists("bizflycloud_wan_ip.test_wan_1", &wanIP),
-					testAccCheckBizFlyCloudWanIPAttributes(&wanIP),
+					testAccCheckBizflyCloudWanIPExists("bizflycloud_wan_ip.test_wan_1", &wanIP),
+					testAccCheckBizflyCloudWanIPAttributes(&wanIP),
 					resource.TestCheckResourceAttr(
 						"bizflycloud_wan_ip.test_wan_1", "name", fmt.Sprintf("test-%d", rInt)),
 				),
@@ -39,7 +39,7 @@ func TestAccBizFlyCloudWanIP(t *testing.T) {
 	})
 }
 
-func testAccCheckBizFlyCloudWanIPExists(n string, wanIP *gobizfly.WanIP) resource.TestCheckFunc {
+func testAccCheckBizflyCloudWanIPExists(n string, wanIP *gobizfly.WanIP) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -63,7 +63,7 @@ func testAccCheckBizFlyCloudWanIPExists(n string, wanIP *gobizfly.WanIP) resourc
 	}
 }
 
-func testAccCheckBizFlyCloudWanIPAttributes(wanIP *gobizfly.WanIP) resource.TestCheckFunc {
+func testAccCheckBizflyCloudWanIPAttributes(wanIP *gobizfly.WanIP) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if wanIP.Name != "test_wan_ip" {
 			return fmt.Errorf("Bad network interface name: %s", wanIP.Name)
@@ -75,7 +75,7 @@ func testAccCheckBizFlyCloudWanIPAttributes(wanIP *gobizfly.WanIP) resource.Test
 	}
 }
 
-func testAccCheckBizFlyCloudWanIPDestroy(s *terraform.State) error {
+func testAccCheckBizflyCloudWanIPDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
 
 	for _, rs := range s.RootModule().Resources {
@@ -93,7 +93,7 @@ func testAccCheckBizFlyCloudWanIPDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccBizFlyCloudWanIPConfig(rInt int) string {
+func testAccBizflyCloudWanIPConfig(rInt int) string {
 	return fmt.Sprintf(`
 resource "bizflycloud_wan_ip" "test_wan_1" {
   name = "sapd-wan-ip-%d"

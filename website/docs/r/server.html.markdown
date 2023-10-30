@@ -80,7 +80,7 @@ The following attributes are exported:
 
 ## Import
 
-Bizfly Cloud SSH key resource can be imported using the SSH key name in the BizFly manage dashboard
+Bizfly Cloud SSH key resource can be imported using the SSH key name in the Bizfly manage dashboard
 
 ```
 $ terraform import bizflycloud_ssh_key.example ssh-key-1

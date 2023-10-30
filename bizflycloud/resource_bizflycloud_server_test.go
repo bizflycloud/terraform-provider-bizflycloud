@@ -35,19 +35,19 @@ func init() {
 	})
 }
 
-func TestAccBizFlyCloudServer_Basic(t *testing.T) {
+func TestAccBizflyCloudServer_Basic(t *testing.T) {
 	var server gobizfly.Server
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckBizFlyCloudServerDestroy,
+		CheckDestroy: testAccCheckBizflyCloudServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBizFlyCloudServerBasic_config(rInt),
+				Config: testAccBizflyCloudServerBasic_config(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBizFlyCloudServerExists("bizflycloud_server.foobar", &server),
-					testAccCheckBizFlyCloudServerAttributes(&server),
+					testAccCheckBizflyCloudServerExists("bizflycloud_server.foobar", &server),
+					testAccCheckBizflyCloudServerAttributes(&server),
 					resource.TestCheckResourceAttr(
 						"bizflycloud_server.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
 					resource.TestCheckResourceAttr(
@@ -66,7 +66,7 @@ func TestAccBizFlyCloudServer_Basic(t *testing.T) {
 	})
 }
 
-func testAccCheckBizFlyCloudServerExists(n string, server *gobizfly.Server) resource.TestCheckFunc {
+func testAccCheckBizflyCloudServerExists(n string, server *gobizfly.Server) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -90,7 +90,7 @@ func testAccCheckBizFlyCloudServerExists(n string, server *gobizfly.Server) reso
 	}
 }
 
-func testAccCheckBizFlyCloudServerAttributes(server *gobizfly.Server) resource.TestCheckFunc {
+func testAccCheckBizflyCloudServerAttributes(server *gobizfly.Server) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if server.Flavor.Name != "4c_2g" {
 			return fmt.Errorf("Bad flavor name: %s", server.Flavor.Name)
@@ -108,7 +108,7 @@ func testAccCheckBizFlyCloudServerAttributes(server *gobizfly.Server) resource.T
 	}
 }
 
-func testAccCheckBizFlyCloudServerDestroy(s *terraform.State) error {
+func testAccCheckBizflyCloudServerDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
 
 	for _, rs := range s.RootModule().Resources {
@@ -133,7 +133,7 @@ func testAccCheckBizFlyCloudServerDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccBizFlyCloudServerBasic_config(rInt int) string {
+func testAccBizflyCloudServerBasic_config(rInt int) string {
 	return fmt.Sprintf(`
 resource "bizflycloud_server" "foobar" {
 	name = "foo-%d"

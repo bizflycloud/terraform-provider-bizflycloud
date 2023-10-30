@@ -24,12 +24,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceBizFlyCloudFirewall() *schema.Resource {
+func resourceBizflyCloudFirewall() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBizFlyCloudFirewallCreate,
-		Read:   resourceBizFlyCloudFirewallRead,
-		Update: resourceBizFlyCloudFirewallUpdate,
-		Delete: resourceBizFlyCloudFirewallDelete,
+		Create: resourceBizflyCloudFirewallCreate,
+		Read:   resourceBizflyCloudFirewallRead,
+		Update: resourceBizflyCloudFirewallUpdate,
+		Delete: resourceBizflyCloudFirewallDelete,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -106,7 +106,7 @@ func firewallRequestBuilder(d *schema.ResourceData) gobizfly.FirewallRequestPayl
 	}
 	return firewallOpts
 }
-func resourceBizFlyCloudFirewallCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudFirewallCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	firewallOpts := firewallRequestBuilder(d)
@@ -115,10 +115,10 @@ func resourceBizFlyCloudFirewallCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error when creating firewall: %v", err)
 	}
 	d.SetId(firewall.BaseFirewall.ID)
-	return resourceBizFlyCloudFirewallRead(d, meta)
+	return resourceBizflyCloudFirewallRead(d, meta)
 }
 
-func resourceBizFlyCloudFirewallRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudFirewallRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	firewall, err := client.Firewall.Get(context.Background(), d.Id())
 	if err != nil {
@@ -129,7 +129,7 @@ func resourceBizFlyCloudFirewallRead(d *schema.ResourceData, meta interface{}) e
 	_ = d.Set("rules_count", firewall.BaseFirewall.RulesCount)
 	_ = d.Set("network_interface_count", firewall.BaseFirewall.NetworkInterfaceCount)
 
-	_ = d.Set("target_network_interface", flatternBizFlyCloudNetworkInterfaces(firewall.NetworkInterface))
+	_ = d.Set("target_network_interface", flatternBizflyCloudNetworkInterfaces(firewall.NetworkInterface))
 	if len(firewall.InBound) > 0 {
 		_ = d.Set("ingress", convertFWRule(firewall.InBound))
 	}
@@ -139,7 +139,7 @@ func resourceBizFlyCloudFirewallRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceBizFlyCloudFirewallDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	_, err := client.Firewall.Delete(context.Background(), d.Id())
 	if err != nil {
@@ -148,7 +148,7 @@ func resourceBizFlyCloudFirewallDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceBizFlyCloudFirewallUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudFirewallUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	firewallOpts := firewallRequestBuilder(d)
@@ -157,7 +157,7 @@ func resourceBizFlyCloudFirewallUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error when creating firewall: %v", err)
 	}
 	d.SetId(firewall.BaseFirewall.ID)
-	return resourceBizFlyCloudFirewallRead(d, meta)
+	return resourceBizflyCloudFirewallRead(d, meta)
 }
 
 func flatternFirewallRules(rules *schema.Set) []gobizfly.FirewallRuleCreateRequest {
@@ -187,7 +187,7 @@ func convertFWRule(rules []gobizfly.FirewallRule) []map[string]interface{} {
 	return result
 }
 
-func flatternBizFlyCloudNetworkInterfaces(networkInterfaces []*gobizfly.NetworkInterface) *schema.Set {
+func flatternBizflyCloudNetworkInterfaces(networkInterfaces []*gobizfly.NetworkInterface) *schema.Set {
 	flattenedNetworkInterfaces := schema.NewSet(schema.HashString, []interface{}{})
 	for _, networkInterface := range networkInterfaces {
 		flattenedNetworkInterfaces.Add(networkInterface.ID)

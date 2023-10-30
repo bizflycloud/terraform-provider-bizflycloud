@@ -11,13 +11,13 @@ import (
 	"time"
 )
 
-func resourceBizFlyCloudWanIP() *schema.Resource {
+func resourceBizflyCloudWanIP() *schema.Resource {
 	return &schema.Resource{
 		Schema: resourceWanIPSchema(),
-		Create: resourceBizFlyCloudWanIPCreate,
-		Read:   resourceBizFlyCloudWanIPRead,
-		Update: resourceBizFlyCloudWanIPUpdate,
-		Delete: resourceBizFlyCloudWanIPDelete,
+		Create: resourceBizflyCloudWanIPCreate,
+		Read:   resourceBizflyCloudWanIPRead,
+		Update: resourceBizflyCloudWanIPUpdate,
+		Delete: resourceBizflyCloudWanIPDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -28,7 +28,7 @@ func resourceBizFlyCloudWanIP() *schema.Resource {
 	}
 }
 
-func resourceBizFlyCloudWanIPCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudWanIPCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	createPayload := &gobizfly.CreateWanIpPayload{
 		Name:             d.Get("name").(string),
@@ -40,10 +40,10 @@ func resourceBizFlyCloudWanIPCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("error when creating wan ip: %s", err)
 	}
 	d.SetId(wanIP.ID)
-	return resourceBizFlyCloudWanIPRead(d, meta)
+	return resourceBizflyCloudWanIPRead(d, meta)
 }
 
-func resourceBizFlyCloudWanIPRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudWanIPRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	var wanIP *gobizfly.WanIP
 
@@ -91,7 +91,7 @@ func resourceBizFlyCloudWanIPRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceBizFlyCloudWanIPDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudWanIPDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	err := client.WanIP.Delete(context.Background(), d.Id())
 	if err != nil {
@@ -100,7 +100,7 @@ func resourceBizFlyCloudWanIPDelete(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceBizFlyCloudWanIPUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudWanIPUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	if d.HasChange("attached_server") {
 		serverId := d.Get("attached_server").(string)
@@ -135,5 +135,5 @@ func resourceBizFlyCloudWanIPUpdate(d *schema.ResourceData, meta interface{}) er
 			}
 		}
 	}
-	return resourceBizFlyCloudWanIPRead(d, meta)
+	return resourceBizflyCloudWanIPRead(d, meta)
 }

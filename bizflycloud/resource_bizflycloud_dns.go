@@ -9,12 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceBizFlyCloudDNS() *schema.Resource {
+func resourceBizflyCloudDNS() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBizFlyCloudDNSCreate,
-		Read:   resourceBizFlyCloudDNSRead,
-		Update: resourceBizFlyCloudDNSUpdate,
-		Delete: resourceBizFlyCloudDNSDelete,
+		Create: resourceBizflyCloudDNSCreate,
+		Read:   resourceBizflyCloudDNSRead,
+		Update: resourceBizflyCloudDNSUpdate,
+		Delete: resourceBizflyCloudDNSDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -26,7 +26,7 @@ func resourceBizFlyCloudDNS() *schema.Resource {
 	}
 }
 
-func resourceBizFlyCloudDNSCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudDNSCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	czp := &gobizfly.CreateZonePayload{
 		Name:        d.Get("name").(string),
@@ -38,10 +38,10 @@ func resourceBizFlyCloudDNSCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error when create dns zone: %v", err)
 	}
 	d.SetId(zone.ID)
-	return resourceBizFlyCloudDNSRead(d, meta)
+	return resourceBizflyCloudDNSRead(d, meta)
 }
 
-func resourceBizFlyCloudDNSRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudDNSRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	zone, err := client.DNS.GetZone(context.Background(), d.Id())
 	if err != nil {
@@ -66,11 +66,11 @@ func resourceBizFlyCloudDNSRead(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceBizFlyCloudDNSUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudDNSUpdate(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceBizFlyCloudDNSDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudDNSDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	err := client.DNS.DeleteZone(context.Background(), d.Id())
 	if err != nil {

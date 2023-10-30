@@ -35,19 +35,19 @@ func init() {
 	})
 }
 
-func TestAccBizFlyCloudVolume_Basic(t *testing.T) {
+func TestAccBizflyCloudVolume_Basic(t *testing.T) {
 	var volume gobizfly.Volume
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckBizFlyCloudVolumeDestroy,
+		CheckDestroy: testAccCheckBizflyCloudVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBizFlyCloudVolumeBasic_config(rInt),
+				Config: testAccBizflyCloudVolumeBasic_config(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBizFlyCloudVolumeExists("bizflycloud_volume.foobar", &volume),
-					testAccCheckBizFlyCloudVolumeAttributes(&volume),
+					testAccCheckBizflyCloudVolumeExists("bizflycloud_volume.foobar", &volume),
+					testAccCheckBizflyCloudVolumeAttributes(&volume),
 					resource.TestCheckResourceAttr(
 						"bizflycloud_volume.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
 					resource.TestCheckResourceAttr(
@@ -60,7 +60,7 @@ func TestAccBizFlyCloudVolume_Basic(t *testing.T) {
 	})
 }
 
-func testAccCheckBizFlyCloudVolumeExists(n string, volume *gobizfly.Volume) resource.TestCheckFunc {
+func testAccCheckBizflyCloudVolumeExists(n string, volume *gobizfly.Volume) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -84,7 +84,7 @@ func testAccCheckBizFlyCloudVolumeExists(n string, volume *gobizfly.Volume) reso
 	}
 }
 
-func testAccCheckBizFlyCloudVolumeAttributes(volume *gobizfly.Volume) resource.TestCheckFunc {
+func testAccCheckBizflyCloudVolumeAttributes(volume *gobizfly.Volume) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if volume.Size != 20 {
 			return fmt.Errorf("Bad volume size: %d", volume.Size)
@@ -102,7 +102,7 @@ func testAccCheckBizFlyCloudVolumeAttributes(volume *gobizfly.Volume) resource.T
 	}
 }
 
-func testAccCheckBizFlyCloudVolumeDestroy(s *terraform.State) error {
+func testAccCheckBizflyCloudVolumeDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
 
 	for _, rs := range s.RootModule().Resources {
@@ -127,7 +127,7 @@ func testAccCheckBizFlyCloudVolumeDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccBizFlyCloudVolumeBasic_config(rInt int) string {
+func testAccBizflyCloudVolumeBasic_config(rInt int) string {
 	return fmt.Sprintf(`
 resource "bizflycloud_volume" "foobar" {
     name = "foo-%d"

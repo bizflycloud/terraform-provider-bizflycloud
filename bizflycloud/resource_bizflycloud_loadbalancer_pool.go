@@ -9,12 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceBizFlyCloudLoadBalancerPool() *schema.Resource {
+func resourceBizflyCloudLoadBalancerPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBizFlyCloudLoadBalancerPoolCreate,
-		Update: resourceBizFlyCloudLoadBalancerPoolUpdate,
-		Read:   resourceBizFlyCloudLoadBalancerPoolRead,
-		Delete: resourceBizFlyCloudLoadBalancerPoolDelete,
+		Create: resourceBizflyCloudLoadBalancerPoolCreate,
+		Update: resourceBizflyCloudLoadBalancerPoolUpdate,
+		Read:   resourceBizflyCloudLoadBalancerPoolRead,
+		Delete: resourceBizflyCloudLoadBalancerPoolDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
@@ -124,7 +124,7 @@ func resourceBizFlyCloudLoadBalancerPool() *schema.Resource {
 		},
 	}
 }
-func resourceBizFlyCloudLoadBalancerPoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudLoadBalancerPoolCreate(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*CombinedConfig).gobizflyClient()
 	lbID := d.Get("load_balancer_id").(string)
@@ -172,10 +172,10 @@ func resourceBizFlyCloudLoadBalancerPoolCreate(d *schema.ResourceData, meta inte
 		return err
 	}
 
-	return resourceBizFlyCloudLoadBalancerPoolRead(d, meta)
+	return resourceBizflyCloudLoadBalancerPoolRead(d, meta)
 }
 
-func resourceBizFlyCloudLoadBalancerPoolUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudLoadBalancerPoolUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	var pur gobizfly.PoolUpdateRequest
 	poolChanged := false
@@ -275,9 +275,9 @@ func resourceBizFlyCloudLoadBalancerPoolUpdate(d *schema.ResourceData, meta inte
 			}
 		}
 	}
-	return resourceBizFlyCloudLoadBalancerPoolRead(d, meta)
+	return resourceBizflyCloudLoadBalancerPoolRead(d, meta)
 }
-func resourceBizFlyCloudLoadBalancerPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudLoadBalancerPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	pool, err := client.Pool.Get(context.Background(), d.Id())
 	if err != nil {
@@ -300,7 +300,7 @@ func resourceBizFlyCloudLoadBalancerPoolRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceBizFlyCloudLoadBalancerPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudLoadBalancerPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	lbID := d.Get("load_balancer_id").(string)
 	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID, loadbalancerResource)

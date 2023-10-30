@@ -18,19 +18,19 @@ func init() {
 	})
 }
 
-func TestAccBizFlyCloudVPC(t *testing.T) {
+func TestAccBizflyCloudVPC(t *testing.T) {
 	var vpc gobizfly.VPC
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckBizFlyCloudVPCNetworkDestroy,
+		CheckDestroy: testAccCheckBizflyCloudVPCNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBizFlyCloudVPCNetworkConfig(rInt),
+				Config: testAccBizflyCloudVPCNetworkConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBizFlyCloudVPCNetworkExists("bizflycloud_vpc_network.abc", &vpc),
-					testAccCheckBizFlyCloudVPCNetworkAttributes(&vpc),
+					testAccCheckBizflyCloudVPCNetworkExists("bizflycloud_vpc_network.abc", &vpc),
+					testAccCheckBizflyCloudVPCNetworkAttributes(&vpc),
 					resource.TestCheckResourceAttr(
 						"bizflycloud_vpc_network.abc", "name", fmt.Sprintf("foo-%d", rInt)),
 				),
@@ -39,7 +39,7 @@ func TestAccBizFlyCloudVPC(t *testing.T) {
 	})
 }
 
-func testAccCheckBizFlyCloudVPCNetworkExists(n string, vpc *gobizfly.VPC) resource.TestCheckFunc {
+func testAccCheckBizflyCloudVPCNetworkExists(n string, vpc *gobizfly.VPC) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -63,7 +63,7 @@ func testAccCheckBizFlyCloudVPCNetworkExists(n string, vpc *gobizfly.VPC) resour
 	}
 }
 
-func testAccCheckBizFlyCloudVPCNetworkAttributes(vpc *gobizfly.VPC) resource.TestCheckFunc {
+func testAccCheckBizflyCloudVPCNetworkAttributes(vpc *gobizfly.VPC) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if vpc.Description != "test vpc network" {
 			return fmt.Errorf("Bad vpc network description: %s", vpc.Description)
@@ -77,7 +77,7 @@ func testAccCheckBizFlyCloudVPCNetworkAttributes(vpc *gobizfly.VPC) resource.Tes
 	}
 }
 
-func testAccCheckBizFlyCloudVPCNetworkDestroy(s *terraform.State) error {
+func testAccCheckBizflyCloudVPCNetworkDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
 
 	for _, rs := range s.RootModule().Resources {
@@ -95,7 +95,7 @@ func testAccCheckBizFlyCloudVPCNetworkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccBizFlyCloudVPCNetworkConfig(rInt int) string {
+func testAccBizflyCloudVPCNetworkConfig(rInt int) string {
 	return fmt.Sprintf(`
 resource "bizflycloud_vpc_network" "abc" {
     name = "foo-%d"

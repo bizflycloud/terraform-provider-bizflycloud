@@ -11,14 +11,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceBizFlyCloudNetworkInterface() *schema.Resource {
+func dataSourceBizflyCloudNetworkInterface() *schema.Resource {
 	return &schema.Resource{
-		Read:   dataSourceBizFlyCloudNetworkInterfaceRead,
+		Read:   dataSourceBizflyCloudNetworkInterfaceRead,
 		Schema: dataNetworkInterfaceSchema(),
 	}
 }
 
-func dataSourceBizFlyCloudNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBizflyCloudNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	var matchNetworkInterface *gobizfly.NetworkInterface
 

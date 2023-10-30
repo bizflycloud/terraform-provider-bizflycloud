@@ -25,11 +25,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceBizFlyCloudVolumeSnapshot() *schema.Resource {
+func resourceBizflyCloudVolumeSnapshot() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceBizFlyCloudVolumeSnapshotCreate,
-		Read:          resourceBizFlyCloudVolumeSnapshotRead,
-		Delete:        resourceBizFlyCloudVolumeSnapshotDelete,
+		Create:        resourceBizflyCloudVolumeSnapshotCreate,
+		Read:          resourceBizflyCloudVolumeSnapshotRead,
+		Delete:        resourceBizflyCloudVolumeSnapshotDelete,
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -74,7 +74,7 @@ func resourceBizFlyCloudVolumeSnapshot() *schema.Resource {
 	}
 }
 
-func resourceBizFlyCloudVolumeSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudVolumeSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	scr := gobizfly.SnapshotCreateRequest{
 		Name:     d.Get("name").(string),
@@ -87,10 +87,10 @@ func resourceBizFlyCloudVolumeSnapshotCreate(d *schema.ResourceData, meta interf
 	}
 	d.SetId(snapshot.Id)
 	_ = d.Set("volume_id", snapshot.VolumeId)
-	return resourceBizFlyCloudVolumeSnapshotRead(d, meta)
+	return resourceBizflyCloudVolumeSnapshotRead(d, meta)
 }
 
-func resourceBizFlyCloudVolumeSnapshotRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudVolumeSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	snapshot, err := client.Snapshot.Get(context.Background(), d.Id())
 	if err != nil {
@@ -109,7 +109,7 @@ func resourceBizFlyCloudVolumeSnapshotRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceBizFlyCloudVolumeSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudVolumeSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	err := client.Snapshot.Delete(context.Background(), d.Id())
 	if err != nil {

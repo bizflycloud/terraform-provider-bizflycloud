@@ -23,12 +23,12 @@ const (
 	poolResource         = "pool"
 )
 
-func resourceBizFlyCloudLoadBalancer() *schema.Resource {
+func resourceBizflyCloudLoadBalancer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBizFlyCloudLoadBalancerCreate,
-		Read:   resourceBizFlyCloudLoadBalancerRead,
-		Update: resourceBizFlyCloudLoadBalancerUpdate,
-		Delete: resourceBizFlyCloudLoadBalancerDelete,
+		Create: resourceBizflyCloudLoadBalancerCreate,
+		Read:   resourceBizflyCloudLoadBalancerRead,
+		Update: resourceBizflyCloudLoadBalancerUpdate,
+		Delete: resourceBizflyCloudLoadBalancerDelete,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -79,7 +79,7 @@ func resourceBizFlyCloudLoadBalancer() *schema.Resource {
 	}
 }
 
-func resourceBizFlyCloudLoadBalancerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudLoadBalancerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	lbcr := gobizfly.LoadBalancerCreateRequest{
 		Name:        d.Get("name").(string),
@@ -95,10 +95,10 @@ func resourceBizFlyCloudLoadBalancerCreate(d *schema.ResourceData, meta interfac
 
 	// TODO add pool and listener
 
-	return resourceBizFlyCloudLoadBalancerRead(d, meta)
+	return resourceBizflyCloudLoadBalancerRead(d, meta)
 }
 
-func resourceBizFlyCloudLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	lb, err := waitLoadbalancerActiveProvisioningStatus(client, d.Id(), loadbalancerResource)
 	if err != nil {
@@ -129,7 +129,7 @@ func resourceBizFlyCloudLoadBalancerRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceBizFlyCloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) error {
 	//client := meta.(*CombinedConfig).gobizflyClient()
 	//if d.HasChange("type") {
 	//	// TODO update new type of load balancer
@@ -143,7 +143,7 @@ func resourceBizFlyCloudLoadBalancerUpdate(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceBizFlyCloudLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	lb, err := waitLoadbalancerActiveProvisioningStatus(client, d.Id(), loadbalancerResource)
 	if err != nil {

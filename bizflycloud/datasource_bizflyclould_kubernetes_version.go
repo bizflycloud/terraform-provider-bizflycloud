@@ -23,9 +23,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func datasourceBizFlyCloudKubernetesControllerVersions() *schema.Resource {
+func datasourceBizflyCloudKubernetesControllerVersions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceBizFlyCloudKubernetesVersion,
+		Read: dataSourceBizflyCloudKubernetesVersion,
 		Schema: map[string]*schema.Schema{
 			"version": {
 				Type:     schema.TypeString,
@@ -38,7 +38,7 @@ func datasourceBizFlyCloudKubernetesControllerVersions() *schema.Resource {
 		},
 	}
 }
-func dataSourceBizFlyCloudKubernetesVersion(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBizflyCloudKubernetesVersion(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	resp, err := client.KubernetesEngine.GetKubernetesVersion(context.Background())
 	if err != nil {
