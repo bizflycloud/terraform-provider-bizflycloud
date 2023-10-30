@@ -86,7 +86,7 @@ func readNameServer(nameServer []string) []string {
 	return results
 }
 
-func readRecordsSet(recordsSet []gobizfly.RecordSet) []map[string]interface{} {
+func readRecordsSet(recordsSet []gobizfly.Record) []map[string]interface{} {
 	var results []map[string]interface{}
 	for _, v := range recordsSet {
 		results = append(results, map[string]interface{}{
