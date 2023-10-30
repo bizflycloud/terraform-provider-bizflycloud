@@ -126,7 +126,7 @@ func resourceBizflyCloudCloudDatabaseInstanceCreate(d *schema.ResourceData, meta
 			err := client.CloudDatabase.Instances().CreateDatabases(context.Background(), instance.ID, newDatabases)
 
 			if err != nil {
-				return fmt.Errorf("[ERROR] Create new database [%s] for database instance [%s] failed: %v", instance.ID, err)
+				return fmt.Errorf("[ERROR] Create new database for database instance [%s] failed: %v", instance.ID, err)
 			}
 		}
 	}
@@ -154,12 +154,12 @@ func resourceBizflyCloudCloudDatabaseInstanceCreate(d *schema.ResourceData, meta
 		}
 
 		for _, node := range ins.Nodes {
-			client.CloudDatabase.Configurations().Attach(context.Background(), node.ID, cfg["id"], true)
+			_, _ = client.CloudDatabase.Configurations().Attach(context.Background(), node.ID, cfg["id"], true)
 		}
 
 		if cfg["apply_immediately"] == "true" {
 			for _, node := range ins.Nodes {
-				client.CloudDatabase.Nodes().Restart(context.Background(), node.ID)
+				_, _ = client.CloudDatabase.Nodes().Restart(context.Background(), node.ID)
 			}
 		}
 	}
@@ -185,7 +185,7 @@ func resourceBizflyCloudCloudDatabaseInstanceUpdate(d *schema.ResourceData, meta
 
 	if d.HasChange("autoscaling") {
 		autoscaling := readResourceCloudDatabaseAutoScaling(d)
-		resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		_ = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 			das := &gobizfly.CloudDatabaseAutoScaling{
 				Enable: false,
 				Volume: gobizfly.CloudDatabaseAutoScalingVolume{
@@ -195,9 +195,9 @@ func resourceBizflyCloudCloudDatabaseInstanceUpdate(d *schema.ResourceData, meta
 
 			if autoscaling["enable"] == 1 {
 				das.Enable = true
-				client.CloudDatabase.AutoScalings().Update(context.Background(), id, das)
+				_, _ = client.CloudDatabase.AutoScalings().Update(context.Background(), id, das)
 			} else {
-				client.CloudDatabase.AutoScalings().Delete(context.Background(), id)
+				_, _ = client.CloudDatabase.AutoScalings().Delete(context.Background(), id)
 			}
 
 			err := resourceBizflyCloudCloudDatabaseInstanceRead(d, meta)

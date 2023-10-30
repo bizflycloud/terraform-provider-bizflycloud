@@ -90,8 +90,8 @@ func testAccCheckBizflyCloudCloudDatabaseConfigurationAttributes(configuration *
 			return fmt.Errorf("bad cloud database configuration datastore type: %s", configuration.Datastore.Type)
 		}
 
-		if configuration.Datastore.Name != "4.4.7" {
-			return fmt.Errorf("bad cloud database configuration datastore name: %s", configuration.Datastore.Name)
+		if configuration.Datastore.VersionName != "4.4.7" {
+			return fmt.Errorf("bad cloud database configuration datastore name: %s", configuration.Datastore.VersionName)
 		}
 
 		return nil

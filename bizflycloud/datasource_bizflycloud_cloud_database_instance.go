@@ -100,7 +100,7 @@ func readDataCloudDatabaseAutoScaling(as gobizfly.CloudDatabaseAutoScaling) map[
 		"volume_threshold": as.Volume.Threshold,
 	}
 	m["enable"] = 0
-	if as.Enable == true {
+	if as.Enable {
 		m["enable"] = 1
 	}
 
