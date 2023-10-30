@@ -16,7 +16,7 @@ variable "PASSWORD" {
 
 provider "bizflycloud" {
   auth_method = "password"
-  region_name = "HN"
+  region_name = "HaNoi"
   email       = var.EMAIL
   password    = var.PASSWORD
 }
@@ -47,8 +47,8 @@ resource "bizflycloud_kubernetes" "test_k8s_cluster" {
     }
     taints {
       effect = "NoSchedule"
-      key = "UpdateTaint"
-      value = "UpdateTaintVal"
+      key    = "UpdateTaint"
+      value  = "UpdateTaintVal"
     }
   }
 
@@ -66,17 +66,17 @@ resource "bizflycloud_kubernetes" "test_k8s_cluster" {
     tags               = ["pool_tag"]
     labels = {
       "UpdateLabel" = "UpdateLabelVal"
-      "label2" = "labelVal2"
+      "label2"      = "labelVal2"
     }
     taints {
       effect = "NoSchedule"
-      key = "UpdateTaint2"
-      value = "UpdateTaintVal2"
+      key    = "UpdateTaint2"
+      value  = "UpdateTaintVal2"
     }
     taints {
       effect = "NoSchedule"
-      key = "UpdateTaint1"
-      value = "UpdateTaintVal1"
+      key    = "UpdateTaint1"
+      value  = "UpdateTaintVal1"
     }
   }
 }

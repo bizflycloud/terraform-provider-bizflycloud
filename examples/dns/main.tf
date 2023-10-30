@@ -8,13 +8,13 @@ terraform {
 }
 
 provider "bizflycloud" {
-    auth_method = "password"
-    region_name = "HN"
-    email = "username"
-    password = ""
+  auth_method = "password"
+  region_name = "HaNoi"
+  email       = "username"
+  password    = ""
 }
 
 resource "bizflycloud_dns" "dns_zone" {
-    name = "abc.xyz"
+  name = "abc.xyz"
 }
 

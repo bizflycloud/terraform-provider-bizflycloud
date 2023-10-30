@@ -25,6 +25,7 @@ import (
 	"github.com/bizflycloud/gobizfly"
 )
 
+// Config is define a client struct
 type Config struct {
 	AuthMethod          string
 	Email               string
@@ -37,12 +38,14 @@ type Config struct {
 	ProjectID           string
 }
 
+// CombinedConfig is ...
 type CombinedConfig struct {
 	client *gobizfly.Client
 }
 
 func (c *CombinedConfig) gobizflyClient() *gobizfly.Client { return c.client }
 
+// Client is interface to connect plugin provider
 func (c *Config) Client() (*CombinedConfig, error) {
 	client, err := gobizfly.NewClient(gobizfly.WithProjectId(c.ProjectID),
 		gobizfly.WithRegionName(c.RegionName),
@@ -76,7 +79,7 @@ func (c *Config) Client() (*CombinedConfig, error) {
 	log.Println("[DEBUG] Checking if you are allowed to access this region")
 	log.Println("[DEBUG] Allowed Region: ", userInfo.UserRegions)
 	for _, region := range userInfo.UserRegions {
-		if c.RegionName == region.Code {
+		if c.RegionName == region.Code || c.RegionName == region.ShortName {
 			allowedToRegion = true
 		}
 	}

@@ -21,7 +21,7 @@ Use the navigation to the left to read about the available resources.
 # Configure the Bizfly Cloud Provider
 provider "bizflycloud" {
     auth_method = "password"
-    region_name = "HN"
+    region_name = "HaNoi"
     email = "email@domain.com"
     password = "password"
     project_id = "project_id"
