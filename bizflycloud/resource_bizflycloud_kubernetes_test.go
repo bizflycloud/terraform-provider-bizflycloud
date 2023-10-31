@@ -34,19 +34,19 @@ func init() {
 	})
 }
 
-func TestAccBizFlyCloudCluster(t *testing.T) {
+func TestAccBizflyCloudCluster(t *testing.T) {
 	var cluster gobizfly.FullCluster
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckBizFlyCloudClusterDestroy,
+		CheckDestroy: testAccCheckBizflyCloudClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBizFlyCloudClusterConfig(rInt),
+				Config: testAccBizflyCloudClusterConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBizFlyCloudClusterExists("bizflycloud_kubernetes.xyz", &cluster),
-					testAccCheckBizFlyCloudClusterAttributes(&cluster),
+					testAccCheckBizflyCloudClusterExists("bizflycloud_kubernetes.xyz", &cluster),
+					testAccCheckBizflyCloudClusterAttributes(&cluster),
 					resource.TestCheckResourceAttr(
 						"bizflycloud_kubernetes.xyz", "name", fmt.Sprintf("foo-%d", rInt)),
 				),
@@ -54,7 +54,7 @@ func TestAccBizFlyCloudCluster(t *testing.T) {
 		},
 	})
 }
-func testAccCheckBizFlyCloudClusterExists(n string, cluster *gobizfly.FullCluster) resource.TestCheckFunc {
+func testAccCheckBizflyCloudClusterExists(n string, cluster *gobizfly.FullCluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -76,7 +76,7 @@ func testAccCheckBizFlyCloudClusterExists(n string, cluster *gobizfly.FullCluste
 	}
 }
 
-func testAccCheckBizFlyCloudClusterAttributes(cluster *gobizfly.FullCluster) resource.TestCheckFunc {
+func testAccCheckBizflyCloudClusterAttributes(cluster *gobizfly.FullCluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if !cluster.AutoUpgrade {
 			return fmt.Errorf("Bad autoupgrade %v", cluster.AutoUpgrade)
@@ -88,7 +88,7 @@ func testAccCheckBizFlyCloudClusterAttributes(cluster *gobizfly.FullCluster) res
 	}
 }
 
-func testAccCheckBizFlyCloudClusterDestroy(s *terraform.State) error {
+func testAccCheckBizflyCloudClusterDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
 
 	for _, rs := range s.RootModule().Resources {
@@ -106,7 +106,7 @@ func testAccCheckBizFlyCloudClusterDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccBizFlyCloudClusterConfig(rInt int) string {
+func testAccBizflyCloudClusterConfig(rInt int) string {
 	return fmt.Sprintf(`
 resource "bizflycloud_kubernetes" "xyz" {
 	name = "foo-%d"

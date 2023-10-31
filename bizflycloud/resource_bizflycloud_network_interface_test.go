@@ -18,19 +18,19 @@ func init() {
 	})
 }
 
-func TestAccBizFlyCloudNetworkInterface(t *testing.T) {
+func TestAccBizflyCloudNetworkInterface(t *testing.T) {
 	var networkInterface gobizfly.NetworkInterface
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckBizFlyCloudNetworkInterfaceDestroy,
+		CheckDestroy: testAccCheckBizflyCloudNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBizFlyCloudNetworkInterfaceConfig(rInt),
+				Config: testAccBizflyCloudNetworkInterfaceConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBizFlyCloudNetworkInterfaceExists("bizflycloud_network_interface.abc", &networkInterface),
-					testAccCheckBizFlyCloudNetworkInterfaceAttributes(&networkInterface),
+					testAccCheckBizflyCloudNetworkInterfaceExists("bizflycloud_network_interface.abc", &networkInterface),
+					testAccCheckBizflyCloudNetworkInterfaceAttributes(&networkInterface),
 					resource.TestCheckResourceAttr(
 						"bizflycloud_network_interface.abc", "name", fmt.Sprintf("test-%d", rInt)),
 				),
@@ -39,7 +39,7 @@ func TestAccBizFlyCloudNetworkInterface(t *testing.T) {
 	})
 }
 
-func testAccCheckBizFlyCloudNetworkInterfaceExists(n string, networkInterface *gobizfly.NetworkInterface) resource.TestCheckFunc {
+func testAccCheckBizflyCloudNetworkInterfaceExists(n string, networkInterface *gobizfly.NetworkInterface) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -63,7 +63,7 @@ func testAccCheckBizFlyCloudNetworkInterfaceExists(n string, networkInterface *g
 	}
 }
 
-func testAccCheckBizFlyCloudNetworkInterfaceAttributes(networkInterface *gobizfly.NetworkInterface) resource.TestCheckFunc {
+func testAccCheckBizflyCloudNetworkInterfaceAttributes(networkInterface *gobizfly.NetworkInterface) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if networkInterface.Description != "test network interface" {
 			return fmt.Errorf("Bad network interface description: %s", networkInterface.Description)
@@ -77,7 +77,7 @@ func testAccCheckBizFlyCloudNetworkInterfaceAttributes(networkInterface *gobizfl
 	}
 }
 
-func testAccCheckBizFlyCloudNetworkInterfaceDestroy(s *terraform.State) error {
+func testAccCheckBizflyCloudNetworkInterfaceDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
 
 	for _, rs := range s.RootModule().Resources {
@@ -95,7 +95,7 @@ func testAccCheckBizFlyCloudNetworkInterfaceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccBizFlyCloudNetworkInterfaceConfig(rInt int) string {
+func testAccBizflyCloudNetworkInterfaceConfig(rInt int) string {
 	return fmt.Sprintf(`
 resource "bizflycloud_network_interface" "abc" {
     name = "test-%d"

@@ -18,19 +18,19 @@ func init() {
 	})
 }
 
-func TestAccBizFlyCloudDNS(t *testing.T) {
+func TestAccBizflyCloudDNS(t *testing.T) {
 	var extendedZone gobizfly.ExtendedZone
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckBizFlyCloudDNSDestroy,
+		CheckDestroy: testAccCheckBizflyCloudDNSDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBizFlyCloudDNSConfig(rInt),
+				Config: testAccBizflyCloudDNSConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBizFlyCloudDNSExists("bizflycloud_dns.zone", &extendedZone),
-					testAccCheckBizFlyCloudDNSAttributes(&extendedZone),
+					testAccCheckBizflyCloudDNSExists("bizflycloud_dns.zone", &extendedZone),
+					testAccCheckBizflyCloudDNSAttributes(&extendedZone),
 					resource.TestCheckResourceAttr(
 						"bizflycloud_dns.zone", "name", fmt.Sprintf("test.%d", rInt)),
 				),
@@ -39,7 +39,7 @@ func TestAccBizFlyCloudDNS(t *testing.T) {
 	})
 }
 
-func testAccCheckBizFlyCloudDNSExists(n string, extendedZone *gobizfly.ExtendedZone) resource.TestCheckFunc {
+func testAccCheckBizflyCloudDNSExists(n string, extendedZone *gobizfly.ExtendedZone) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -63,7 +63,7 @@ func testAccCheckBizFlyCloudDNSExists(n string, extendedZone *gobizfly.ExtendedZ
 	}
 }
 
-func testAccCheckBizFlyCloudDNSAttributes(extendedZone *gobizfly.ExtendedZone) resource.TestCheckFunc {
+func testAccCheckBizflyCloudDNSAttributes(extendedZone *gobizfly.ExtendedZone) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if extendedZone.Name != "test dns zone" {
 			return fmt.Errorf("Bad dns zone description: %s", extendedZone.Name)
@@ -77,7 +77,7 @@ func testAccCheckBizFlyCloudDNSAttributes(extendedZone *gobizfly.ExtendedZone) r
 	}
 }
 
-func testAccCheckBizFlyCloudDNSDestroy(s *terraform.State) error {
+func testAccCheckBizflyCloudDNSDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
 
 	for _, rs := range s.RootModule().Resources {
@@ -95,7 +95,7 @@ func testAccCheckBizFlyCloudDNSDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccBizFlyCloudDNSConfig(rInt int) string {
+func testAccBizflyCloudDNSConfig(rInt int) string {
 	return fmt.Sprintf(`
 resource "bizflycloud_dns" "zone" {
     name = "test.%d"

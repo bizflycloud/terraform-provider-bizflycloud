@@ -35,19 +35,19 @@ func init() {
 	})
 }
 
-func TestAccBizFlyCloudCloudDatabasenode_Basic(t *testing.T) {
+func TestAccBizflyCloudCloudDatabasenode_Basic(t *testing.T) {
 	var node gobizfly.CloudDatabaseNode
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckBizFlyCloudCloudDatabaseNodeDestroy,
+		CheckDestroy: testAccCheckBizflyCloudCloudDatabaseNodeDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBizFlyCloudCloudDatabaseNodeBasicConfig(rInt),
+				Config: testAccBizflyCloudCloudDatabaseNodeBasicConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBizFlyCloudCloudDatabaseNodeExists("bizflycloud_cloud_database_node.foobar", &node),
-					testAccCheckBizFlyCloudCloudDatabaseNodeAttributes(&node),
+					testAccCheckBizflyCloudCloudDatabaseNodeExists("bizflycloud_cloud_database_node.foobar", &node),
+					testAccCheckBizflyCloudCloudDatabaseNodeAttributes(&node),
 					resource.TestCheckResourceAttr(
 						"bizflycloud_cloud_database_node.foobar", "name", fmt.Sprintf("tf-testAccCloudDatabasenode-%d", rInt)),
 					resource.TestCheckResourceAttr(
@@ -60,7 +60,7 @@ func TestAccBizFlyCloudCloudDatabasenode_Basic(t *testing.T) {
 	})
 }
 
-func testAccCheckBizFlyCloudCloudDatabaseNodeExists(n string, node *gobizfly.CloudDatabaseNode) resource.TestCheckFunc {
+func testAccCheckBizflyCloudCloudDatabaseNodeExists(n string, node *gobizfly.CloudDatabaseNode) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -84,7 +84,7 @@ func testAccCheckBizFlyCloudCloudDatabaseNodeExists(n string, node *gobizfly.Clo
 	}
 }
 
-func testAccCheckBizFlyCloudCloudDatabaseNodeAttributes(node *gobizfly.CloudDatabaseNode) resource.TestCheckFunc {
+func testAccCheckBizflyCloudCloudDatabaseNodeAttributes(node *gobizfly.CloudDatabaseNode) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if node.Role != "secondary" {
 			return fmt.Errorf("bad cloud database node role: %s", node.Role)
@@ -94,7 +94,7 @@ func testAccCheckBizFlyCloudCloudDatabaseNodeAttributes(node *gobizfly.CloudData
 	}
 }
 
-func testAccCheckBizFlyCloudCloudDatabaseNodeDestroy(s *terraform.State) error {
+func testAccCheckBizflyCloudCloudDatabaseNodeDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
 
 	for _, rs := range s.RootModule().Resources {
@@ -118,7 +118,7 @@ func testAccCheckBizFlyCloudCloudDatabaseNodeDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccBizFlyCloudCloudDatabaseNodeBasicConfig(rInt int) string {
+func testAccBizflyCloudCloudDatabaseNodeBasicConfig(rInt int) string {
 	return fmt.Sprintf(`
 		resource "bizflycloud_cloud_database_node" "foobar" {
             name = "tf-testAccCloudDatabaseNode-%d"

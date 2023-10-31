@@ -26,9 +26,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func datasourceBizFlyCloudServers() *schema.Resource {
+func datasourceBizflyCloudServers() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceBizFlyCloudServerRead,
+		Read: dataSourceBizflyCloudServerRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:     schema.TypeString,
@@ -123,7 +123,7 @@ func datasourceBizFlyCloudServers() *schema.Resource {
 	}
 }
 
-func dataSourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	osServers, err := client.Server.List(context.Background(), &gobizfly.ServerListOptions{})
 	if err != nil {
@@ -136,7 +136,7 @@ func dataSourceBizFlyCloudServerRead(d *schema.ResourceData, meta interface{}) e
 				continue
 			}
 			d.SetId(server.ID)
-			err := resourceBizFlyCloudServerRead(d, meta)
+			err := resourceBizflyCloudServerRead(d, meta)
 			if err != nil {
 				return fmt.Errorf("couldn't set data %+v", err)
 			}

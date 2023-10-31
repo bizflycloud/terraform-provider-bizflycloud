@@ -30,37 +30,37 @@ import (
 )
 
 func init() {
-	resource.AddTestSweepers("bizflycloud_cloud_database_schedule", &resource.Sweeper{
-		Name: "bizflycloud_cloud_database_schedule",
+	resource.AddTestSweepers("bizflycloud_cloud_database_backup_schedule", &resource.Sweeper{
+		Name: "bizflycloud_cloud_database_backup_schedule",
 	})
 }
 
-func TestAccBizFlyCloudCloudDatabaseschedule_Basic(t *testing.T) {
-	var schedule gobizfly.CloudDatabaseSchedule
+func TestAccBizflyCloudCloudDatabaseschedule_Basic(t *testing.T) {
+	var schedule gobizfly.CloudDatabaseBackupSchedule
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckBizFlyCloudCloudDatabaseScheduleDestroy,
+		CheckDestroy: testAccCheckBizflyCloudCloudDatabaseBackupScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBizFlyCloudCloudDatabaseScheduleBasicConfig(rInt),
+				Config: testAccBizflyCloudCloudDatabaseBackupScheduleBasicConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBizFlyCloudCloudDatabaseScheduleExists("bizflycloud_cloud_database_schedule.foobar", &schedule),
-					testAccCheckBizFlyCloudCloudDatabaseScheduleAttributes(&schedule),
+					testAccCheckBizflyCloudCloudDatabaseBackupScheduleExists("bizflycloud_cloud_database_backup_schedule.foobar", &schedule),
+					testAccCheckBizflyCloudCloudDatabaseBackupScheduleAttributes(&schedule),
 					resource.TestCheckResourceAttr(
-						"bizflycloud_cloud_database_schedule.foobar", "name", fmt.Sprintf("tf-testAccCloudDatabaseschedule-%d", rInt)),
+						"bizflycloud_cloud_database_backup_schedule.foobar", "name", fmt.Sprintf("tf-testAccCloudDatabaseschedule-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"bizflycloud_cloud_database_schedule.foobar", "type", "HDD"),
-					resource.TestCheckResourceAttrSet("bizflycloud_cloud_database_schedule.foobar", "status"),
-					resource.TestCheckResourceAttrSet("bizflycloud_cloud_database_schedule.foobar", "created_at"),
+						"bizflycloud_cloud_database_backup_schedule.foobar", "type", "HDD"),
+					resource.TestCheckResourceAttrSet("bizflycloud_cloud_database_backup_schedule.foobar", "status"),
+					resource.TestCheckResourceAttrSet("bizflycloud_cloud_database_backup_schedule.foobar", "created_at"),
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckBizFlyCloudCloudDatabaseScheduleExists(n string, schedule *gobizfly.CloudDatabaseSchedule) resource.TestCheckFunc {
+func testAccCheckBizflyCloudCloudDatabaseBackupScheduleExists(n string, schedule *gobizfly.CloudDatabaseBackupSchedule) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -71,7 +71,7 @@ func testAccCheckBizFlyCloudCloudDatabaseScheduleExists(n string, schedule *gobi
 		}
 		client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
 
-		retrieveSchedule, err := client.CloudDatabase.Schedules().Get(context.Background(), rs.Primary.ID)
+		retrieveSchedule, err := client.CloudDatabase.BackupSchedules().Get(context.Background(), rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -84,7 +84,7 @@ func testAccCheckBizFlyCloudCloudDatabaseScheduleExists(n string, schedule *gobi
 	}
 }
 
-func testAccCheckBizFlyCloudCloudDatabaseScheduleAttributes(schedule *gobizfly.CloudDatabaseSchedule) resource.TestCheckFunc {
+func testAccCheckBizflyCloudCloudDatabaseBackupScheduleAttributes(schedule *gobizfly.CloudDatabaseBackupSchedule) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if schedule.NodeID != "9ed6c0fb-205a-45fb-9d95-80d101affbbb" {
 			return fmt.Errorf("bad cloud database schedule node source: %s", schedule.NodeID)
@@ -98,16 +98,16 @@ func testAccCheckBizFlyCloudCloudDatabaseScheduleAttributes(schedule *gobizfly.C
 	}
 }
 
-func testAccCheckBizFlyCloudCloudDatabaseScheduleDestroy(s *terraform.State) error {
+func testAccCheckBizflyCloudCloudDatabaseBackupScheduleDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "bizflycloud_cloud_database_schedule" {
+		if rs.Type != "bizflycloud_cloud_database_backup_schedule" {
 			continue
 		}
 
 		// Try to find the Schedule
-		_, err := client.CloudDatabase.Schedules().Get(context.Background(), rs.Primary.ID)
+		_, err := client.CloudDatabase.BackupSchedules().Get(context.Background(), rs.Primary.ID)
 
 		// Wait
 		if err != nil {
@@ -122,10 +122,10 @@ func testAccCheckBizFlyCloudCloudDatabaseScheduleDestroy(s *terraform.State) err
 	return nil
 }
 
-func testAccBizFlyCloudCloudDatabaseScheduleBasicConfig(rInt int) string {
+func testAccBizflyCloudCloudDatabaseBackupScheduleBasicConfig(rInt int) string {
 	return fmt.Sprintf(`
-		resource "bizflycloud_cloud_database_schedule" "foobar" {
-            name = "tf-testAccCloudDatabaseSchedule-%d"
+		resource "bizflycloud_cloud_database_backup_schedule" "foobar" {
+            name = "tf-testAccCloudDatabaseBackupSchedule-%d"
 			limit_backup = 1
 			schedule_type = "monthly"
 			minute = [20, 50]

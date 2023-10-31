@@ -11,14 +11,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceBizFlyCloudVPCNetwork() *schema.Resource {
+func dataSourceBizflyCloudVPCNetwork() *schema.Resource {
 	return &schema.Resource{
-		Read:   dataSourceBizFlyCloudVPCNetworkRead,
+		Read:   dataSourceBizflyCloudVPCNetworkRead,
 		Schema: dataVPCNetworkSchema(),
 	}
 }
 
-func dataSourceBizFlyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBizflyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	var matchVPC *gobizfly.VPC

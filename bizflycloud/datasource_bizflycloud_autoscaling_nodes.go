@@ -24,9 +24,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func datasourceBizFlyCloudAutoscalingNodes() *schema.Resource {
+func datasourceBizflyCloudAutoscalingNodes() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceBizFlyCloudNodesRead,
+		Read: dataSourceBizflyCloudNodesRead,
 		Schema: map[string]*schema.Schema{
 			"cluster_id": {
 				Type:     schema.TypeString,
@@ -44,7 +44,7 @@ func datasourceBizFlyCloudAutoscalingNodes() *schema.Resource {
 	}
 }
 
-func dataSourceBizFlyCloudNodesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBizflyCloudNodesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	clusterID, okID := d.GetOk("cluster_id")
 	osNodes, err := client.AutoScaling.Nodes().List(context.Background(), clusterID.(string), true)

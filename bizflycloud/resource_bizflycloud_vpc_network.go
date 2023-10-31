@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceBizFlyCloudVPCNetwork() *schema.Resource {
+func resourceBizflyCloudVPCNetwork() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBizFlyCloudVPCNetworkCreate,
-		Read:   resourceBizFlyCloudVPCNetworkRead,
-		Update: resourceBizFlyCloudVPCNetworkUpdate,
-		Delete: resourceBizFlyCloudVPCNetworkDelete,
+		Create: resourceBizflyCloudVPCNetworkCreate,
+		Read:   resourceBizflyCloudVPCNetworkRead,
+		Update: resourceBizflyCloudVPCNetworkUpdate,
+		Delete: resourceBizflyCloudVPCNetworkDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -46,7 +46,7 @@ func VPCRequestBuilder(d *schema.ResourceData) gobizfly.UpdateVPCPayload {
 	return vpcOpts
 }
 
-func resourceBizFlyCloudVPCNetworkCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudVPCNetworkCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	cvp := &gobizfly.CreateVPCPayload{
 		Name:        d.Get("name").(string),
@@ -59,10 +59,10 @@ func resourceBizFlyCloudVPCNetworkCreate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error when create vpc network: %v", err)
 	}
 	d.SetId(network.ID)
-	return resourceBizFlyCloudVPCNetworkRead(d, meta)
+	return resourceBizflyCloudVPCNetworkRead(d, meta)
 }
 
-func resourceBizFlyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	var vpc *gobizfly.VPC
 	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
@@ -120,7 +120,7 @@ func resourceBizFlyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceBizFlyCloudVPCNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudVPCNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	vpcOpts := VPCRequestBuilder(d)
 	network, err := client.VPC.Update(context.Background(), d.Id(), &vpcOpts)
@@ -128,10 +128,10 @@ func resourceBizFlyCloudVPCNetworkUpdate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error when update vpc network: %s, %v", d.Id(), err)
 	}
 	d.SetId(network.ID)
-	return resourceBizFlyCloudVPCNetworkRead(d, meta)
+	return resourceBizflyCloudVPCNetworkRead(d, meta)
 }
 
-func resourceBizFlyCloudVPCNetworkDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudVPCNetworkDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	err := client.VPC.Delete(context.Background(), d.Id())
 	if err != nil {

@@ -9,12 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceBizFlyCloudNetworkInterface() *schema.Resource {
+func resourceBizflyCloudNetworkInterface() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBizFlyCloudNetworkInterfaceCreate,
-		Read:   resourceBizFlyCloudNetworkInterfaceRead,
-		Update: resourceBizFlyCloudNetworkInterfaceUpdate,
-		Delete: resourceBizFlyCloudNetworkInterfaceDelete,
+		Create: resourceBizflyCloudNetworkInterfaceCreate,
+		Read:   resourceBizflyCloudNetworkInterfaceRead,
+		Update: resourceBizflyCloudNetworkInterfaceUpdate,
+		Delete: resourceBizflyCloudNetworkInterfaceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -26,7 +26,7 @@ func resourceBizFlyCloudNetworkInterface() *schema.Resource {
 	}
 }
 
-func resourceBizFlyCloudNetworkInterfaceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudNetworkInterfaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	networkID := d.Get("network_id").(string)
 	if networkID == "" {
@@ -57,17 +57,17 @@ func resourceBizFlyCloudNetworkInterfaceCreate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error when action network interface: %v", err)
 	}
 
-	return resourceBizFlyCloudNetworkInterfaceRead(d, meta)
+	return resourceBizflyCloudNetworkInterfaceRead(d, meta)
 }
 
-func resourceBizFlyCloudNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
-	if err := dataSourceBizFlyCloudNetworkInterfaceRead(d, meta); err != nil {
+func resourceBizflyCloudNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
+	if err := dataSourceBizflyCloudNetworkInterfaceRead(d, meta); err != nil {
 		return err
 	}
 	return nil
 }
 
-func resourceBizFlyCloudNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	updatePayload := &gobizfly.UpdateNetworkInterfacePayload{
 		Name: d.Get("name").(string),
@@ -92,10 +92,10 @@ func resourceBizFlyCloudNetworkInterfaceUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error when action network interface: %v", err)
 	}
 
-	return resourceBizFlyCloudNetworkInterfaceRead(d, meta)
+	return resourceBizflyCloudNetworkInterfaceRead(d, meta)
 }
 
-func resourceBizFlyCloudNetworkInterfaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudNetworkInterfaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	err := client.NetworkInterface.Delete(context.Background(), d.Id())
 	if err != nil {

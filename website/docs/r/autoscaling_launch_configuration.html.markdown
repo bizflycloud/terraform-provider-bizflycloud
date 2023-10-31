@@ -65,7 +65,7 @@ The following attributes are exported:
 
 * `id` - The ID of Launch Configuration
 * `name` - The name of Launch Configuration
-* `availability_zone` - The availability zone where a cloud server to be allocated. Included: `HN1` and `HN2` with region `HaNoi` or `HCM` with region `HoChiMinh`
+* `availability_zone` - The availability zone where a cloud server to be allocated. Included: `HN1` and `HN2` with region `HaNoi` or `HCM1` with region `HoChiMinh`
 * `data_disks` - The data disks using for cloud server
     - `delete_on_termination` - Delete this disk when cloud server being deleted
     - `volume_size` - The size of data disk

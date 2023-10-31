@@ -33,11 +33,11 @@ const (
 	waitTime   = 1 * time.Minute
 )
 
-func resourceBizFlyCloudAutoscalingLaunchConfiguration() *schema.Resource {
+func resourceBizflyCloudAutoscalingLaunchConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBizFlyCloudAutoscalingLaunchConfigurationCreate,
-		Read:   resourceBizFlyCloudAutoscalingLaunchConfigurationRead,
-		Delete: resourceBizFlyCloudAutoscalingLaunchConfigurationDelete,
+		Create: resourceBizflyCloudAutoscalingLaunchConfigurationCreate,
+		Read:   resourceBizflyCloudAutoscalingLaunchConfigurationRead,
+		Delete: resourceBizflyCloudAutoscalingLaunchConfigurationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -49,7 +49,7 @@ func resourceBizFlyCloudAutoscalingLaunchConfiguration() *schema.Resource {
 	}
 }
 
-func resourceBizFlyCloudAutoscalingLaunchConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudAutoscalingLaunchConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	lcr := &gobizfly.LaunchConfiguration{
@@ -117,14 +117,14 @@ func resourceBizFlyCloudAutoscalingLaunchConfigurationCreate(d *schema.ResourceD
 	}
 
 	d.SetId(profile.ID)
-	return resourceBizFlyCloudAutoscalingLaunchConfigurationRead(d, meta)
+	return resourceBizflyCloudAutoscalingLaunchConfigurationRead(d, meta)
 }
 
-func resourceBizFlyCloudAutoscalingLaunchConfigurationRead(d *schema.ResourceData, meta interface{}) error {
-	return dataBizFlyCloudAutoScalingLaunchConfigurationRead(d, meta)
+func resourceBizflyCloudAutoscalingLaunchConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+	return dataBizflyCloudAutoScalingLaunchConfigurationRead(d, meta)
 }
 
-func resourceBizFlyCloudAutoscalingLaunchConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudAutoscalingLaunchConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	log.Printf("[DEBUG] Launch Configuration destroy: %v", d.Id())
 

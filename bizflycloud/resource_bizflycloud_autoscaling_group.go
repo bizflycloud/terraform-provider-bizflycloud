@@ -30,12 +30,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceBizFlyCloudAutoscalingGroup() *schema.Resource {
+func resourceBizflyCloudAutoscalingGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBizFlyCloudAutoscalingGroupCreate,
-		Read:   resourceBizFlyCloudAutoscalingGroupRead,
-		Update: resourceBizFlyCloudAutoscalingGroupUpdate,
-		Delete: resourceBizFlyCloudAutoscalingGroupDelete,
+		Create: resourceBizflyCloudAutoscalingGroupCreate,
+		Read:   resourceBizflyCloudAutoscalingGroupRead,
+		Update: resourceBizflyCloudAutoscalingGroupUpdate,
+		Delete: resourceBizflyCloudAutoscalingGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -46,7 +46,7 @@ func resourceBizFlyCloudAutoscalingGroup() *schema.Resource {
 	}
 }
 
-func resourceBizFlyCloudAutoscalingGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudAutoscalingGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	ascr := &gobizfly.AutoScalingGroupCreateRequest{
@@ -77,18 +77,18 @@ func resourceBizFlyCloudAutoscalingGroupCreate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("[ERROR] create auto scaling group (%s) failed: %s", d.Get("name").(string), err)
 	}
 
-	return resourceBizFlyCloudAutoscalingGroupRead(d, meta)
+	return resourceBizflyCloudAutoscalingGroupRead(d, meta)
 }
 
-func resourceBizFlyCloudAutoscalingGroupRead(d *schema.ResourceData, meta interface{}) error {
-	if err := dataSourceBizFlyCloudAutoScalingGroupRead(d, meta); err != nil {
+func resourceBizflyCloudAutoscalingGroupRead(d *schema.ResourceData, meta interface{}) error {
+	if err := dataSourceBizflyCloudAutoScalingGroupRead(d, meta); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func resourceBizFlyCloudAutoscalingGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudAutoscalingGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	asur := &gobizfly.AutoScalingGroupUpdateRequest{
@@ -125,10 +125,10 @@ func resourceBizFlyCloudAutoscalingGroupUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("[ERROR] updating auto scaling group (%s) failed: %s", d.Get("name").(string), err)
 	}
 
-	return resourceBizFlyCloudAutoscalingGroupRead(d, meta)
+	return resourceBizflyCloudAutoscalingGroupRead(d, meta)
 }
 
-func resourceBizFlyCloudAutoscalingGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudAutoscalingGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	err := client.AutoScaling.AutoScalingGroups().Delete(context.Background(), d.Id())
@@ -165,7 +165,7 @@ func newStateRefreshfunc(d *schema.ResourceData, attribute string, meta interfac
 			return nil, "", nil
 		}
 
-		err = resourceBizFlyCloudAutoscalingGroupRead(d, meta)
+		err = resourceBizflyCloudAutoscalingGroupRead(d, meta)
 		if err != nil {
 			return nil, "", err
 		}

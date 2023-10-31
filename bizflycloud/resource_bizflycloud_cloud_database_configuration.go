@@ -31,12 +31,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceBizFlyCloudDatabaseConfiguration() *schema.Resource {
+func resourceBizflyCloudDatabaseConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBizFlyCloudCloudDatabaseConfigurationCreate,
-		Read:   resourceBizFlyCloudCloudDatabaseConfigurationRead,
-		Update: resourceBizFlyCloudCloudDatabaseConfigurationUpdate,
-		Delete: resourceBizFlyCloudCloudDatabaseConfigurationDelete,
+		Create: resourceBizflyCloudCloudDatabaseConfigurationCreate,
+		Delete: resourceBizflyCloudCloudDatabaseConfigurationDelete,
+		Read:   resourceBizflyCloudCloudDatabaseConfigurationRead,
+		Update: resourceBizflyCloudCloudDatabaseConfigurationUpdate,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -49,17 +49,17 @@ func resourceBizFlyCloudDatabaseConfiguration() *schema.Resource {
 	}
 }
 
-func resourceBizFlyCloudCloudDatabaseConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudCloudDatabaseConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
+	datastore := readResourceCloudDatabaseDatastore(d)
 
 	cfc := &gobizfly.CloudDatabaseConfigurationCreate{
-		ConfigurationName:       d.Get("name").(string),
-		ConfigurationParameters: readArrayParameters(d.Get("parameters").(map[string]interface{})),
+		Name: d.Get("name").(string),
 		Datastore: gobizfly.CloudDatabaseDatastore{
-			Type: d.Get("datastore_type").(string),
-			Name: d.Get("datastore_version_name").(string),
-			ID:   d.Get("datastore_version_id").(string),
+			ID:        datastore["id"],
+			VersionID: datastore["version_id"],
 		},
+		Parameters: readArrayParameters(d.Get("parameter").(*schema.Set)),
 	}
 
 	// retry
@@ -68,7 +68,7 @@ func resourceBizFlyCloudCloudDatabaseConfigurationCreate(d *schema.ResourceData,
 		configuration, err := client.CloudDatabase.Configurations().Create(context.Background(), cfc)
 
 		if err != nil {
-			retry -= 1
+			retry--
 			if retry > 0 {
 				time.Sleep(timeSleep)
 				return resource.RetryableError(fmt.Errorf("[ERROR] create cloud database configuration %s failed: %s. Retrying", d.Get("name"), err))
@@ -86,7 +86,7 @@ func resourceBizFlyCloudCloudDatabaseConfigurationCreate(d *schema.ResourceData,
 			return resource.NonRetryableError(fmt.Errorf("[ERROR] create cloud database configuration (%s) failed: %s. Can't retry", d.Get("name").(string), err))
 		}
 
-		err = resourceBizFlyCloudCloudDatabaseConfigurationRead(d, meta)
+		err = resourceBizflyCloudCloudDatabaseConfigurationRead(d, meta)
 		if err != nil {
 			return resource.NonRetryableError(fmt.Errorf("[ERROR] create cloud database Configuration (%s) failed: %s. Can't retry", d.Get("name").(string), err))
 		}
@@ -95,19 +95,49 @@ func resourceBizFlyCloudCloudDatabaseConfigurationCreate(d *schema.ResourceData,
 	})
 }
 
-func resourceBizFlyCloudCloudDatabaseConfigurationRead(d *schema.ResourceData, meta interface{}) error {
-	if err := dataSourceBizFlyCloudDatabaseConfigurationRead(d, meta); err != nil {
-		return err
+func resourceBizflyCloudCloudDatabaseConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*CombinedConfig).gobizflyClient()
+
+	if v, ok := d.GetOk("id"); ok {
+		d.SetId(v.(string))
 	}
+
+	configurationID := d.Id()
+
+	log.Printf("[DEBUG] Reading database Configuration: %s", configurationID)
+	configuration, err := client.CloudDatabase.Configurations().Get(context.Background(), configurationID)
+
+	log.Printf("[DEBUG] Checking for error: %s", err)
+	if err != nil {
+		return fmt.Errorf("error describing database Configuration: %w", err)
+	}
+
+	log.Printf("[DEBUG] Found database Configuration: %s", configurationID)
+	log.Printf("[DEBUG] bizflycloud_cloud_database_Configuration - Single database Configuration found: %s", configuration.Name)
+
+	d.SetId(configuration.ID)
+	_ = d.Set("created_at", configuration.CreatedAt)
+	_ = d.Set("name", configuration.Name)
+	_ = d.Set("nodes", configuration.Nodes)
+	if err := d.Set("datastore", FlattenStruct(configuration.Datastore)); err != nil {
+		return fmt.Errorf("error setting datastore: %w", err)
+	}
+
 	return nil
 }
 
-func resourceBizFlyCloudCloudDatabaseConfigurationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudCloudDatabaseConfigurationUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
+	datastore := readResourceCloudDatabaseDatastore(d)
 	id := d.Id()
-	if d.HasChange("parameters") {
+
+	if d.HasChange("parameter") {
 		cfu := &gobizfly.CloudDatabaseConfigurationUpdate{
-			ConfigurationParameters: readArrayParameters(d.Get("parameters").(map[string]interface{})),
+			Datastore: gobizfly.CloudDatabaseDatastore{
+				ID:        datastore["id"],
+				VersionID: datastore["version_id"],
+			},
+			Parameters: readArrayParameters(d.Get("parameter").(*schema.Set)),
 		}
 
 		// retry
@@ -116,7 +146,7 @@ func resourceBizFlyCloudCloudDatabaseConfigurationUpdate(d *schema.ResourceData,
 			task, err := client.CloudDatabase.Configurations().Update(context.Background(), id, cfu)
 
 			if err != nil {
-				retry -= 1
+				retry--
 				if retry > 0 {
 					time.Sleep(timeSleep)
 					return resource.RetryableError(fmt.Errorf("[ERROR] update cloud database configuration [%s] failed: %v. Retrying", id, err))
@@ -127,7 +157,7 @@ func resourceBizFlyCloudCloudDatabaseConfigurationUpdate(d *schema.ResourceData,
 
 			_ = d.Set("task_id", task.TaskID)
 
-			err = resourceBizFlyCloudCloudDatabaseConfigurationRead(d, meta)
+			err = resourceBizflyCloudCloudDatabaseConfigurationRead(d, meta)
 			if err != nil {
 				return resource.NonRetryableError(fmt.Errorf("[ERROR] update cloud database configuration %s failed: %s. Can't retry", id, err))
 			}
@@ -141,7 +171,7 @@ func resourceBizFlyCloudCloudDatabaseConfigurationUpdate(d *schema.ResourceData,
 	return nil
 }
 
-func resourceBizFlyCloudCloudDatabaseConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudCloudDatabaseConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	id := d.Id()
 
@@ -151,7 +181,7 @@ func resourceBizFlyCloudCloudDatabaseConfigurationDelete(d *schema.ResourceData,
 		_, err := client.CloudDatabase.Configurations().Delete(context.Background(), id)
 
 		if err != nil {
-			retry -= 1
+			retry--
 			if retry > 0 {
 				time.Sleep(timeSleep)
 				return resource.RetryableError(fmt.Errorf("[ERROR] delete cloud database configuration %s failed: %v. Retrying", id, err))
@@ -202,7 +232,7 @@ func newCloudDatabaseConfigurationStateRefreshFunc(d *schema.ResourceData, meta 
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	return func() (interface{}, string, error) {
-		err := resourceBizFlyCloudCloudDatabaseConfigurationRead(d, meta)
+		err := resourceBizflyCloudCloudDatabaseConfigurationRead(d, meta)
 		if err != nil {
 			return nil, "", err
 		}
@@ -230,19 +260,26 @@ func deleteCloudDatabaseConfigurationStateRefreshFunc(d *schema.ResourceData, me
 	}
 }
 
-func readArrayParameters(paramMap map[string]interface{}) map[string]interface{} {
-	parameterInterface := make(map[string]interface{})
-	for key, val := range paramMap {
+func readArrayParameters(params *schema.Set) map[string]interface{} {
+	results := make(map[string]interface{})
+	for _, param := range params.List() {
+		_param := param.(map[string]interface{})
+		key := _param["name"].(string)
+		val := _param["value"]
+
 		if key == "" || val == "" {
 			continue
 		}
 
 		if convertedValue, err := strconv.ParseBool(val.(string)); err == nil {
 			val = convertedValue
+		} else if convertedValue, err := strconv.Atoi(val.(string)); err == nil {
+			val = convertedValue
 		} else if convertedValue, err := strconv.ParseFloat(val.(string), 32); err == nil {
 			val = convertedValue
 		}
-		parameterInterface[key] = val
+
+		results[key] = val
 	}
-	return parameterInterface
+	return results
 }

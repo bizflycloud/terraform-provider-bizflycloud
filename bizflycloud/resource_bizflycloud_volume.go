@@ -28,12 +28,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceBizFlyCloudVolume() *schema.Resource {
+func resourceBizflyCloudVolume() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBizFlyCloudVolumeCreate,
-		Read:   resourceBizFlyCloudVolumeRead,
-		Update: resourceBizFlyCloudVolumeUpdate,
-		Delete: resourceBizFlyCloudVolumeDelete,
+		Create: resourceBizflyCloudVolumeCreate,
+		Read:   resourceBizflyCloudVolumeRead,
+		Update: resourceBizflyCloudVolumeUpdate,
+		Delete: resourceBizflyCloudVolumeDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
@@ -83,7 +83,7 @@ func resourceBizFlyCloudVolume() *schema.Resource {
 	}
 }
 
-func resourceBizFlyCloudVolumeCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudVolumeCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	vcr := &gobizfly.VolumeCreateRequest{
 		Name:             d.Get("name").(string),
@@ -98,14 +98,14 @@ func resourceBizFlyCloudVolumeCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error creating volume: %v", err)
 	}
 	d.SetId(volume.ID)
-	err = resourceBizFlyCloudVolumeRead(d, meta)
+	err = resourceBizflyCloudVolumeRead(d, meta)
 	if err != nil {
 		return fmt.Errorf("Error retrieving volume: %v", err)
 	}
 	return nil
 }
 
-func resourceBizFlyCloudVolumeRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudVolumeRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	volume, err := client.Volume.Get(context.Background(), d.Id())
 	if err != nil {
@@ -128,7 +128,7 @@ func resourceBizFlyCloudVolumeRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceBizFlyCloudVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	if d.HasChange("size") {
 		// resize volume
@@ -145,7 +145,7 @@ func resourceBizFlyCloudVolumeUpdate(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceBizFlyCloudVolumeDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudVolumeDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	err := client.Volume.Delete(context.Background(), d.Id())
 	if err != nil {

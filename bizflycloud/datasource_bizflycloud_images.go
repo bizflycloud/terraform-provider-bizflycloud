@@ -25,14 +25,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func datasourceBizFlyCloudImages() *schema.Resource {
+func datasourceBizflyCloudImages() *schema.Resource {
 	return &schema.Resource{
-		Read:   dataSourceBizFlyCloudImageRead,
+		Read:   dataSourceBizflyCloudImageRead,
 		Schema: imageSchema(),
 	}
 }
 
-func dataSourceBizFlyCloudImageRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBizflyCloudImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	osImages, err := client.Server.ListOSImages(context.Background())
 	if err != nil {

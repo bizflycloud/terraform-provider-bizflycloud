@@ -24,14 +24,14 @@ import (
 	"log"
 )
 
-func datasourceBizFlyCloudDatabaseBackup() *schema.Resource {
+func datasourceBizflyCloudDatabaseBackup() *schema.Resource {
 	return &schema.Resource{
-		Read:   dataSourceBizFlyCloudDatabaseBackupRead,
-		Schema: resourceCloudDatabaseBackupSchema(),
+		Read:   dataSourceBizflyCloudDatabaseBackupRead,
+		Schema: dataCloudDatabaseBackupSchema(),
 	}
 }
 
-func dataSourceBizFlyCloudDatabaseBackupRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBizflyCloudDatabaseBackupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	if v, ok := d.GetOk("id"); ok {
@@ -40,28 +40,30 @@ func dataSourceBizFlyCloudDatabaseBackupRead(d *schema.ResourceData, meta interf
 
 	backupID := d.Id()
 
-	log.Printf("[DEBUG] Reading Database Backup: %s", backupID)
+	log.Printf("[DEBUG] Reading database backup: %s", backupID)
 	backup, err := client.CloudDatabase.Backups().Get(context.Background(), backupID)
 
 	log.Printf("[DEBUG] Checking for error: %s", err)
 	if err != nil {
-		return fmt.Errorf("error describing Database Backup: %w", err)
+		return fmt.Errorf("error describing database backup: %w", err)
 	}
 
-	log.Printf("[DEBUG] Found Database Backup: %s", backupID)
-	log.Printf("[DEBUG] bizflycloud_cloud_database_Backup - Single Database Backup found: %s", backup.Name)
+	log.Printf("[DEBUG] Found database backup: %s", backupID)
+	log.Printf("[DEBUG] bizflycloud_cloud_database_backup - Single database backup found: %s", backup.Name)
 
 	d.SetId(backup.ID)
-	_ = d.Set("status", backup.Status)
 	_ = d.Set("created", backup.Created)
 	_ = d.Set("description", backup.Description)
-	_ = d.Set("project_id", backup.ProjectID)
+	_ = d.Set("name", backup.Name)
+	_ = d.Set("node_id", backup.NodeID)
+	_ = d.Set("parent_id", backup.ParentID)
 	_ = d.Set("size", backup.Size)
+	_ = d.Set("status", backup.Status)
 	_ = d.Set("type", backup.Type)
 	_ = d.Set("updated", backup.Updated)
 
-	if err := d.Set("datastore", ConvertStruct(backup.Datastore)); err != nil {
-		return fmt.Errorf("error setting datastore for instance %s: %s", d.Id(), err)
+	if err := d.Set("datastore", FlattenStruct(backup.Datastore)); err != nil {
+		return fmt.Errorf("error setting datastore for backup %s: %s", d.Id(), err)
 	}
 	return nil
 }

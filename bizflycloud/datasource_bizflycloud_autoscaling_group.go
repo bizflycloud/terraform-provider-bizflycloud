@@ -26,14 +26,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func datasourceBizFlyCloudAutoScalingGroup() *schema.Resource {
+func datasourceBizflyCloudAutoScalingGroup() *schema.Resource {
 	return &schema.Resource{
-		Read:   dataSourceBizFlyCloudAutoScalingGroupRead,
+		Read:   dataSourceBizflyCloudAutoScalingGroupRead,
 		Schema: dataAutoScalingGroupSchema(),
 	}
 }
 
-func dataSourceBizFlyCloudAutoScalingGroupRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBizflyCloudAutoScalingGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	if v, ok := d.GetOk("id"); ok {

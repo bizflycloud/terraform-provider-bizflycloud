@@ -32,93 +32,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceBizFlyCloudDatabaseNode() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceBizFlyCloudCloudDatabaseNodeCreate,
-		Read:   resourceBizFlyCloudCloudDatabaseNodeRead,
-		Update: resourceBizFlyCloudCloudDatabaseNodeUpdate,
-		Delete: resourceBizFlyCloudCloudDatabaseNodeDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Update: schema.DefaultTimeout(80 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
-		},
-		Schema: resourceCloudDatabaseNodeSchema(),
-	}
-}
-
-func resourceBizFlyCloudCloudDatabaseNodeCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*CombinedConfig).gobizflyClient()
-
-	ins, err := client.CloudDatabase.Instances().Get(context.Background(), d.Get("replica_of").(string))
-	if err != nil {
-		return fmt.Errorf("error while getting cloud database instance: %v", err)
-	}
-
-	if ins.Status != "ACTIVE" {
-		return fmt.Errorf("database instance %s is not active", ins.Name)
-	}
-
-	for _, node := range ins.Nodes {
-		if node.Role == "primary" {
-			_ = d.Set("replica_of", node.ID)
-			break
-		}
-	}
-
-	insc := &gobizfly.CloudDatabaseNodeCreate{
-		ReplicaOf:     d.Get("replica_of").(string),
-		Role:          d.Get("role").(string),
-		Name:          d.Get("name").(string),
-		Configuration: d.Get("configuration").(string),
-	}
-
-	// retry
-	retry := maxRetry
-	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		node, err := client.CloudDatabase.Nodes().Create(context.Background(), insc)
-
-		if err != nil {
-			retry -= 1
-			if retry > 0 {
-				time.Sleep(timeSleep)
-				return resource.RetryableError(fmt.Errorf("[ERROR] create cloud database node %s failed: %s. Retrying", d.Get("name"), err))
-			}
-
-			return resource.NonRetryableError(fmt.Errorf("[ERROR] create cloud database node %s failed: %s. Can't retry", d.Get("name"), err))
-		}
-
-		log.Printf("[DEBUG] creating cloud database node %s", node.Name)
-
-		d.SetId(node.ID)
-		_ = d.Set("task_id", node.TaskID)
-
-		// wait for cloud database node to become active
-		_, err = waitForCloudDatabaseNodeCreate(d, meta)
-		if err != nil {
-			return resource.NonRetryableError(fmt.Errorf("[ERROR] create cloud database node (%s) failed: %s. Can't retry", d.Get("name").(string), err))
-		}
-
-		err = resourceBizFlyCloudCloudDatabaseNodeRead(d, meta)
-		if err != nil {
-			return resource.NonRetryableError(fmt.Errorf("[ERROR] read cloud database node (%s) failed: %s. Can't retry", d.Get("name").(string), err))
-		}
-
-		return nil
-	})
-}
-
-func resourceBizFlyCloudCloudDatabaseNodeRead(d *schema.ResourceData, meta interface{}) error {
-	if err := dataSourceBizFlyCloudDatabaseNodeRead(d, meta); err != nil {
+func resourceBizflyCloudCloudDatabaseNodeRead(d *schema.ResourceData, meta interface{}) error {
+	if err := dataSourceBizflyCloudDatabaseNodeRead(d, meta); err != nil {
 		return err
 	}
 	return nil
 }
 
-func resourceBizFlyCloudCloudDatabaseNodeUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudCloudDatabaseNodeUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	id := d.Id()
 	if d.HasChange("volume_size") && d.Get("volume_size").(int) != 0 {
@@ -128,7 +49,7 @@ func resourceBizFlyCloudCloudDatabaseNodeUpdate(d *schema.ResourceData, meta int
 			task, err := client.CloudDatabase.Nodes().ResizeVolume(context.Background(), id, d.Get("volume_size").(int))
 
 			if err != nil {
-				retry -= 1
+				retry--
 				if retry > 0 {
 					time.Sleep(timeSleep)
 					return resource.RetryableError(fmt.Errorf("[ERROR] Resize volume of database node [%s] failed: %v. Retrying", id, err))
@@ -139,7 +60,7 @@ func resourceBizFlyCloudCloudDatabaseNodeUpdate(d *schema.ResourceData, meta int
 
 			_ = d.Set("task_id", task.TaskID)
 
-			err = resourceBizFlyCloudCloudDatabaseNodeRead(d, meta)
+			err = resourceBizflyCloudCloudDatabaseNodeRead(d, meta)
 			if err != nil {
 				return resource.NonRetryableError(fmt.Errorf("[ERROR] Resize volume of database node %s failed: %s. Can't retry", id, err))
 			}
@@ -165,7 +86,7 @@ func resourceBizFlyCloudCloudDatabaseNodeUpdate(d *schema.ResourceData, meta int
 			task, err := client.CloudDatabase.Nodes().ResizeFlavor(context.Background(), id, d.Get("flavor_name").(string))
 
 			if err != nil {
-				retry -= 1
+				retry--
 				if retry > 0 {
 					time.Sleep(timeSleep)
 					return resource.RetryableError(fmt.Errorf("[ERROR] Resize flavor of database node [%s] failed: %v. Retrying", id, err))
@@ -176,7 +97,7 @@ func resourceBizFlyCloudCloudDatabaseNodeUpdate(d *schema.ResourceData, meta int
 
 			_ = d.Set("task_id", task.TaskID)
 
-			err = resourceBizFlyCloudCloudDatabaseNodeRead(d, meta)
+			err = resourceBizflyCloudCloudDatabaseNodeRead(d, meta)
 			if err != nil {
 				return resource.NonRetryableError(fmt.Errorf("[ERROR] Resize flavor of database node %s failed: %s. Can't retry", id, err))
 			}
@@ -194,50 +115,7 @@ func resourceBizFlyCloudCloudDatabaseNodeUpdate(d *schema.ResourceData, meta int
 		}
 	}
 
-	return resourceBizFlyCloudCloudDatabaseNodeRead(d, meta)
-}
-
-func resourceBizFlyCloudCloudDatabaseNodeDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*CombinedConfig).gobizflyClient()
-	id := d.Id()
-	// retry
-	retry := maxRetry
-	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		task, err := client.CloudDatabase.Nodes().Delete(context.Background(), id, &gobizfly.CloudDatabaseDelete{})
-
-		if err != nil {
-			retry -= 1
-			if retry > 0 {
-				time.Sleep(timeSleep)
-				return resource.RetryableError(fmt.Errorf("[ERROR] delete cloud database node %s failed: %v. Retrying", id, err))
-			}
-
-			return resource.NonRetryableError(fmt.Errorf("[ERROR] delete cloud database node %s failed: %v. Can't retry", id, err))
-		}
-		_ = d.Set("task_id", task.TaskID)
-
-		// wait for cloud database node to delete
-		_, err = waitForCloudDatabaseNodeDelete(d, meta)
-		if err != nil {
-			return resource.NonRetryableError(fmt.Errorf("[ERROR] delete cloud database node %s with task %s failed: %v. Can't retry", id, task.TaskID, err))
-		}
-
-		return nil
-	})
-}
-
-func waitForCloudDatabaseNodeCreate(d *schema.ResourceData, meta interface{}) (interface{}, error) {
-	log.Printf("[INFO] Waiting for cloud database node (%s) to be ready", d.Get("name").(string))
-	stateConf := &resource.StateChangeConf{
-		Pending:        []string{"false", "BUILD"},
-		Target:         []string{"true", "ACTIVE", "HEALTHY"},
-		Refresh:        newCloudDatabaseNodeStateRefreshFunc(d, meta),
-		Timeout:        d.Timeout(schema.TimeoutCreate),
-		Delay:          60 * time.Second,
-		MinTimeout:     20 * time.Second,
-		NotFoundChecks: 50,
-	}
-	return stateConf.WaitForState()
+	return resourceBizflyCloudCloudDatabaseNodeRead(d, meta)
 }
 
 func waitForCloudDatabaseNodeUpdate(d *schema.ResourceData, meta interface{}, key string, newValue interface{}) (interface{}, error) {
@@ -272,7 +150,7 @@ func newCloudDatabaseNodeStateRefreshFunc(d *schema.ResourceData, meta interface
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	return func() (interface{}, string, error) {
-		err := resourceBizFlyCloudCloudDatabaseNodeRead(d, meta)
+		err := resourceBizflyCloudCloudDatabaseNodeRead(d, meta)
 		if err != nil {
 			return nil, "false", err
 		}
@@ -297,7 +175,7 @@ func updateCloudDatabaseNodeStateRefreshFunc(d *schema.ResourceData, key string,
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	return func() (interface{}, string, error) {
-		err := resourceBizFlyCloudCloudDatabaseNodeRead(d, meta)
+		err := resourceBizflyCloudCloudDatabaseNodeRead(d, meta)
 		if err != nil {
 			return nil, "", err
 		}

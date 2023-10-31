@@ -25,11 +25,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceBizFlyCloudSSHKey() *schema.Resource {
+func resourceBizflyCloudSSHKey() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceBizFlyCloudSSHKeyCreate,
-		Read:          resourceBizFlyCloudSSHKeyRead,
-		Delete:        resourceBizFlyCloudSSHKeyDelete,
+		Create:        resourceBizflyCloudSSHKeyCreate,
+		Read:          resourceBizflyCloudSSHKeyRead,
+		Delete:        resourceBizflyCloudSSHKeyDelete,
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -53,7 +53,7 @@ func resourceBizFlyCloudSSHKey() *schema.Resource {
 	}
 }
 
-func resourceBizFlyCloudSSHKeyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudSSHKeyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	resp, err := client.SSHKey.Create(context.Background(), &gobizfly.SSHKeyCreateRequest{
 		Name:      d.Get("name").(string),
@@ -67,7 +67,7 @@ func resourceBizFlyCloudSSHKeyCreate(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceBizFlyCloudSSHKeyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudSSHKeyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	sshkeys, err := client.SSHKey.List(context.Background(), &gobizfly.ListOptions{})
 	if err != nil {
@@ -84,7 +84,7 @@ func resourceBizFlyCloudSSHKeyRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceBizFlyCloudSSHKeyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudSSHKeyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	_, err := client.SSHKey.Delete(context.Background(), d.Id())
 	if err != nil {

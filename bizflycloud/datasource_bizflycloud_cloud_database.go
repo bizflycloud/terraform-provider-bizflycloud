@@ -20,39 +20,45 @@ package bizflycloud
 import (
 	"context"
 	"fmt"
-	"log"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"log"
 )
 
-func datasourceBizFlyCloudDatabaseConfiguration() *schema.Resource {
+func datasourceBizflyCloudDatabaseDatastore() *schema.Resource {
 	return &schema.Resource{
-		Read:   dataSourceBizFlyCloudDatabaseConfigurationRead,
-		Schema: resourceCloudDatabaseConfigurationSchema(),
+		Read:   dataSourceBizflyCloudDatabaseDatastoreRead,
+		Schema: dataCloudDatabaseDatastoreSchema(),
 	}
 }
 
-func dataSourceBizFlyCloudDatabaseConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBizflyCloudDatabaseDatastoreRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
-	if v, ok := d.GetOk("id"); ok {
-		d.SetId(v.(string))
-	}
-
-	configurationID := d.Id()
-
-	log.Printf("[DEBUG] Reading Database Configuration: %s", configurationID)
-	configuration, err := client.CloudDatabase.Configurations().Get(context.Background(), configurationID)
-
-	log.Printf("[DEBUG] Checking for error: %s", err)
+	log.Println("[DEBUG] Reading list datastore")
+	engines, err := client.CloudDatabase.Engines().List(context.Background())
 	if err != nil {
-		return fmt.Errorf("error describing Database Configuration: %w", err)
+		return fmt.Errorf("error describing datastore: %w", err)
 	}
 
-	log.Printf("[DEBUG] Found Database Configuration: %s", configurationID)
-	log.Printf("[DEBUG] bizflycloud_cloud_database_Configuration - Single Database Configuration found: %s", configuration.Name)
+	dsType := d.Get("type").(string)
+	dsName := d.Get("name").(string)
 
-	d.SetId(configuration.ID)
+	for _, engine := range engines {
+		if engine.Name != dsType {
+			continue
+		}
+
+		for _, version := range engine.Versions {
+			if version.Name != dsName {
+				continue
+			}
+
+			d.SetId(engine.ID)
+			_ = d.Set("version_id", version.ID)
+			break
+		}
+		break
+	}
 
 	return nil
 }

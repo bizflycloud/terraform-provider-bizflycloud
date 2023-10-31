@@ -35,19 +35,19 @@ func init() {
 	})
 }
 
-func TestAccBizFlyCloudCloudDatabaseinstance_Basic(t *testing.T) {
+func TestAccBizflyCloudCloudDatabaseinstance_Basic(t *testing.T) {
 	var instance gobizfly.CloudDatabaseInstance
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckBizFlyCloudCloudDatabaseInstanceDestroy,
+		CheckDestroy: testAccCheckBizflyCloudCloudDatabaseInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBizFlyCloudCloudDatabaseInstanceBasicConfig(rInt),
+				Config: testAccBizflyCloudCloudDatabaseInstanceBasicConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBizFlyCloudCloudDatabaseInstanceExists("bizflycloud_cloud_database_instance.foobar", &instance),
-					testAccCheckBizFlyCloudCloudDatabaseInstanceAttributes(&instance),
+					testAccCheckBizflyCloudCloudDatabaseInstanceExists("bizflycloud_cloud_database_instance.foobar", &instance),
+					testAccCheckBizflyCloudCloudDatabaseInstanceAttributes(&instance),
 					resource.TestCheckResourceAttr(
 						"bizflycloud_cloud_database_instance.foobar", "name", fmt.Sprintf("tf-testAccCloudDatabaseinstance-%d", rInt)),
 					resource.TestCheckResourceAttr(
@@ -60,7 +60,7 @@ func TestAccBizFlyCloudCloudDatabaseinstance_Basic(t *testing.T) {
 	})
 }
 
-func testAccCheckBizFlyCloudCloudDatabaseInstanceExists(n string, instance *gobizfly.CloudDatabaseInstance) resource.TestCheckFunc {
+func testAccCheckBizflyCloudCloudDatabaseInstanceExists(n string, instance *gobizfly.CloudDatabaseInstance) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -84,7 +84,7 @@ func testAccCheckBizFlyCloudCloudDatabaseInstanceExists(n string, instance *gobi
 	}
 }
 
-func testAccCheckBizFlyCloudCloudDatabaseInstanceAttributes(instance *gobizfly.CloudDatabaseInstance) resource.TestCheckFunc {
+func testAccCheckBizflyCloudCloudDatabaseInstanceAttributes(instance *gobizfly.CloudDatabaseInstance) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if instance.Datastore.Type != "MongoDB" {
 			return fmt.Errorf("bad cloud database instance datastore type: %s", instance.Datastore.Type)
@@ -102,7 +102,7 @@ func testAccCheckBizFlyCloudCloudDatabaseInstanceAttributes(instance *gobizfly.C
 	}
 }
 
-func testAccCheckBizFlyCloudCloudDatabaseInstanceDestroy(s *terraform.State) error {
+func testAccCheckBizflyCloudCloudDatabaseInstanceDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
 
 	for _, rs := range s.RootModule().Resources {
@@ -126,7 +126,7 @@ func testAccCheckBizFlyCloudCloudDatabaseInstanceDestroy(s *terraform.State) err
 	return nil
 }
 
-func testAccBizFlyCloudCloudDatabaseInstanceBasicConfig(rInt int) string {
+func testAccBizflyCloudCloudDatabaseInstanceBasicConfig(rInt int) string {
 	return fmt.Sprintf(`
 		resource "bizflycloud_cloud_database_instance" "foobar" {
             name = "tf-testAccCloudDatabaseInstance-%d"

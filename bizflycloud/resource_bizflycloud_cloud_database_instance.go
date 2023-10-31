@@ -23,7 +23,6 @@ import (
 	"fmt"
 	"log"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/bizflycloud/gobizfly"
@@ -32,26 +31,29 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceBizFlyCloudDatabaseInstance() *schema.Resource {
+func resourceBizflyCloudDatabaseInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBizFlyCloudCloudDatabaseInstanceCreate,
-		Read:   resourceBizFlyCloudCloudDatabaseInstanceRead,
-		Update: resourceBizFlyCloudCloudDatabaseInstanceUpdate,
-		Delete: resourceBizFlyCloudCloudDatabaseInstanceDelete,
+		Create: resourceBizflyCloudCloudDatabaseInstanceCreate,
+		Delete: resourceBizflyCloudCloudDatabaseInstanceDelete,
+		Read:   resourceBizflyCloudCloudDatabaseInstanceRead,
+		Update: resourceBizflyCloudCloudDatabaseInstanceUpdate,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
-			Update: schema.DefaultTimeout(80 * time.Minute),
 			Delete: schema.DefaultTimeout(60 * time.Minute),
+			Update: schema.DefaultTimeout(80 * time.Minute),
 		},
 		Schema: resourceCloudDatabaseInstanceSchema(),
 	}
 }
 
-func resourceBizFlyCloudCloudDatabaseInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudCloudDatabaseInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
+
+	autoscaling := readResourceCloudDatabaseAutoScaling(d)
+	datastore := readResourceCloudDatabaseDatastore(d)
 
 	insc := &gobizfly.CloudDatabaseInstanceCreate{
 		Name:         d.Get("name").(string),
@@ -59,75 +61,171 @@ func resourceBizFlyCloudCloudDatabaseInstanceCreate(d *schema.ResourceData, meta
 		FlavorName:   d.Get("flavor_name").(string),
 		VolumeSize:   d.Get("volume_size").(int),
 		Datastore: gobizfly.CloudDatabaseDatastore{
-			Type:      d.Get("datastore_type").(string),
-			VersionID: d.Get("datastore_version_id").(string),
+			Type:      datastore["type"],
+			VersionID: datastore["version_id"],
 		},
 		PublicAccess:     d.Get("public_access").(bool),
 		AvailabilityZone: d.Get("availability_zone").(string),
 		Networks:         makeArrayNetworkIDFromArray(d.Get("network_ids").(*schema.Set).List()),
-		AutoScaling: &gobizfly.CloudDatabaseAutoScaling{
-			Enable: d.Get("autoscaling_enable").(bool),
-			Volume: gobizfly.CloudDatabaseAutoScalingVolume{
-				Threshold: d.Get("autoscaling_volume_threshold").(int),
-				Limited:   d.Get("autoscaling_volume_limited").(int),
-			},
-		},
-		BackupID: d.Get("backup_id").(string),
+		BackupID:         d.Get("backup_id").(string),
 	}
 
-	// retry
-	retry := maxRetry
-	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		instance, err := client.CloudDatabase.Instances().Create(context.Background(), insc)
+	insc.AutoScaling = &gobizfly.CloudDatabaseAutoScaling{
+		Enable: false,
+		Volume: gobizfly.CloudDatabaseAutoScalingVolume{
+			Limited:   autoscaling["volume_limited"],
+			Threshold: autoscaling["volume_threshold"],
+		},
+	}
 
-		if err != nil {
-			retry -= 1
-			if retry > 0 {
-				time.Sleep(timeSleep)
-				return resource.RetryableError(fmt.Errorf("[ERROR] create cloud database instance %s failed: %s. Retrying", d.Get("name"), err))
+	if autoscaling["enable"] == 1 {
+		insc.AutoScaling.Enable = true
+	}
+
+	if _, ok := d.GetOk("secondaries"); ok {
+		secondaries := readResourceCloudDatabaseInstanceSecondary(d.Get("secondaries").(*schema.Set))
+		// MariaDB/ MySQL has replica known as secondary nodes
+		if datastore["type"] == "MariaDB" || datastore["type"] == "MySQL" {
+			insc.Replicas = &gobizfly.CloudDatabaseReplicaNodeCreate{
+				Quantity:       secondaries["quantity"].(int),
+				Configurations: gobizfly.CloudDatabaseReplicasConfiguration{AvailabilityZone: secondaries["availability_zone"].(string)},
 			}
+		} else {
+			insc.Secondaries = &gobizfly.CloudDatabaseReplicaNodeCreate{
+				Quantity:       secondaries["quantity"].(int),
+				Configurations: gobizfly.CloudDatabaseReplicasConfiguration{AvailabilityZone: secondaries["availability_zone"].(string)},
+			}
+		}
+	}
 
-			return resource.NonRetryableError(fmt.Errorf("[ERROR] create cloud database instance %s failed: %s. Can't retry", d.Get("name"), err))
+	instance, err := client.CloudDatabase.Instances().Create(context.Background(), insc)
+	if err != nil {
+		return fmt.Errorf("[ERROR] create cloud database instance %s failed: %s", d.Get("name"), err)
+	}
+	log.Printf("[DEBUG] creating cloud database instance %s", instance.Name)
+
+	d.SetId(instance.ID)
+	_ = d.Set("task_id", instance.TaskID)
+
+	// wait for cloud database instance to become active
+	_, err = waitForCloudDatabaseInstanceCreate(d, meta)
+	if err != nil {
+		return fmt.Errorf("[ERROR] create cloud database instance (%s) failed: %s", d.Get("name").(string), err)
+	}
+
+	if _, ok := d.GetOk("init_databases"); ok {
+		// Do create new databases
+		initDatabases := d.Get("init_databases").([]interface{})
+		newDatabases := []*gobizfly.CloudDatabaseDB{}
+
+		for _, database := range initDatabases {
+			newDatabases = append(newDatabases, &gobizfly.CloudDatabaseDB{Name: database.(string)})
 		}
 
-		log.Printf("[DEBUG] creating cloud database instance %s", instance.Name)
+		if len(newDatabases) > 0 {
+			err := client.CloudDatabase.Instances().CreateDatabases(context.Background(), instance.ID, newDatabases)
 
-		d.SetId(instance.ID)
-		_ = d.Set("task_id", instance.TaskID)
+			if err != nil {
+				return fmt.Errorf("[ERROR] Create new database for database instance [%s] failed: %v", instance.ID, err)
+			}
+		}
+	}
 
-		// wait for cloud database instance to become active
-		_, err = waitForCloudDatabaseInstanceCreate(d, meta)
+	if _, ok := d.GetOk("users"); ok {
+		// Do create new users
+		newUsers := readDatabaseUsers(d.Get("users").(*schema.Set))
+
+		err = client.CloudDatabase.Instances().CreateUsers(context.Background(), instance.ID, newUsers)
 		if err != nil {
-			return resource.NonRetryableError(fmt.Errorf("[ERROR] create cloud database instance (%s) failed: %s. Can't retry", d.Get("name").(string), err))
+			return fmt.Errorf("[ERROR] Create new user for database instance [%s] failed: %v", instance.ID, err)
+		}
+	}
+
+	if _, ok := d.GetOk("configuration_group"); ok {
+		// Do attach configuration_group to all nodes
+		cfg := make(map[string]string)
+		for k, v := range d.Get("configuration_group").(map[string]interface{}) {
+			cfg[k] = fmt.Sprintf("%v", v)
 		}
 
-		err = resourceBizFlyCloudCloudDatabaseInstanceRead(d, meta)
+		ins, err := client.CloudDatabase.Instances().Get(context.Background(), instance.ID)
 		if err != nil {
-			return resource.NonRetryableError(fmt.Errorf("[ERROR] read cloud database instance (%s) failed: %s. Can't retry", d.Get("name").(string), err))
+			return fmt.Errorf("[ERROR] Attach configuration group for database instance [%s] failed: %v", instance.ID, err)
 		}
 
-		return nil
-	})
+		for _, node := range ins.Nodes {
+			_, _ = client.CloudDatabase.Configurations().Attach(context.Background(), node.ID, cfg["id"], true)
+		}
+
+		if cfg["apply_immediately"] == "true" {
+			for _, node := range ins.Nodes {
+				_, _ = client.CloudDatabase.Nodes().Restart(context.Background(), node.ID)
+			}
+		}
+	}
+
+	return resourceBizflyCloudCloudDatabaseInstanceRead(d, meta)
 }
 
-func resourceBizFlyCloudCloudDatabaseInstanceRead(d *schema.ResourceData, meta interface{}) error {
-	if err := dataSourceBizFlyCloudDatabaseInstanceRead(d, meta); err != nil {
+func resourceBizflyCloudCloudDatabaseInstanceRead(d *schema.ResourceData, meta interface{}) error {
+	if err := dataSourceBizflyCloudDatabaseInstanceRead(d, meta); err != nil {
 		return err
 	}
 	return nil
 }
 
-func resourceBizFlyCloudCloudDatabaseInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudCloudDatabaseInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	id := d.Id()
+	// We need keep current changed values in here because:
+	// when do update autoscaling, d schema being set current values
+	datastore := readResourceCloudDatabaseDatastore(d)
+	instanceType := d.Get("instance_type").(string)
+	newVolumeSize := d.Get("volume_size").(int)
+
+	if d.HasChange("autoscaling") {
+		autoscaling := readResourceCloudDatabaseAutoScaling(d)
+		_ = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+			das := &gobizfly.CloudDatabaseAutoScaling{
+				Enable: false,
+				Volume: gobizfly.CloudDatabaseAutoScalingVolume{
+					Limited:   autoscaling["volume_limited"],
+					Threshold: autoscaling["volume_threshold"],
+				}}
+
+			if autoscaling["enable"] == 1 {
+				das.Enable = true
+				_, _ = client.CloudDatabase.AutoScalings().Update(context.Background(), id, das)
+			} else {
+				_, _ = client.CloudDatabase.AutoScalings().Delete(context.Background(), id)
+			}
+
+			err := resourceBizflyCloudCloudDatabaseInstanceRead(d, meta)
+			if err != nil {
+				return resource.NonRetryableError(fmt.Errorf("[ERROR] Update autoscaling volume of database instance %s failed: %s. Can't retry", id, err))
+			}
+
+			return nil
+		})
+	}
+
 	if d.HasChange("volume_size") {
 		// retry
+		instance, _ := client.CloudDatabase.Instances().Get(context.Background(), id)
+
+		if newVolumeSize < instance.Volume.Size {
+			return fmt.Errorf("[ERROR] New volume_size must be greater than %v", instance.Volume.Size)
+		}
+
 		retry := maxRetry
 		err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-			task, err := client.CloudDatabase.Instances().ResizeVolume(context.Background(), id, d.Get("volume_size").(int))
+			task, err := client.CloudDatabase.Instances().ResizeVolume(context.Background(), id, gobizfly.CloudDatabaseDatastore{
+				Type:      datastore["type"],
+				VersionID: datastore["version_id"],
+			}, instanceType, newVolumeSize)
 
 			if err != nil {
-				retry -= 1
+				retry--
 				if retry > 0 {
 					time.Sleep(timeSleep)
 					return resource.RetryableError(fmt.Errorf("[ERROR] Resize volume of database instance [%s] error: %v. Retrying", id, err))
@@ -138,13 +236,13 @@ func resourceBizFlyCloudCloudDatabaseInstanceUpdate(d *schema.ResourceData, meta
 
 			_ = d.Set("task_id", task.TaskID)
 
-			err = resourceBizFlyCloudCloudDatabaseInstanceRead(d, meta)
+			err = resourceBizflyCloudCloudDatabaseInstanceRead(d, meta)
 			if err != nil {
 				return resource.NonRetryableError(fmt.Errorf("[ERROR] Resize volume of database instance %s failed: %s. Can't retry", id, err))
 			}
 
 			// wait for database instance is active again
-			_, err = waitForCloudDatabaseInstanceUpdate(d, meta, "volume_size", d.Get("volume_size").(int))
+			_, err = waitForCloudDatabaseInstanceUpdate(d, meta)
 			if err != nil {
 				return resource.NonRetryableError(fmt.Errorf("[ERROR] Resize volume of database instance %s with task id (%s) error: %s. Can't retry", id, task.TaskID, err))
 			}
@@ -157,14 +255,19 @@ func resourceBizFlyCloudCloudDatabaseInstanceUpdate(d *schema.ResourceData, meta
 		}
 	}
 
-	if d.HasChange("flavor_name") {
+	if d.HasChange("flavor_name") || d.HasChange("instance_type") {
 		// retry
 		retry := maxRetry
+
 		err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-			task, err := client.CloudDatabase.Instances().ResizeFlavor(context.Background(), id, d.Get("flavor_name").(string))
+			task, err := client.CloudDatabase.Instances().ResizeFlavor(
+				context.Background(), id, gobizfly.CloudDatabaseDatastore{
+					Type:      datastore["type"],
+					VersionID: datastore["version_id"],
+				}, instanceType, d.Get("flavor_name").(string))
 
 			if err != nil {
-				retry -= 1
+				retry--
 				if retry > 0 {
 					time.Sleep(timeSleep)
 					return resource.RetryableError(fmt.Errorf("[ERROR] Resize flavor of database instance [%s] failed: %v. Retrying", id, err))
@@ -175,13 +278,13 @@ func resourceBizFlyCloudCloudDatabaseInstanceUpdate(d *schema.ResourceData, meta
 
 			_ = d.Set("task_id", task.TaskID)
 
-			err = resourceBizFlyCloudCloudDatabaseInstanceRead(d, meta)
+			err = resourceBizflyCloudCloudDatabaseInstanceRead(d, meta)
 			if err != nil {
 				return resource.NonRetryableError(fmt.Errorf("[ERROR] Resize flavor of database instance %s failed: %s. Can't retry", id, err))
 			}
 
 			// wait for database instance is active again
-			_, err = waitForCloudDatabaseInstanceUpdate(d, meta, "flavor_name", d.Get("flavor_name").(string))
+			_, err = waitForCloudDatabaseInstanceUpdate(d, meta)
 			if err != nil {
 				return resource.NonRetryableError(fmt.Errorf("[ERROR] Resize flavor of database instance %s with task (%s) failed: %s. Can't retry", id, task.TaskID, err))
 			}
@@ -189,14 +292,56 @@ func resourceBizFlyCloudCloudDatabaseInstanceUpdate(d *schema.ResourceData, meta
 		})
 
 		if err != nil {
-			return fmt.Errorf("[ERROR] Resize volume of database instance %s failed: %s", id, err)
+			return fmt.Errorf("[ERROR] Resize flavor of database instance %s failed: %s", id, err)
 		}
 	}
 
-	return resourceBizFlyCloudCloudDatabaseInstanceRead(d, meta)
+	if d.HasChange("init_databases") {
+		// We just create new databases without do delete any databases
+		// Because delete database is an action really dangerous
+		databases, _ := readCurrentDatabases(client, id)
+		initDatabases := d.Get("init_databases").([]interface{})
+		newDatabases := []*gobizfly.CloudDatabaseDB{}
+
+		for _, database := range initDatabases {
+			if len(databases) > 0 {
+				_, avail := gobizfly.SliceContains(databases, database)
+				if avail {
+					continue
+				}
+			}
+
+			newDatabases = append(newDatabases, &gobizfly.CloudDatabaseDB{Name: database.(string)})
+		}
+
+		err := client.CloudDatabase.Instances().CreateDatabases(context.Background(), id, newDatabases)
+
+		if err != nil {
+			return fmt.Errorf("[ERROR] Create new database for database instance [%s] failed: %v", id, err)
+		}
+	}
+
+	if d.HasChange("users") {
+		// To handle edge case change password:
+		// First, we will do delete current users
+		// After, we will do create new users
+		newUsers := readDatabaseUsers(d.Get("users").(*schema.Set))
+
+		err := client.CloudDatabase.Instances().DeleteUsers(context.Background(), id, newUsers)
+		if err != nil {
+			return fmt.Errorf("[ERROR] Create new user for database instance [%s] failed: %v", id, err)
+		}
+
+		err = client.CloudDatabase.Instances().CreateUsers(context.Background(), id, newUsers)
+		if err != nil {
+			return fmt.Errorf("[ERROR] Create new user for database instance [%s] failed: %v", id, err)
+		}
+	}
+
+	return resourceBizflyCloudCloudDatabaseInstanceRead(d, meta)
 }
 
-func resourceBizFlyCloudCloudDatabaseInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudCloudDatabaseInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	id := d.Id()
 
@@ -206,7 +351,7 @@ func resourceBizFlyCloudCloudDatabaseInstanceDelete(d *schema.ResourceData, meta
 		task, err := client.CloudDatabase.Instances().Delete(context.Background(), id, &gobizfly.CloudDatabaseDelete{})
 
 		if err != nil {
-			retry -= 1
+			retry--
 			if retry > 0 {
 				time.Sleep(timeSleep)
 				return resource.RetryableError(fmt.Errorf("[ERROR] delete cloud database instance %s failed: %v. Retrying", id, err))
@@ -240,12 +385,12 @@ func waitForCloudDatabaseInstanceCreate(d *schema.ResourceData, meta interface{}
 	return stateConf.WaitForState()
 }
 
-func waitForCloudDatabaseInstanceUpdate(d *schema.ResourceData, meta interface{}, key string, newValue interface{}) (interface{}, error) {
+func waitForCloudDatabaseInstanceUpdate(d *schema.ResourceData, meta interface{}) (interface{}, error) {
 	log.Printf("[INFO] Waiting for cloud database instance (%s) to be update", d.Get("name").(string))
 	stateConf := &resource.StateChangeConf{
 		Pending:        []string{"false", "RESIZE", "RESTART_REQUIRED", "REBOOTING"},
 		Target:         []string{"true", "ACTIVE", "HEALTHY"},
-		Refresh:        updateCloudDatabaseInstanceStateRefreshFunc(d, key, newValue, meta),
+		Refresh:        newCloudDatabaseInstanceStateRefreshFunc(d, meta),
 		Timeout:        d.Timeout(schema.TimeoutUpdate),
 		Delay:          60 * time.Second,
 		MinTimeout:     10 * time.Second,
@@ -272,7 +417,7 @@ func newCloudDatabaseInstanceStateRefreshFunc(d *schema.ResourceData, meta inter
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	return func() (interface{}, string, error) {
-		err := resourceBizFlyCloudCloudDatabaseInstanceRead(d, meta)
+		err := resourceBizflyCloudCloudDatabaseInstanceRead(d, meta)
 		if err != nil {
 			return nil, "", err
 		}
@@ -297,30 +442,9 @@ func updateCloudDatabaseInstanceStateRefreshFunc(d *schema.ResourceData, key str
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	return func() (interface{}, string, error) {
-		err := resourceBizFlyCloudCloudDatabaseInstanceRead(d, meta)
+		err := resourceBizflyCloudCloudDatabaseInstanceRead(d, meta)
 		if err != nil {
 			return nil, "", err
-		}
-
-		ins, err := client.CloudDatabase.Instances().Get(context.Background(), d.Id())
-		if err != nil {
-			return nil, "", fmt.Errorf("[ERROR] Retrieving cloud database instance %s error: %v", d.Id(), err)
-		}
-
-		switch key {
-		case "volume_size":
-			if ins.Volume.Size < newValue.(int) {
-				log.Println("[DEBUG] Cloud database instance is updating")
-				return nil, "", nil
-			}
-
-		case "flavor_name":
-			for _, node := range ins.Nodes {
-				if strings.Contains(node.Flavor, newValue.(string)) {
-					log.Println("[DEBUG] Cloud database instance is updating")
-					return nil, "", nil
-				}
-			}
 		}
 
 		if attr, ok := d.GetOk("status"); ok {
@@ -362,4 +486,94 @@ func makeArrayNetworkIDFromArray(items []interface{}) []gobizfly.CloudDatabaseNe
 		stringDictArray = append(stringDictArray, networkDict)
 	}
 	return stringDictArray
+}
+
+func readResourceCloudDatabaseDatastore(d *schema.ResourceData) map[string]string {
+	datastore := make(map[string]string)
+	for k, v := range d.Get("datastore").(map[string]interface{}) {
+		datastore[k] = fmt.Sprintf("%v", v)
+	}
+	return datastore
+}
+
+func readResourceCloudDatabaseAutoScaling(d *schema.ResourceData) map[string]int {
+	autoscaling := make(map[string]int)
+	for k, v := range d.Get("autoscaling").(map[string]interface{}) {
+		autoscaling[k] = v.(int)
+	}
+	return autoscaling
+}
+
+func readResourceCloudDatabaseInstanceSecondary(secondaries *schema.Set) map[string]interface{} {
+	results := make(map[string]interface{})
+	for _, _s := range secondaries.List() {
+		secondary := _s.(map[string]interface{})
+
+		results["quantity"] = secondary["quantity"].(int)
+		results["availability_zone"] = secondary["availability_zone"].(string)
+	}
+
+	return results
+}
+
+func readCurrentDatabases(client *gobizfly.Client, instanceID string) ([]interface{}, error) {
+	databases, err := client.CloudDatabase.Instances().ListDatabases(context.Background(), instanceID)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []interface{}
+	for _, item := range databases {
+		results = append(results, item.Name)
+	}
+
+	return results, nil
+}
+
+func readCurrentUsers(client *gobizfly.Client, instanceID string) ([]interface{}, error) {
+	users, err := client.CloudDatabase.Instances().ListUsers(context.Background(), instanceID)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []interface{}
+	for _, item := range users {
+		results = append(results, item.Name)
+	}
+
+	return results, nil
+}
+
+func readDatabaseUsers(users *schema.Set) []*gobizfly.CloudDatabaseUser {
+	var results []*gobizfly.CloudDatabaseUser
+
+	for _, item := range users.List() {
+		user := item.(map[string]interface{})
+		cdb := make([]gobizfly.CloudDatabaseDB, 0)
+
+		cdu := gobizfly.CloudDatabaseUser{
+			Databases: []gobizfly.CloudDatabaseDB{
+				gobizfly.CloudDatabaseDB{Name: "yanfei"},
+				gobizfly.CloudDatabaseDB{Name: "genshin"},
+			},
+			Name:     user["username"].(string),
+			Password: user["password"].(string),
+		}
+
+		if user["host"].(string) != "" {
+			cdu.Host = user["host"].(string)
+		}
+
+		databases := user["databases"].([]interface{})
+		if len(databases) > 0 {
+			for _, db := range databases {
+				cdb = append(cdb, gobizfly.CloudDatabaseDB{Name: db.(string)})
+			}
+			cdu.Databases = cdb
+		}
+
+		results = append(results, &cdu)
+	}
+
+	return results
 }
