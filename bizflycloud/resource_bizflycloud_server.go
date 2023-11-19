@@ -21,9 +21,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/google/go-cmp/cmp"
 	"log"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/bizflycloud/gobizfly"
@@ -43,130 +45,7 @@ func resourceBizflyCloudServer() *schema.Resource {
 		Update:        resourceBizflyCloudServerUpdate,
 		Delete:        resourceBizflyCloudServerDelete,
 		SchemaVersion: 1,
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"flavor_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"ssh_key": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"category": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"password": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-			"os_type": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"os_id": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"root_disk_type": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Deprecated: "use root_disk_volume_type instead",
-			},
-			"root_disk_volume_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"root_disk_size": {
-				Type:     schema.TypeInt,
-				Required: true,
-			},
-			"availability_zone": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"user_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"project_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"created_at": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"updated_at": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"user_data": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"volume_ids": {
-				Type:     schema.TypeSet,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Optional: true,
-				Computed: true,
-			},
-			"lan_ip": {
-				Type:     schema.TypeSet,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Computed: true,
-			},
-			"wan_ipv4": {
-				Type:     schema.TypeSet,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Computed: true,
-			},
-			"wan_ipv6": {
-				Type:     schema.TypeSet,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Computed: true,
-			},
-			"network_plan": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "free_datatransfer",
-			},
-			"vpc_network_ids": {
-				Type:     schema.TypeSet,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Optional: true,
-			},
-			"billing_plan": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "saving_plan",
-			},
-			"is_available": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-			"zone_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"locked": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-			"network_interface_ids": {
-				Type:     schema.TypeSet,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Computed: true,
-			},
-		},
+		Schema:        resourceServerSchema(),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -181,13 +60,9 @@ func resourceBizflyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 
 	// Build up creation options
 	rootDiskPayload := gobizfly.ServerDisk{Size: d.Get("root_disk_size").(int)}
-	if v, ok := d.GetOk("root_disk_type"); ok {
-		rootDiskType := v.(string)
-		rootDiskPayload.Type = &rootDiskType
-	} else {
-		rootDiskVolumeType := d.Get("root_disk_volume_type").(string)
-		rootDiskPayload.VolumeType = &rootDiskVolumeType
-	}
+	rootDiskVolumeType := d.Get("root_disk_volume_type").(string)
+	rootDiskPayload.VolumeType = &rootDiskVolumeType
+	vpcNetworkIDs := readStringArray(d.Get("vpc_network_ids").(*schema.Set).List())
 	scr := &gobizfly.ServerCreateRequest{
 		Name:       d.Get("name").(string),
 		FlavorName: d.Get("flavor_name").(string),
@@ -201,10 +76,48 @@ func resourceBizflyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 		Password:         d.Get("password").(bool),
 		RootDisk:         &rootDiskPayload,
 		NetworkPlan:      d.Get("network_plan").(string),
-		VPCNetworkIds:    readStringArray(d.Get("vpc_network_ids").(*schema.Set).List()),
 		BillingPlan:      d.Get("billing_plan").(string),
 		UserData:         d.Get("user_data").(string),
 	}
+	var (
+		isCreatedWan         bool
+		usingV6Wan           bool
+		freeWanV4BlockCount  int
+		freeWanV6BlockCount  int
+		networkInterfaceIDs  []string
+		freeWanV4FirewallIDs []string
+		freeWanV6FirewallIDs []string
+	)
+	attachPortIPFirewallIDs := make(map[string][]string)
+	for _, v := range d.Get("free_wan").(*schema.Set).List() {
+		freeWan := v.(map[string]interface{})
+		if freeWan["ip_version"].(int) == 4 {
+			freeWanV4BlockCount++
+			if freeWanV4BlockCount > 1 {
+				return fmt.Errorf("only one free WAN V4 is allowed")
+			}
+			isCreatedWan = true
+			freeWanV4FirewallIDs = readStringArray(freeWan["firewall_ids"].(*schema.Set).List())
+		} else {
+			freeWanV6BlockCount++
+			usingV6Wan = true
+			if freeWanV6BlockCount > 1 {
+				return fmt.Errorf("only one free WAN V6 is allowed")
+			}
+			freeWanV6FirewallIDs = readStringArray(freeWan["firewall_ids"].(*schema.Set).List())
+		}
+	}
+	for _, v := range d.Get("network_interface").(*schema.Set).List() {
+		networkInterface := v.(map[string]interface{})
+		portIDStr := networkInterface["id"].(string)
+		firewallIDs := readStringArray(networkInterface["firewall_ids"].(*schema.Set).List())
+		attachPortIPFirewallIDs[portIDStr] = firewallIDs
+		networkInterfaceIDs = append(networkInterfaceIDs, portIDStr)
+	}
+	scr.IsCreatedWan = &isCreatedWan
+	scr.IPv6 = usingV6Wan
+	scr.VPCNetworkIds = vpcNetworkIDs
+	scr.NetworkInterfaces = networkInterfaceIDs
 	log.Printf("[DEBUG] Create Cloud Server configuration: %#v", scr)
 
 	tasks, err := client.Server.Create(context.Background(), scr)
@@ -220,6 +133,48 @@ func resourceBizflyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error creating cloud server with task id (%s): %s", d.Id(), err)
 	}
 
+	ports, err := client.NetworkInterface.List(context.Background(), &gobizfly.ListNetworkInterfaceOptions{
+		Type:   "LAN_WAN",
+		Status: "ACTIVE",
+	})
+	var wg sync.WaitGroup
+	errChan := make(chan error, len(ports))
+	for _, port := range ports {
+		if port.DeviceID != d.Id() {
+			continue
+		}
+		if port.BillingType == "free" && port.Type == "WAN" {
+			if port.IPVersion == 6 {
+				wg.Add(1)
+				go func(portID string) {
+					defer wg.Done()
+					if err := attachFirewallsForPort(client, portID, freeWanV6FirewallIDs); err != nil {
+						errChan <- fmt.Errorf("error attaching firewall for port %s: %v", port.ID, err)
+					}
+				}(port.ID)
+			} else {
+				wg.Add(1)
+				go func(portID string) {
+					defer wg.Done()
+					if err := attachFirewallsForPort(client, portID, freeWanV4FirewallIDs); err != nil {
+						errChan <- fmt.Errorf("error attaching firewall for port %s: %v", port.ID, err)
+					}
+				}(port.ID)
+			}
+		} else if checkIDInList(port.ID, networkInterfaceIDs) {
+			wg.Add(1)
+			go func(portID string) {
+				defer wg.Done()
+				if err := attachFirewallsForPort(client, portID, attachPortIPFirewallIDs[port.ID]); err != nil {
+					errChan <- fmt.Errorf("error attaching firewall for port %s: %v", port.ID, err)
+				}
+			}(port.ID)
+		}
+	}
+	wg.Wait()
+	if len(errChan) > 0 {
+		return <-errChan
+	}
 	// attach volume in volume_ids list after server is created
 	if attr, ok := d.GetOk("volume_ids"); ok {
 		var volumes []string
@@ -255,19 +210,30 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	networkInterfaces, _ := client.NetworkInterface.List(context.Background(), &gobizfly.ListNetworkInterfaceOptions{
 		Type: "LAN_WAN",
 	})
-	vpc_network_ids := make([]string, 0)
-
-	networkInterfaceIds := make([]string, 0)
+	serverFreeWan := make([]map[string]interface{}, 0)
+	serverNetworkInterfaces := make([]map[string]interface{}, 0)
+	vpcNetworkIDs := make([]string, 0)
 	for _, networkInterface := range networkInterfaces {
-		if networkInterface.DeviceID == d.Id() {
-			networkInterfaceIds = append(networkInterfaceIds, networkInterface.ID)
+		if networkInterface.DeviceID != d.Id() {
+			continue
 		}
-		if networkInterface.Type == "LAN" {
-			vpc_network_ids = append(vpc_network_ids, networkInterface.NetworkID)
+		serverNetworkInterface := make(map[string]interface{})
+		serverNetworkInterface["id"] = networkInterface.ID
+		serverNetworkInterface["firewall_ids"] = networkInterface.SecurityGroups
+		if networkInterface.Type == "WAN" && networkInterface.BillingType == "free" {
+			if networkInterface.IPVersion == 6 {
+				serverNetworkInterface["ip_version"] = 6
+			} else {
+				serverNetworkInterface["ip_version"] = 4
+			}
+			serverFreeWan = append(serverFreeWan, serverNetworkInterface)
+		} else {
+			serverNetworkInterfaces = append(serverNetworkInterfaces, serverNetworkInterface)
+			if networkInterface.Type == "LAN" {
+				vpcNetworkIDs = append(vpcNetworkIDs, networkInterface.NetworkID)
+			}
 		}
 	}
-	vpc_network_ids = uniqueList(vpc_network_ids)
-
 	_ = d.Set("name", server.Name)
 	_ = d.Set("key_name", server.KeyName)
 	_ = d.Set("status", server.Status)
@@ -283,21 +249,15 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	_ = d.Set("is_available", server.IsAvailable)
 	_ = d.Set("locked", server.Locked)
 	_ = d.Set("network_plan", server.NetworkPlan)
-	_ = d.Set("network_interface_ids", networkInterfaceIds)
-	_ = d.Set("vpc_network_ids", vpc_network_ids)
+	if d.Get("network_interface") != nil {
+		_ = d.Set("network_interface", serverNetworkInterfaces)
+	} else {
+		_ = d.Set("vpc_network_ids", vpcNetworkIDs)
+	}
+	_ = d.Set("free_wan", serverFreeWan)
 
-	if err := d.Set("volume_ids", flatternBizflyCloudVolumeIDs(server.AttachedVolumes)); err != nil {
+	if err = d.Set("volume_ids", flatternBizflyCloudVolumeIDs(server.AttachedVolumes)); err != nil {
 		return fmt.Errorf("Error setting `volume_ids`: %+v", err)
-	}
-
-	if err := d.Set("lan_ip", flatternBizflyCloudIPs(server.IPAddresses.LanAddresses)); err != nil {
-		return fmt.Errorf("Error setting `lan_ip`: %+v", err)
-	}
-	if err := d.Set("wan_ipv4", flatternBizflyCloudIPs(server.IPAddresses.WanV4Addresses)); err != nil {
-		return fmt.Errorf("Error setting `wan_ipv4`: %+v", err)
-	}
-	if err := d.Set("wan_ipv6", flatternBizflyCloudIPs(server.IPAddresses.WanV6Addresses)); err != nil {
-		return fmt.Errorf("Error setting `wan_ipv6`: %+v", err)
 	}
 	return nil
 }
@@ -331,6 +291,8 @@ func resourceBizflyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 		for vpcId := range leftDiff(newIDSet, oldIDSet) {
 			attachVPCs = append(attachVPCs, vpcId)
 		}
+		log.Printf("[DEBUG] attachVPCs: %#v", attachVPCs)
+		log.Printf("[DEBUG] detachVPCs: %#v", detachVPCs)
 		if len(detachVPCs) > 0 {
 			_, err := client.Server.RemoveVPC(context.Background(), d.Id(), detachVPCs)
 			if err != nil {
@@ -389,6 +351,209 @@ func resourceBizflyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 		err := client.Server.SwitchBillingPlan(context.Background(), d.Id(), newBillingPlan.(string))
 		if err != nil {
 			return fmt.Errorf("error changing billing plan of server [%s]: %v", d.Id(), err)
+		}
+	}
+	if d.HasChange("free_wan") {
+		oldFreeWan, newFreeWan := d.GetChange("free_wan")
+		var (
+			freeWanV4ID, freeWanV6ID string
+		)
+		oldFreeWanList := oldFreeWan.(*schema.Set).List()
+		newFreeWanList := newFreeWan.(*schema.Set).List()
+		oldFreeWanMap := make(map[int]bool)
+		newFreeWanMap := make(map[int]bool)
+		oldFreeWanFirewallIDs := make(map[int][]string)
+		newFreeWanFirewallIDs := make(map[int][]string)
+		removeFreeWan := make([]string, 0)
+		addFirewallIDs := make(map[string][]string)
+		log.Printf("[DEBUG] oldFreeWanMap: %#v", oldFreeWanMap)
+		log.Printf("[DEBUG] newFreeWanMap: %#v", newFreeWanMap)
+
+		removeFirewallIDs := make(map[string][]string)
+		for _, v := range oldFreeWanList {
+			freeWan := v.(map[string]interface{})
+			portID := freeWan["id"].(string)
+			ipVersion := freeWan["ip_version"].(int)
+			oldFreeWanMap[ipVersion] = true
+			firewallIDs := readStringArray(freeWan["firewall_ids"].(*schema.Set).List())
+			oldFreeWanFirewallIDs[ipVersion] = firewallIDs
+			if ipVersion == 4 {
+				freeWanV4ID = portID
+			} else {
+				freeWanV6ID = portID
+			}
+		}
+		log.Printf("[DEBUG] oldFreeWanFirewallIDs: %#v", oldFreeWanFirewallIDs)
+		var portID string
+		for _, v := range newFreeWanList {
+			freeWan := v.(map[string]interface{})
+			ipVersion := freeWan["ip_version"].(int)
+			if ipVersion == 4 {
+				portID = freeWanV4ID
+			} else {
+				portID = freeWanV6ID
+			}
+
+			firewallIDs := readStringArray(freeWan["firewall_ids"].(*schema.Set).List())
+			newFreeWanFirewallIDs[ipVersion] = firewallIDs
+			newFreeWanMap[ipVersion] = true
+			if !oldFreeWanMap[ipVersion] {
+				// add port
+				return errors.New("cannot add free wan port after creating server")
+			} else {
+				// check diff in firewall
+				for _, firewallID := range firewallIDs {
+					if !checkIDInList(firewallID, oldFreeWanFirewallIDs[ipVersion]) {
+						addFirewallIDs[portID] = append(addFirewallIDs[portID], firewallID)
+					}
+				}
+			}
+		}
+		log.Printf("[DEBUG] newFreeWanFirewallIDs: %#v", newFreeWanFirewallIDs)
+		for _, v := range oldFreeWanList {
+			freeWan := v.(map[string]interface{})
+			portID = freeWan["id"].(string)
+			ipVersion := freeWan["ip_version"].(int)
+			if !newFreeWanMap[ipVersion] {
+				// remove port
+				removeFreeWan = append(removeFreeWan, portID)
+			} else {
+				// check diff in firewall
+				for _, firewallID := range oldFreeWanFirewallIDs[ipVersion] {
+					if !checkIDInList(firewallID, newFreeWanFirewallIDs[ipVersion]) {
+						removeFirewallIDs[portID] = append(removeFirewallIDs[portID], firewallID)
+					}
+				}
+			}
+		}
+		log.Printf("[DEBUG] removeFreeWan: %#v", removeFreeWan)
+		log.Printf("[DEBUG] addFirewallIDs: %#v", addFirewallIDs)
+		log.Printf("[DEBUG] removeFirewallIDs: %#v", removeFirewallIDs)
+		var wg sync.WaitGroup
+		errChan := make(chan error, len(removeFreeWan)+len(addFirewallIDs)+len(removeFirewallIDs))
+		for _, portID = range removeFreeWan {
+			wg.Add(1)
+			go func(portID string) {
+				defer wg.Done()
+				if err := detachServerForPort(client, portID); err != nil {
+					errChan <- fmt.Errorf("error detaching server for port %s: %v", portID, err)
+				}
+			}(portID)
+		}
+		for portID, firewallIDs := range addFirewallIDs {
+			wg.Add(1)
+			go func(portID string, firewallIDs []string) {
+				defer wg.Done()
+				if err := attachFirewallsForPort(client, portID, firewallIDs); err != nil {
+					errChan <- fmt.Errorf("error attaching firewall for port %s: %v", portID, err)
+				}
+			}(portID, firewallIDs)
+		}
+		for portID, firewallIDs := range removeFirewallIDs {
+			wg.Add(1)
+			go func(portID string, firewallIDs []string) {
+				defer wg.Done()
+				if err := detachFirewallsForPort(client, portID, firewallIDs); err != nil {
+					errChan <- fmt.Errorf("error detaching firewall for port %s: %v", portID, err)
+				}
+			}(portID, firewallIDs)
+		}
+		wg.Wait()
+		if len(errChan) > 0 {
+			return <-errChan
+		}
+	}
+	if d.HasChange("network_interface") {
+		oldInterface, newInterface := d.GetChange("network_interface")
+		oldNetworkInterfaces := readNetworkInterface(oldInterface)
+		newNetworkInterfaces := readNetworkInterface(newInterface)
+		log.Printf("[DEBUG] oldNetworkInterfaces: %#v", oldNetworkInterfaces)
+		log.Printf("[DEBUG] newNetworkInterfaces: %#v", newNetworkInterfaces)
+		isOldNetInterface := make(map[string]bool)
+		isNewNetInterface := make(map[string]bool)
+		addFirewallsMap := make(map[string][]string)
+		removeFirewallsMap := make(map[string][]string)
+		var (
+			addNetworkInterfaces    []ServerNetworkInterface
+			removeNetworkInterfaces []ServerNetworkInterface
+		)
+		for _, networkInterface := range oldNetworkInterfaces {
+			isOldNetInterface[networkInterface.ID] = true
+		}
+		for _, networkInterface := range newNetworkInterfaces {
+			isNewNetInterface[networkInterface.ID] = true
+			if !isOldNetInterface[networkInterface.ID] {
+				addNetworkInterfaces = append(addNetworkInterfaces, networkInterface)
+			} else {
+				for _, oldNetworkInterface := range oldNetworkInterfaces {
+					if oldNetworkInterface.ID == networkInterface.ID {
+						if !cmp.Equal(oldNetworkInterface.FirewallIDs, networkInterface.FirewallIDs) {
+							// find the add and remove firewalls
+							for _, firewallID := range networkInterface.FirewallIDs {
+								if !checkIDInList(firewallID, oldNetworkInterface.FirewallIDs) {
+									addFirewallsMap[networkInterface.ID] = append(addFirewallsMap[networkInterface.ID], firewallID)
+								} else {
+									removeFirewallsMap[networkInterface.ID] = append(removeFirewallsMap[networkInterface.ID], firewallID)
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		log.Printf("[DEBUG] isOldNetInterface: %#v", isOldNetInterface)
+		log.Printf("[DEBUG] isNewNetInterface: %#v", isNewNetInterface)
+		for _, networkInterface := range oldNetworkInterfaces {
+			if !isNewNetInterface[networkInterface.ID] {
+				removeNetworkInterfaces = append(removeNetworkInterfaces, networkInterface)
+			}
+		}
+		log.Printf("[DEBUG] addNetworkInterfaces: %#v", addNetworkInterfaces)
+		log.Printf("[DEBUG] removeNetworkInterfaces: %#v", removeNetworkInterfaces)
+		log.Printf("[DEBUG] addFirewallsMap: %#v", addFirewallsMap)
+		log.Printf("[DEBUG] removeFirewallsMap: %#v", removeFirewallsMap)
+		var wg sync.WaitGroup
+		errChan := make(chan error, len(addNetworkInterfaces)+len(removeNetworkInterfaces)+
+			len(addFirewallsMap)+len(removeFirewallsMap))
+		for _, addNetworkInterface := range addNetworkInterfaces {
+			wg.Add(1)
+			go func(networkInterface *ServerNetworkInterface) {
+				defer wg.Done()
+				if err := attachServerForPort(client, d.Id(), networkInterface.ID); err != nil {
+					errChan <- fmt.Errorf("error attaching server for port %s: %v", networkInterface.ID, err)
+				}
+			}(&addNetworkInterface)
+		}
+		for _, removeNetworkInterface := range removeNetworkInterfaces {
+			wg.Add(1)
+			go func(networkInterface *ServerNetworkInterface) {
+				defer wg.Done()
+				if err := detachServerForPort(client, networkInterface.ID); err != nil {
+					errChan <- fmt.Errorf("error detaching server for port %s: %v", networkInterface.ID, err)
+				}
+			}(&removeNetworkInterface)
+		}
+		for portID, firewallIDs := range addFirewallsMap {
+			wg.Add(1)
+			go func(portID string, firewallIDs []string) {
+				defer wg.Done()
+				if err := attachFirewallsForPort(client, portID, firewallIDs); err != nil {
+					errChan <- fmt.Errorf("error attaching firewall for port %s: %v", portID, err)
+				}
+			}(portID, firewallIDs)
+		}
+		for portID, firewallIDs := range removeFirewallsMap {
+			wg.Add(1)
+			go func(portID string, firewallIDs []string) {
+				defer wg.Done()
+				if err := detachFirewallsForPort(client, portID, firewallIDs); err != nil {
+					errChan <- fmt.Errorf("error detaching firewall for port %s: %v", portID, err)
+				}
+			}(portID, firewallIDs)
+		}
+		wg.Wait()
+		if len(errChan) > 0 {
+			return <-errChan
 		}
 	}
 	return resourceBizflyCloudServerRead(d, meta)
@@ -619,4 +784,71 @@ func uniqueList(list []string) []string {
 		out = append(out, v)
 	}
 	return out
+}
+
+func attachFirewallsForPort(client *gobizfly.Client, portID string, firewallIDs []string) error {
+	if firewallIDs == nil || len(firewallIDs) == 0 {
+		return nil
+	}
+	_, err := client.NetworkInterface.Action(context.Background(), portID,
+		&gobizfly.ActionNetworkInterfacePayload{
+			Action:         "add_firewall",
+			SecurityGroups: firewallIDs,
+		})
+	return err
+
+}
+
+func detachFirewallsForPort(client *gobizfly.Client, portID string, firewallIDs []string) error {
+	if firewallIDs == nil || len(firewallIDs) == 0 {
+		return nil
+	}
+	_, err := client.NetworkInterface.Action(context.Background(), portID,
+		&gobizfly.ActionNetworkInterfacePayload{
+			Action:         "remove_firewall",
+			SecurityGroups: firewallIDs,
+		})
+	return err
+}
+
+func attachServerForPort(client *gobizfly.Client, serverID, portID string) error {
+	_, err := client.NetworkInterface.Action(context.Background(), portID,
+		&gobizfly.ActionNetworkInterfacePayload{
+			Action:   "attach_server",
+			ServerID: serverID,
+		})
+	return err
+}
+
+func detachServerForPort(client *gobizfly.Client, portID string) error {
+	_, err := client.NetworkInterface.Action(context.Background(), portID,
+		&gobizfly.ActionNetworkInterfacePayload{
+			Action: "detach_server",
+		})
+	return err
+}
+
+func checkIDInList(id string, IDs []string) bool {
+	for _, v := range IDs {
+		if v == id {
+			return true
+		}
+	}
+	return false
+}
+
+func readNetworkInterface(inputInterface interface{}) (networkInterfaces []ServerNetworkInterface) {
+	for _, v := range inputInterface.(*schema.Set).List() {
+		networkInterface := v.(map[string]interface{})
+		var portIDStr string
+		if portID := networkInterface["id"]; portID != nil {
+			portIDStr = networkInterface["id"].(string)
+		}
+		firewallIDs := readStringArray(networkInterface["firewall_ids"].(*schema.Set).List())
+		networkInterfaces = append(networkInterfaces, ServerNetworkInterface{
+			ID:          portIDStr,
+			FirewallIDs: firewallIDs,
+		})
+	}
+	return
 }
