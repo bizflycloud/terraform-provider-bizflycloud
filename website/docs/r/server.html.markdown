@@ -54,6 +54,10 @@ The following arguments are supported:
 * `billing_plan` - (Optional) The billing plan applied for the server (saving_plan/on_demand). Default value is
   saving_plan
 * `user_data` - (Optional) The user data to provide when launching the server.
+* `default_public_ipv4` - (Optional) The default public IPv4 WAN network interface of the server.
+  - `firewall_ids` - (Optional) A list of the firewall IDs of the network interface
+* `default_private_ipv6` - (Optional) The default private IPv6 LAN network interface of the server.
+  - `firewall_ids` - (Optional) A list of the firewall IDs of the network interface
 
 ## Attributes Reference
 
@@ -68,13 +72,14 @@ The following attributes are exported:
 * `root_disk_size` - The size of Server root disk
 * `availability_zone` - The availability zone of server
 * `volume_ids` - A list of the attached block storage volumes
-* `lan_ip` - Lan IP of the server
-* `wan_ipv4` - A list of the WAN IP v4 of the server
-* `wan_ipv6` - A list of the WAN IP v6 of the server
+* `default_public_ipv4` - (Optional) The default public IPv4 WAN network interface of the server.
+  - `firewall_ids` - (Optional) A list of the firewall IDs of the network interface
+* `default_private_ipv6` - (Optional) The default private IPv6 LAN network interface of the server.
+  - `firewall_ids` - (Optional) A list of the firewall IDs of the network interface
+* `network_interface_ids` - A list of the network interfaces
 * `network_plan` - The network plan for the server. The default value is free_datatransfer.
 * `vpc_network_ids` - A list of the VPC network IDs.
 * `billing_plan` - The billing plan applied for the server
-* `zone_name` - The zone name of the server
 * `is_available` - The state that the server is available (not in a VM action)
 * `locked` - Is the server locked state
 

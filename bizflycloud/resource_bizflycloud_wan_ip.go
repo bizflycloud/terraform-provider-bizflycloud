@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -94,7 +95,7 @@ func resourceBizflyCloudWanIPRead(d *schema.ResourceData, meta interface{}) erro
 func resourceBizflyCloudWanIPDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	err := client.WanIP.Delete(context.Background(), d.Id())
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "Resource not found") {
 		return fmt.Errorf("error when deleting WAN IP: %s", err)
 	}
 	return nil

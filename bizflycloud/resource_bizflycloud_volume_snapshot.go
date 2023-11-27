@@ -62,7 +62,7 @@ func resourceBizflyCloudVolumeSnapshot() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"zone_name": {
+			"availability_zone": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -102,7 +102,7 @@ func resourceBizflyCloudVolumeSnapshotRead(d *schema.ResourceData, meta interfac
 	_ = d.Set("volume_id", snapshot.VolumeId)
 	_ = d.Set("snapshot_type", snapshot.SnapshotType)
 	_ = d.Set("type", snapshot.Type)
-	_ = d.Set("zone_name", snapshot.ZoneName)
+	_ = d.Set("availability_zone", snapshot.ZoneName)
 	_ = d.Set("region_name", snapshot.RegionName)
 	_ = d.Set("created_at", snapshot.CreateAt)
 	_ = d.Set("updated_at", snapshot.UpdatedAt)

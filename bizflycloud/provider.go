@@ -99,6 +99,8 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_cloud_database_backup_schedule":   resourceBizflyCloudDatabaseBackupSchedule(),
 			"bizflycloud_cloud_database_configuration":     resourceBizflyCloudDatabaseConfiguration(),
 			"bizflycloud_cloud_database_instance":          resourceBizflyCloudDatabaseInstance(),
+			"bizflycloud_custom_image":                     resourceBizflyCloudCustomImage(),
+			"bizflycloud_network_interface_attachment":     resourceBizflyCloudNetworkInterfaceAttachment(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"bizflycloud_image":                            datasourceBizflyCloudImages(),
@@ -109,7 +111,7 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_network_interface":                dataSourceBizflyCloudNetworkInterface(),
 			"bizflycloud_server":                           datasourceBizflyCloudServers(),
 			"bizflycloud_autoscaling_nodes":                datasourceBizflyCloudAutoscalingNodes(),
-			"bizflycloud_ssh_key":                          dataSourceBizflyClouldSSHKey(),
+			"bizflycloud_ssh_key":                          dataSourceBizflyCloudSSHKey(),
 			"bizflycloud_wan_ip":                           dataSourceBizflyCloudWanIP(),
 			"bizflycloud_server_type":                      dataSourceBizflyCloudServerTypes(),
 			"bizflycloud_volume_type":                      datasourceBizflyCloudVolumeTypes(),
@@ -117,6 +119,8 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_cloud_database_datastore":         datasourceBizflyCloudDatabaseDatastore(),
 			"bizflycloud_cloud_database_instance":          datasourceBizflyCloudDatabaseInstance(),
 			"bizflycloud_cloud_database_node":              datasourceBizflyCloudDatabaseNode(),
+			"bizflycloud_custom_image":                     dataSourceBizflyCloudCustomImage(),
+			"bizflycloud_volume_snapshot":                  dataSourceBizflyCloudVolumeSnapshot(),
 		},
 	}
 	p.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {

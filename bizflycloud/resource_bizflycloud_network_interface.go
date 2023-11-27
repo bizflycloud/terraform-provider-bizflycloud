@@ -3,6 +3,7 @@ package bizflycloud
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/bizflycloud/gobizfly"
@@ -43,62 +44,51 @@ func resourceBizflyCloudNetworkInterfaceCreate(d *schema.ResourceData, meta inte
 	}
 	d.SetId(networkInterface.ID)
 
-	actionPayload := &gobizfly.ActionNetworkInterfacePayload{
-		Action:   d.Get("action").(string),
-		ServerID: d.Get("server_id").(string),
-	}
-	if v, ok := d.GetOk("security_groups"); ok {
-		for _, id := range v.([]interface{}) {
-			actionPayload.SecurityGroups = append(actionPayload.SecurityGroups, id.(string))
-		}
-	}
-	_, err = client.NetworkInterface.Action(context.Background(), d.Id(), actionPayload)
-	if err != nil {
-		return fmt.Errorf("Error when action network interface: %v", err)
-	}
-
 	return resourceBizflyCloudNetworkInterfaceRead(d, meta)
 }
 
 func resourceBizflyCloudNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
-	if err := dataSourceBizflyCloudNetworkInterfaceRead(d, meta); err != nil {
-		return err
+	client := meta.(*CombinedConfig).gobizflyClient()
+	networkInterface, err := client.NetworkInterface.Get(context.Background(), d.Id())
+	if err != nil {
+		return fmt.Errorf("Error read network interface network %s: %w", d.Id(), err)
+	}
+	d.SetId(networkInterface.ID)
+	_ = d.Set("name", networkInterface.Name)
+	_ = d.Set("network_id", networkInterface.NetworkID)
+	_ = d.Set("attached_server", networkInterface.AttachedServer)
+	_ = d.Set("fixed_ip", networkInterface.FixedIps[0].IPAddress)
+	_ = d.Set("status", networkInterface.Status)
+	_ = d.Set("created_at", networkInterface.CreatedAt)
+	_ = d.Set("updated_at", networkInterface.UpdatedAt)
+	if err := d.Set("fixed_ips", readFixedIps(networkInterface.FixedIps)); err != nil {
+		return fmt.Errorf("error setting fixed_ips: %w", err)
+	}
+
+	if err := d.Set("security_groups", readSecurityGroups(networkInterface.SecurityGroups)); err != nil {
+		return fmt.Errorf("error setting security_groups: %w", err)
 	}
 	return nil
 }
 
 func resourceBizflyCloudNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	updatePayload := &gobizfly.UpdateNetworkInterfacePayload{
-		Name: d.Get("name").(string),
-	}
-	networkInterface, err := client.NetworkInterface.Update(context.Background(), d.Id(), updatePayload)
-	if err != nil {
-		return fmt.Errorf("Error when update network interface: %s, %v", d.Id(), err)
-	}
-	d.SetId(networkInterface.ID)
-
-	actionPayload := &gobizfly.ActionNetworkInterfacePayload{
-		Action:   d.Get("action").(string),
-		ServerID: d.Get("server_id").(string),
-	}
-	if v, ok := d.GetOk("security_groups"); ok {
-		for _, id := range v.([]interface{}) {
-			actionPayload.SecurityGroups = append(actionPayload.SecurityGroups, id.(string))
+	if d.HasChange("name") {
+		updatePayload := &gobizfly.UpdateNetworkInterfacePayload{
+			Name: d.Get("name").(string),
+		}
+		_, err := client.NetworkInterface.Update(context.Background(), d.Id(), updatePayload)
+		if err != nil {
+			return fmt.Errorf("Error when update network interface: %s, %v", d.Id(), err)
 		}
 	}
-	_, err = client.NetworkInterface.Action(context.Background(), d.Id(), actionPayload)
-	if err != nil {
-		return fmt.Errorf("Error when action network interface: %v", err)
-	}
-
 	return resourceBizflyCloudNetworkInterfaceRead(d, meta)
 }
 
 func resourceBizflyCloudNetworkInterfaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	err := client.NetworkInterface.Delete(context.Background(), d.Id())
-	if err != nil {
+	if err != nil && strings.Contains(err.Error(), "Resource not found") {
 		return fmt.Errorf("Error when delete network interface: %v", err)
 	}
 	return nil

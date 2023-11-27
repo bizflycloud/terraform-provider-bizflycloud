@@ -17,11 +17,11 @@
 
 package bizflycloud
 
+import "C"
 import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/google/go-cmp/cmp"
 	"log"
 	"strconv"
 	"strings"
@@ -62,7 +62,6 @@ func resourceBizflyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 	rootDiskPayload := gobizfly.ServerDisk{Size: d.Get("root_disk_size").(int)}
 	rootDiskVolumeType := d.Get("root_disk_volume_type").(string)
 	rootDiskPayload.VolumeType = &rootDiskVolumeType
-	vpcNetworkIDs := readStringArray(d.Get("vpc_network_ids").(*schema.Set).List())
 	scr := &gobizfly.ServerCreateRequest{
 		Name:       d.Get("name").(string),
 		FlavorName: d.Get("flavor_name").(string),
@@ -82,42 +81,29 @@ func resourceBizflyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 	var (
 		isCreatedWan         bool
 		usingV6Wan           bool
-		freeWanV4BlockCount  int
-		freeWanV6BlockCount  int
-		networkInterfaceIDs  []string
 		freeWanV4FirewallIDs []string
 		freeWanV6FirewallIDs []string
 	)
-	attachPortIPFirewallIDs := make(map[string][]string)
-	for _, v := range d.Get("free_wan").(*schema.Set).List() {
-		freeWan := v.(map[string]interface{})
-		if freeWan["ip_version"].(int) == 4 {
-			freeWanV4BlockCount++
-			if freeWanV4BlockCount > 1 {
-				return fmt.Errorf("only one free WAN V4 is allowed")
-			}
-			isCreatedWan = true
-			freeWanV4FirewallIDs = readStringArray(freeWan["firewall_ids"].(*schema.Set).List())
-		} else {
-			freeWanV6BlockCount++
-			usingV6Wan = true
-			if freeWanV6BlockCount > 1 {
-				return fmt.Errorf("only one free WAN V6 is allowed")
-			}
-			freeWanV6FirewallIDs = readStringArray(freeWan["firewall_ids"].(*schema.Set).List())
-		}
+	defaultPublicIPv4List := d.Get("default_public_ipv4").([]interface{})
+	defaultPublicIPv6List := d.Get("default_public_ipv6").([]interface{})
+	if len(defaultPublicIPv4List) > 1 {
+		return fmt.Errorf("only one default public ipv4 is allowed")
 	}
-	for _, v := range d.Get("network_interface").(*schema.Set).List() {
-		networkInterface := v.(map[string]interface{})
-		portIDStr := networkInterface["id"].(string)
-		firewallIDs := readStringArray(networkInterface["firewall_ids"].(*schema.Set).List())
-		attachPortIPFirewallIDs[portIDStr] = firewallIDs
-		networkInterfaceIDs = append(networkInterfaceIDs, portIDStr)
+	if len(defaultPublicIPv6List) > 1 {
+		return fmt.Errorf("only one default public ipv6 is allowed")
+	}
+	for _, v := range defaultPublicIPv4List {
+		freeWan := v.(map[string]interface{})
+		isCreatedWan = true
+		freeWanV4FirewallIDs = readStringArray(freeWan["firewall_ids"].(*schema.Set).List())
+	}
+	for _, v := range defaultPublicIPv6List {
+		freeWan := v.(map[string]interface{})
+		usingV6Wan = true
+		freeWanV6FirewallIDs = readStringArray(freeWan["firewall_ids"].(*schema.Set).List())
 	}
 	scr.IsCreatedWan = &isCreatedWan
 	scr.IPv6 = usingV6Wan
-	scr.VPCNetworkIds = vpcNetworkIDs
-	scr.NetworkInterfaces = networkInterfaceIDs
 	log.Printf("[DEBUG] Create Cloud Server configuration: %#v", scr)
 
 	tasks, err := client.Server.Create(context.Background(), scr)
@@ -137,6 +123,9 @@ func resourceBizflyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 		Type:   "LAN_WAN",
 		Status: "ACTIVE",
 	})
+	if err != nil {
+		return fmt.Errorf("error listing ports: %v", err)
+	}
 	var wg sync.WaitGroup
 	errChan := make(chan error, len(ports))
 	for _, port := range ports {
@@ -149,7 +138,7 @@ func resourceBizflyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 				go func(portID string) {
 					defer wg.Done()
 					if err := attachFirewallsForPort(client, portID, freeWanV6FirewallIDs); err != nil {
-						errChan <- fmt.Errorf("error attaching firewall for port %s: %v", port.ID, err)
+						errChan <- fmt.Errorf("error attaching firewall for port %s: %v", portID, err)
 					}
 				}(port.ID)
 			} else {
@@ -157,18 +146,10 @@ func resourceBizflyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 				go func(portID string) {
 					defer wg.Done()
 					if err := attachFirewallsForPort(client, portID, freeWanV4FirewallIDs); err != nil {
-						errChan <- fmt.Errorf("error attaching firewall for port %s: %v", port.ID, err)
+						errChan <- fmt.Errorf("error attaching firewall for port %s: %v", portID, err)
 					}
 				}(port.ID)
 			}
-		} else if checkIDInList(port.ID, networkInterfaceIDs) {
-			wg.Add(1)
-			go func(portID string) {
-				defer wg.Done()
-				if err := attachFirewallsForPort(client, portID, attachPortIPFirewallIDs[port.ID]); err != nil {
-					errChan <- fmt.Errorf("error attaching firewall for port %s: %v", port.ID, err)
-				}
-			}(port.ID)
 		}
 	}
 	wg.Wait()
@@ -176,22 +157,11 @@ func resourceBizflyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 		return <-errChan
 	}
 	// attach volume in volume_ids list after server is created
-	if attr, ok := d.GetOk("volume_ids"); ok {
-		var volumes []string
-		for _, id := range attr.(*schema.Set).List() {
-			if id == nil {
-				continue
-			}
-			volumeId := id.(string)
-			if volumeId == "" {
-				continue
-			}
-			volumes = append(volumes, volumeId)
-		}
-		err = attachVolumes(d.Id(), volumes, client)
-		if err != nil {
-			return err
-		}
+	volumeIDs := readStringArray(d.Get("volume_ids").(*schema.Set).List())
+	log.Printf("[DEBUG] volumeIDs: %#v", volumeIDs)
+	err = attachVolumes(d.Id(), volumeIDs, client)
+	if err != nil {
+		return err
 	}
 	return resourceBizflyCloudServerRead(d, meta)
 }
@@ -210,25 +180,31 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	networkInterfaces, _ := client.NetworkInterface.List(context.Background(), &gobizfly.ListNetworkInterfaceOptions{
 		Type: "LAN_WAN",
 	})
-	serverFreeWan := make([]map[string]interface{}, 0)
-	serverNetworkInterfaces := make([]map[string]interface{}, 0)
+	firewalls, err := client.Firewall.List(context.Background(), &gobizfly.ListOptions{})
+	if err != nil {
+		return fmt.Errorf("error listing firewalls: %v", err)
+	}
+	userFirewallIDs := make([]string, len(firewalls))
+	for i, firewall := range firewalls {
+		userFirewallIDs[i] = firewall.ID
+	}
 	vpcNetworkIDs := make([]string, 0)
+	networkInterfaceIds := make([]string, 0)
 	for _, networkInterface := range networkInterfaces {
 		if networkInterface.DeviceID != d.Id() {
 			continue
 		}
 		serverNetworkInterface := make(map[string]interface{})
 		serverNetworkInterface["id"] = networkInterface.ID
-		serverNetworkInterface["firewall_ids"] = networkInterface.SecurityGroups
+		serverNetworkInterface["firewall_ids"] = filterUserFirewalls(networkInterface.SecurityGroups, userFirewallIDs)
 		if networkInterface.Type == "WAN" && networkInterface.BillingType == "free" {
 			if networkInterface.IPVersion == 6 {
-				serverNetworkInterface["ip_version"] = 6
+				_ = d.Set("default_public_ipv6", []map[string]interface{}{serverNetworkInterface})
 			} else {
-				serverNetworkInterface["ip_version"] = 4
+				_ = d.Set("default_public_ipv4", []map[string]interface{}{serverNetworkInterface})
 			}
-			serverFreeWan = append(serverFreeWan, serverNetworkInterface)
 		} else {
-			serverNetworkInterfaces = append(serverNetworkInterfaces, serverNetworkInterface)
+			networkInterfaceIds = append(networkInterfaceIds, networkInterface.ID)
 			if networkInterface.Type == "LAN" {
 				vpcNetworkIDs = append(vpcNetworkIDs, networkInterface.NetworkID)
 			}
@@ -245,17 +221,11 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	_ = d.Set("created_at", server.CreatedAt)
 	_ = d.Set("updated_at", server.UpdatedAt)
 	_ = d.Set("billing_plan", server.BillingPlan)
-	_ = d.Set("zone_name", server.ZoneName)
 	_ = d.Set("is_available", server.IsAvailable)
 	_ = d.Set("locked", server.Locked)
 	_ = d.Set("network_plan", server.NetworkPlan)
-	if d.Get("network_interface") != nil {
-		_ = d.Set("network_interface", serverNetworkInterfaces)
-	} else {
-		_ = d.Set("vpc_network_ids", vpcNetworkIDs)
-	}
-	_ = d.Set("free_wan", serverFreeWan)
-
+	_ = d.Set("vpc_network_ids", vpcNetworkIDs)
+	_ = d.Set("network_interface_ids", networkInterfaceIds)
 	if err = d.Set("volume_ids", flatternBizflyCloudVolumeIDs(server.AttachedVolumes)); err != nil {
 		return fmt.Errorf("Error setting `volume_ids`: %+v", err)
 	}
@@ -353,203 +323,148 @@ func resourceBizflyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("error changing billing plan of server [%s]: %v", d.Id(), err)
 		}
 	}
-	if d.HasChange("free_wan") {
-		oldFreeWan, newFreeWan := d.GetChange("free_wan")
-		var (
-			freeWanV4ID, freeWanV6ID string
-		)
-		oldFreeWanList := oldFreeWan.(*schema.Set).List()
-		newFreeWanList := newFreeWan.(*schema.Set).List()
-		oldFreeWanMap := make(map[int]bool)
-		newFreeWanMap := make(map[int]bool)
-		oldFreeWanFirewallIDs := make(map[int][]string)
-		newFreeWanFirewallIDs := make(map[int][]string)
+	if d.HasChange("default_public_ipv4") {
+		oldPublicIPv4, newPublicIPv4 := d.GetChange("default_public_ipv4")
+		newPublicIPv4List := newPublicIPv4.([]interface{})
+		oldPublicIPv4List := oldPublicIPv4.([]interface{})
+		if len(newPublicIPv4List) > 1 {
+			return fmt.Errorf("only one default public ipv4 is allowed")
+		}
 		removeFreeWan := make([]string, 0)
-		addFirewallIDs := make(map[string][]string)
-		log.Printf("[DEBUG] oldFreeWanMap: %#v", oldFreeWanMap)
-		log.Printf("[DEBUG] newFreeWanMap: %#v", newFreeWanMap)
-
-		removeFirewallIDs := make(map[string][]string)
-		for _, v := range oldFreeWanList {
-			freeWan := v.(map[string]interface{})
-			portID := freeWan["id"].(string)
-			ipVersion := freeWan["ip_version"].(int)
-			oldFreeWanMap[ipVersion] = true
-			firewallIDs := readStringArray(freeWan["firewall_ids"].(*schema.Set).List())
-			oldFreeWanFirewallIDs[ipVersion] = firewallIDs
-			if ipVersion == 4 {
-				freeWanV4ID = portID
-			} else {
-				freeWanV6ID = portID
-			}
+		addFirewallIDs := make([]string, 0)
+		removeFirewallIDs := make([]string, 0)
+		var (
+			freeWanV4ID string
+		)
+		if len(oldPublicIPv4List) == 1 && len(newPublicIPv4List) == 0 {
+			removeFreeWan = append(removeFreeWan, oldPublicIPv4List[0].(map[string]interface{})["id"].(string))
 		}
-		log.Printf("[DEBUG] oldFreeWanFirewallIDs: %#v", oldFreeWanFirewallIDs)
-		var portID string
-		for _, v := range newFreeWanList {
-			freeWan := v.(map[string]interface{})
-			ipVersion := freeWan["ip_version"].(int)
-			if ipVersion == 4 {
-				portID = freeWanV4ID
-			} else {
-				portID = freeWanV6ID
+		if len(oldPublicIPv4List) == 0 && len(newPublicIPv4List) == 1 {
+			return errors.New("cannot add free wan port after creating server")
+		}
+		// update firewall
+		if len(oldPublicIPv4List) == 1 && len(newPublicIPv4List) == 1 {
+			oldFreeWan := oldPublicIPv4List[0].(map[string]interface{})
+			newFreeWan := newPublicIPv4List[0].(map[string]interface{})
+			oldFirewallIDs := readStringArray(oldFreeWan["firewall_ids"].(*schema.Set).List())
+			newFirewallIDs := readStringArray(newFreeWan["firewall_ids"].(*schema.Set).List())
+			freeWanV4ID = oldFreeWan["id"].(string)
+			for _, firewallID := range oldFirewallIDs {
+				if !checkIDInList(firewallID, newFirewallIDs) {
+					removeFirewallIDs = append(removeFirewallIDs, firewallID)
+				}
 			}
-
-			firewallIDs := readStringArray(freeWan["firewall_ids"].(*schema.Set).List())
-			newFreeWanFirewallIDs[ipVersion] = firewallIDs
-			newFreeWanMap[ipVersion] = true
-			if !oldFreeWanMap[ipVersion] {
-				// add port
-				return errors.New("cannot add free wan port after creating server")
-			} else {
-				// check diff in firewall
-				for _, firewallID := range firewallIDs {
-					if !checkIDInList(firewallID, oldFreeWanFirewallIDs[ipVersion]) {
-						addFirewallIDs[portID] = append(addFirewallIDs[portID], firewallID)
-					}
+			for _, firewallID := range newFirewallIDs {
+				if !checkIDInList(firewallID, oldFirewallIDs) {
+					addFirewallIDs = append(addFirewallIDs, firewallID)
 				}
 			}
 		}
-		log.Printf("[DEBUG] newFreeWanFirewallIDs: %#v", newFreeWanFirewallIDs)
-		for _, v := range oldFreeWanList {
-			freeWan := v.(map[string]interface{})
-			portID = freeWan["id"].(string)
-			ipVersion := freeWan["ip_version"].(int)
-			if !newFreeWanMap[ipVersion] {
-				// remove port
-				removeFreeWan = append(removeFreeWan, portID)
-			} else {
-				// check diff in firewall
-				for _, firewallID := range oldFreeWanFirewallIDs[ipVersion] {
-					if !checkIDInList(firewallID, newFreeWanFirewallIDs[ipVersion]) {
-						removeFirewallIDs[portID] = append(removeFirewallIDs[portID], firewallID)
-					}
-				}
-			}
-		}
-		log.Printf("[DEBUG] removeFreeWan: %#v", removeFreeWan)
-		log.Printf("[DEBUG] addFirewallIDs: %#v", addFirewallIDs)
-		log.Printf("[DEBUG] removeFirewallIDs: %#v", removeFirewallIDs)
+		log.Printf("[DEBUG] removeFreeWan v4: %#v", removeFreeWan)
+		log.Printf("[DEBUG] addFirewallIDs v4: %#v", addFirewallIDs)
+		log.Printf("[DEBUG] removeFirewallIDs v4: %#v", removeFirewallIDs)
 		var wg sync.WaitGroup
 		errChan := make(chan error, len(removeFreeWan)+len(addFirewallIDs)+len(removeFirewallIDs))
-		for _, portID = range removeFreeWan {
+		for _, portID := range removeFreeWan {
 			wg.Add(1)
 			go func(portID string) {
 				defer wg.Done()
-				if err := detachServerForPort(client, portID); err != nil {
+				if err := client.NetworkInterface.Delete(context.Background(), portID); err != nil {
 					errChan <- fmt.Errorf("error detaching server for port %s: %v", portID, err)
 				}
 			}(portID)
 		}
-		for portID, firewallIDs := range addFirewallIDs {
+		for _, firewallID := range addFirewallIDs {
 			wg.Add(1)
-			go func(portID string, firewallIDs []string) {
+			go func(firewallID string) {
 				defer wg.Done()
-				if err := attachFirewallsForPort(client, portID, firewallIDs); err != nil {
-					errChan <- fmt.Errorf("error attaching firewall for port %s: %v", portID, err)
+				if err := attachFirewallsForPort(client, freeWanV4ID, []string{firewallID}); err != nil {
+					errChan <- fmt.Errorf("error attaching firewall for port %s: %v", freeWanV4ID, err)
 				}
-			}(portID, firewallIDs)
+			}(firewallID)
 		}
-		for portID, firewallIDs := range removeFirewallIDs {
+		for _, firewallID := range removeFirewallIDs {
 			wg.Add(1)
-			go func(portID string, firewallIDs []string) {
+			go func(firewallID string) {
 				defer wg.Done()
-				if err := detachFirewallsForPort(client, portID, firewallIDs); err != nil {
-					errChan <- fmt.Errorf("error detaching firewall for port %s: %v", portID, err)
+				if err := detachFirewallsForPort(client, freeWanV4ID, []string{firewallID}); err != nil {
+					errChan <- fmt.Errorf("error detaching firewall for port %s: %v", freeWanV4ID, err)
 				}
-			}(portID, firewallIDs)
+			}(firewallID)
 		}
 		wg.Wait()
 		if len(errChan) > 0 {
 			return <-errChan
 		}
 	}
-	if d.HasChange("network_interface") {
-		oldInterface, newInterface := d.GetChange("network_interface")
-		oldNetworkInterfaces := readNetworkInterface(oldInterface)
-		newNetworkInterfaces := readNetworkInterface(newInterface)
-		log.Printf("[DEBUG] oldNetworkInterfaces: %#v", oldNetworkInterfaces)
-		log.Printf("[DEBUG] newNetworkInterfaces: %#v", newNetworkInterfaces)
-		isOldNetInterface := make(map[string]bool)
-		isNewNetInterface := make(map[string]bool)
-		addFirewallsMap := make(map[string][]string)
-		removeFirewallsMap := make(map[string][]string)
+	if d.HasChange("default_public_ipv6") {
+		oldPublicIPv6, newPublicIPv6 := d.GetChange("default_public_ipv6")
+		newPublicIPv6List := newPublicIPv6.([]interface{})
+		oldPublicIPv6List := oldPublicIPv6.([]interface{})
+		if len(newPublicIPv6List) > 1 {
+			return fmt.Errorf("only one default public ipv6 is allowed")
+		}
+		removeFreeWan := make([]string, 0)
+		addFirewallIDs := make([]string, 0)
+		removeFirewallIDs := make([]string, 0)
 		var (
-			addNetworkInterfaces    []ServerNetworkInterface
-			removeNetworkInterfaces []ServerNetworkInterface
+			freeWanV6ID string
 		)
-		for _, networkInterface := range oldNetworkInterfaces {
-			isOldNetInterface[networkInterface.ID] = true
+		if len(oldPublicIPv6List) == 1 && len(newPublicIPv6List) == 0 {
+			removeFreeWan = append(removeFreeWan, oldPublicIPv6List[0].(map[string]interface{})["id"].(string))
 		}
-		for _, networkInterface := range newNetworkInterfaces {
-			isNewNetInterface[networkInterface.ID] = true
-			if !isOldNetInterface[networkInterface.ID] {
-				addNetworkInterfaces = append(addNetworkInterfaces, networkInterface)
-			} else {
-				for _, oldNetworkInterface := range oldNetworkInterfaces {
-					if oldNetworkInterface.ID == networkInterface.ID {
-						if !cmp.Equal(oldNetworkInterface.FirewallIDs, networkInterface.FirewallIDs) {
-							// find the add and remove firewalls
-							for _, firewallID := range networkInterface.FirewallIDs {
-								if !checkIDInList(firewallID, oldNetworkInterface.FirewallIDs) {
-									addFirewallsMap[networkInterface.ID] = append(addFirewallsMap[networkInterface.ID], firewallID)
-								} else {
-									removeFirewallsMap[networkInterface.ID] = append(removeFirewallsMap[networkInterface.ID], firewallID)
-								}
-							}
-						}
-					}
+		if len(oldPublicIPv6List) == 0 && len(newPublicIPv6List) == 1 {
+			return errors.New("cannot add free wan port after creating server")
+		}
+		// update firewall
+		if len(oldPublicIPv6List) == 1 && len(newPublicIPv6List) == 1 {
+			oldFreeWan := oldPublicIPv6List[0].(map[string]interface{})
+			newFreeWan := newPublicIPv6List[0].(map[string]interface{})
+			oldFirewallIDs := readStringArray(oldFreeWan["firewall_ids"].(*schema.Set).List())
+			newFirewallIDs := readStringArray(newFreeWan["firewall_ids"].(*schema.Set).List())
+			freeWanV6ID = oldFreeWan["id"].(string)
+			for _, firewallID := range oldFirewallIDs {
+				if !checkIDInList(firewallID, newFirewallIDs) {
+					removeFirewallIDs = append(removeFirewallIDs, firewallID)
+				}
+			}
+			for _, firewallID := range newFirewallIDs {
+				if !checkIDInList(firewallID, oldFirewallIDs) {
+					addFirewallIDs = append(addFirewallIDs, firewallID)
 				}
 			}
 		}
-		log.Printf("[DEBUG] isOldNetInterface: %#v", isOldNetInterface)
-		log.Printf("[DEBUG] isNewNetInterface: %#v", isNewNetInterface)
-		for _, networkInterface := range oldNetworkInterfaces {
-			if !isNewNetInterface[networkInterface.ID] {
-				removeNetworkInterfaces = append(removeNetworkInterfaces, networkInterface)
-			}
-		}
-		log.Printf("[DEBUG] addNetworkInterfaces: %#v", addNetworkInterfaces)
-		log.Printf("[DEBUG] removeNetworkInterfaces: %#v", removeNetworkInterfaces)
-		log.Printf("[DEBUG] addFirewallsMap: %#v", addFirewallsMap)
-		log.Printf("[DEBUG] removeFirewallsMap: %#v", removeFirewallsMap)
+		log.Printf("[DEBUG] removeFreeWan v6: %#v", removeFreeWan)
+		log.Printf("[DEBUG] addFirewallIDs v6: %#v", addFirewallIDs)
+		log.Printf("[DEBUG] removeFirewallIDs v6: %#v", removeFirewallIDs)
 		var wg sync.WaitGroup
-		errChan := make(chan error, len(addNetworkInterfaces)+len(removeNetworkInterfaces)+
-			len(addFirewallsMap)+len(removeFirewallsMap))
-		for _, addNetworkInterface := range addNetworkInterfaces {
+		errChan := make(chan error, len(removeFreeWan)+len(addFirewallIDs)+len(removeFirewallIDs))
+		for _, portID := range removeFreeWan {
 			wg.Add(1)
-			go func(networkInterface *ServerNetworkInterface) {
+			go func(portID string) {
 				defer wg.Done()
-				if err := attachServerForPort(client, d.Id(), networkInterface.ID); err != nil {
-					errChan <- fmt.Errorf("error attaching server for port %s: %v", networkInterface.ID, err)
+				if err := client.NetworkInterface.Delete(context.Background(), portID); err != nil {
+					errChan <- fmt.Errorf("error detaching server for port %s: %v", portID, err)
 				}
-			}(&addNetworkInterface)
+			}(portID)
 		}
-		for _, removeNetworkInterface := range removeNetworkInterfaces {
+		for _, firewallID := range addFirewallIDs {
 			wg.Add(1)
-			go func(networkInterface *ServerNetworkInterface) {
+			go func(firewallID string) {
 				defer wg.Done()
-				if err := detachServerForPort(client, networkInterface.ID); err != nil {
-					errChan <- fmt.Errorf("error detaching server for port %s: %v", networkInterface.ID, err)
+				if err := attachFirewallsForPort(client, freeWanV6ID, []string{firewallID}); err != nil {
+					errChan <- fmt.Errorf("error attaching firewall for port %s: %v", freeWanV6ID, err)
 				}
-			}(&removeNetworkInterface)
+			}(firewallID)
 		}
-		for portID, firewallIDs := range addFirewallsMap {
+		for _, firewallID := range removeFirewallIDs {
 			wg.Add(1)
-			go func(portID string, firewallIDs []string) {
+			go func(firewallID string) {
 				defer wg.Done()
-				if err := attachFirewallsForPort(client, portID, firewallIDs); err != nil {
-					errChan <- fmt.Errorf("error attaching firewall for port %s: %v", portID, err)
+				if err := detachFirewallsForPort(client, freeWanV6ID, []string{firewallID}); err != nil {
+					errChan <- fmt.Errorf("error detaching firewall for port %s: %v", freeWanV6ID, err)
 				}
-			}(portID, firewallIDs)
-		}
-		for portID, firewallIDs := range removeFirewallsMap {
-			wg.Add(1)
-			go func(portID string, firewallIDs []string) {
-				defer wg.Done()
-				if err := detachFirewallsForPort(client, portID, firewallIDs); err != nil {
-					errChan <- fmt.Errorf("error detaching firewall for port %s: %v", portID, err)
-				}
-			}(portID, firewallIDs)
+			}(firewallID)
 		}
 		wg.Wait()
 		if len(errChan) > 0 {
@@ -589,7 +504,7 @@ func waitForServerCreate(d *schema.ResourceData, meta interface{}) (interface{},
 	stateConf := &resource.StateChangeConf{
 		Pending:        []string{"BUILD"},
 		Target:         []string{"ACTIVE"},
-		Refresh:        newServerStateRefreshfunc(d, "status", meta),
+		Refresh:        newServerStateRefreshFunc(d, "status", meta),
 		Timeout:        1200 * time.Second,
 		Delay:          20 * time.Second,
 		MinTimeout:     3 * time.Second,
@@ -616,7 +531,7 @@ func waitForServerUpdate(d *schema.ResourceData, meta interface{}, taskID string
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"HARD_REBOOT", "MIGRATING", "REBUILD", "RESIZE"},
 		Target:     []string{"ACTIVE"},
-		Refresh:    updateServerStateRefreshfunc(d, "status", meta, taskID),
+		Refresh:    updateServerStateRefreshFunc(d, "status", meta, taskID),
 		Timeout:    600 * time.Second,
 		Delay:      20 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -624,7 +539,7 @@ func waitForServerUpdate(d *schema.ResourceData, meta interface{}, taskID string
 	return stateConf.WaitForState()
 }
 
-func newServerStateRefreshfunc(d *schema.ResourceData, attribute string, meta interface{}) resource.StateRefreshFunc {
+func newServerStateRefreshFunc(d *schema.ResourceData, attribute string, meta interface{}) resource.StateRefreshFunc {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	return func() (interface{}, string, error) {
 		// Get task result from cloud server API
@@ -660,7 +575,7 @@ func newServerStateRefreshfunc(d *schema.ResourceData, attribute string, meta in
 	}
 }
 
-func updateServerStateRefreshfunc(d *schema.ResourceData, attribute string, meta interface{}, taskID string) resource.StateRefreshFunc {
+func updateServerStateRefreshFunc(d *schema.ResourceData, attribute string, meta interface{}, taskID string) resource.StateRefreshFunc {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	return func() (interface{}, string, error) {
 		// Get task result from cloud server API
@@ -731,8 +646,10 @@ func flatternBizflyCloudVolumeIDs(volumeids []gobizfly.AttachedVolume) *schema.S
 
 func attachVolumes(id string, volumeids []string, client *gobizfly.Client) error {
 	for _, vid := range volumeids {
+		log.Printf("[DEBUG] Attaching volume %s to server %s", vid, id)
 		_, err := client.Volume.Attach(context.Background(), id, vid)
 		if err != nil {
+			log.Printf("[ERROR] Error attaching volume %s to server %s: %v", vid, id, err)
 			return err
 		}
 	}
@@ -787,7 +704,7 @@ func uniqueList(list []string) []string {
 }
 
 func attachFirewallsForPort(client *gobizfly.Client, portID string, firewallIDs []string) error {
-	if firewallIDs == nil || len(firewallIDs) == 0 {
+	if len(firewallIDs) == 0 {
 		return nil
 	}
 	_, err := client.NetworkInterface.Action(context.Background(), portID,
@@ -800,7 +717,7 @@ func attachFirewallsForPort(client *gobizfly.Client, portID string, firewallIDs 
 }
 
 func detachFirewallsForPort(client *gobizfly.Client, portID string, firewallIDs []string) error {
-	if firewallIDs == nil || len(firewallIDs) == 0 {
+	if len(firewallIDs) == 0 {
 		return nil
 	}
 	_, err := client.NetworkInterface.Action(context.Background(), portID,
@@ -844,11 +761,19 @@ func readNetworkInterface(inputInterface interface{}) (networkInterfaces []Serve
 		if portID := networkInterface["id"]; portID != nil {
 			portIDStr = networkInterface["id"].(string)
 		}
-		firewallIDs := readStringArray(networkInterface["firewall_ids"].(*schema.Set).List())
 		networkInterfaces = append(networkInterfaces, ServerNetworkInterface{
-			ID:          portIDStr,
-			FirewallIDs: firewallIDs,
+			ID: portIDStr,
 		})
 	}
 	return
+}
+
+func filterUserFirewalls(firewallIDs, userFirewallIDs []string) []string {
+	filteredFirewallIDs := make([]string, 0)
+	for _, firewallID := range firewallIDs {
+		if checkIDInList(firewallID, userFirewallIDs) {
+			filteredFirewallIDs = append(filteredFirewallIDs, firewallID)
+		}
+	}
+	return filteredFirewallIDs
 }

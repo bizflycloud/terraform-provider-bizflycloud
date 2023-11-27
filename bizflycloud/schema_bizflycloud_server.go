@@ -2,12 +2,10 @@ package bizflycloud
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 type ServerNetworkInterface struct {
-	ID          string   `json:"id"`
-	FirewallIDs []string `json:"firewall_ids,omitempty"`
+	ID string `json:"id"`
 }
 
 type ServerWANNetworkInterface struct {
@@ -85,7 +83,6 @@ func resourceServerSchema() map[string]*schema.Schema {
 			Type:     schema.TypeSet,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Optional: true,
-			Computed: true,
 		},
 		"network_plan": {
 			Type:     schema.TypeString,
@@ -101,53 +98,33 @@ func resourceServerSchema() map[string]*schema.Schema {
 			Type:     schema.TypeBool,
 			Computed: true,
 		},
-		"zone_name": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
 		"locked": {
 			Type:     schema.TypeBool,
 			Computed: true,
 		},
-		"network_interface": {
-			ConflictsWith: []string{"vpc_network_ids"},
-			Type:          schema.TypeSet,
-			ConfigMode:    schema.SchemaConfigModeAuto,
-			Elem:          &schema.Resource{Schema: resourceServerNetworkInterfaceSchema()},
-			Optional:      true,
-		},
-		"free_wan": {
-			Type: schema.TypeSet,
+		"default_public_ipv4": {
+			Type: schema.TypeList,
 			Elem: &schema.Resource{
 				Schema: resourceServerFreeWANNetworkInterfaceSchema(),
 			},
 			Optional: true,
-			DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-				return false
+		},
+		"default_public_ipv6": {
+			Type: schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: resourceServerFreeWANNetworkInterfaceSchema(),
 			},
-		},
-		"vpc_network_ids": {
-			ConflictsWith: []string{"network_interface"},
-			Type:          schema.TypeSet,
-			ConfigMode:    schema.SchemaConfigModeAttr,
-			Elem:          &schema.Schema{Type: schema.TypeString},
-			Optional:      true,
-		},
-	}
-}
-
-func resourceServerNetworkInterfaceSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"id": {
-			Type:     schema.TypeString,
-			Computed: true,
 			Optional: true,
 		},
-		"firewall_ids": {
-			Type:       schema.TypeSet,
-			ConfigMode: schema.SchemaConfigModeAttr,
-			Elem:       &schema.Schema{Type: schema.TypeString},
-			Optional:   true,
+		"network_interface_ids": {
+			Type:     schema.TypeSet,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			Computed: true,
+		},
+		"vpc_network_ids": {
+			Type:     schema.TypeSet,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			Computed: true,
 		},
 	}
 }
@@ -158,16 +135,10 @@ func resourceServerFreeWANNetworkInterfaceSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"ip_version": {
-			Type:         schema.TypeInt,
-			Required:     true,
-			ValidateFunc: validation.IntInSlice([]int{4, 6}),
-		},
 		"firewall_ids": {
-			Type:       schema.TypeSet,
-			ConfigMode: schema.SchemaConfigModeAttr,
-			Elem:       &schema.Schema{Type: schema.TypeString},
-			Optional:   true,
+			Type:     schema.TypeSet,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			Optional: true,
 		},
 	}
 }

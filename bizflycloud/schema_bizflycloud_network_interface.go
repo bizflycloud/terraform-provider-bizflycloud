@@ -65,15 +65,15 @@ func resourceNetworkInterfaceSchema() map[string]*schema.Schema {
 		},
 		"attached_server": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"server_id": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"fixed_ip": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"mac_address": {
 			Type:     schema.TypeString,
@@ -95,14 +95,10 @@ func resourceNetworkInterfaceSchema() map[string]*schema.Schema {
 			Type:     schema.TypeBool,
 			Computed: true,
 		},
-		"action": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
 		"security_groups": {
 			Type:     schema.TypeList,
 			Elem:     &schema.Schema{Type: schema.TypeString},
-			Optional: true,
+			Computed: true,
 		},
 		"fixed_ips": {
 			Type:     schema.TypeList,

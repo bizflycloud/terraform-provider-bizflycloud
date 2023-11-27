@@ -8,7 +8,7 @@ description: |-
 
 # bizflycloud\_autoscaling\_group
 
-Get ìnformation about Bizfly Cloud AutoScaling Group.
+Get information about Bizfly Cloud AutoScaling Group.
 
 ## Example Usage
 
