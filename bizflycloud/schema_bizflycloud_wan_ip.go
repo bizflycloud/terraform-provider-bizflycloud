@@ -70,13 +70,13 @@ func resourceWanIPSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"device_id": {
+		"server_id": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"security_groups": {
-			Type:     schema.TypeList,
-			Computed: true,
+		"firewall_ids": {
+			Type:     schema.TypeSet,
+			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
 		"description": {
@@ -102,10 +102,6 @@ func resourceWanIPSchema() map[string]*schema.Schema {
 		"ip_version": {
 			Type:     schema.TypeInt,
 			Computed: true,
-		},
-		"attached_server": {
-			Type:     schema.TypeString,
-			Optional: true,
 		},
 	}
 }
