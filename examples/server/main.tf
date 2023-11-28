@@ -27,7 +27,7 @@ provider "bizflycloud" {
 }
 
 resource "bizflycloud_firewall" "sample_firewall_1" {
-  name = "sample-firewall-1"
+  name = "sample-firewall-tf-1"
 }
 
 data "bizflycloud_ssh_key" "ssh_key" {
@@ -39,12 +39,6 @@ data "bizflycloud_volume_type" "example_volume_type" {
   category = "premium"
 }
 
-resource "bizflycloud_wan_ip" "test_wan" {
-  availability_zone = "HN1"
-  name              = "test_wan2_${count.index}"
-  count             = 2
-}
-#
 data "bizflycloud_vpc_network" "vpc_network1" {
   cidr = "10.20.3.0/24"
 }
@@ -54,20 +48,41 @@ data "bizflycloud_vpc_network" "vpc_network2" {
 }
 
 resource "bizflycloud_network_interface" "test_lan1" {
-  name       = "test_lan2_${count.index}"
-  network_id = data.bizflycloud_vpc_network.vpc_network1.id
-  count      = 2
+  name         = "test_lan2_${count.index}"
+  network_id   = data.bizflycloud_vpc_network.vpc_network1.id
+  firewall_ids = [
+    "9ff7fbdc-1461-4713-b4f8-ba8a22699bb4",
+    "0b1d6a90-24a0-4f86-b75f-fb07290e44dd",
+    "348b3be8-0610-4397-a781-10be10998b90"
+  ]
+
+  count = 2
 }
 
 resource "bizflycloud_network_interface" "test_lan2" {
-  name       = "test_lan3_${count.index}"
+  name       = "test_lan4_${count.index}"
   network_id = data.bizflycloud_vpc_network.vpc_network2.id
   count      = 2
 }
 
+resource "bizflycloud_volume" "volume1" {
+  name              = "volume-tf_${count.index}"
+  size              = 20
+  type              = data.bizflycloud_volume_type.example_volume_type.type
+  category          = "premium"
+  availability_zone = "HN1"
+  count             = 2
+}
+
+resource "bizflycloud_volume_attachment" "volume_attachment" {
+  volume_id = bizflycloud_volume.volume1.*.id[count.index]
+  server_id = bizflycloud_server.tf_server1.*.id[count.index]
+  count     = 2
+}
+
 resource "bizflycloud_server" "tf_server1" {
   count                 = 2
-  name                  = "tf_server_3_${count.index}"
+  name                  = "tf_server_5_${count.index}"
   flavor_name           = "1c_1g"
   ssh_key               = data.bizflycloud_ssh_key.ssh_key.name
   os_type               = "image"
@@ -81,14 +96,11 @@ resource "bizflycloud_server" "tf_server1" {
   default_public_ipv4 {
     firewall_ids = [
       "9ff7fbdc-1461-4713-b4f8-ba8a22699bb4",
-      "0b1d6a90-24a0-4f86-b75f-fb07290e44dd"
     ]
   }
   default_public_ipv6 {
     firewall_ids = [
-      "9ff7fbdc-1461-4713-b4f8-ba8a22699bb4",
-      "0b1d6a90-24a0-4f86-b75f-fb07290e44dd",
-      "348b3be8-0610-4397-a781-10be10998b90"
+      "0b1d6a90-24a0-4f86-b75f-fb07290e44dd"
     ]
   }
   user_data = "!/bin/bash"
@@ -103,14 +115,9 @@ data "bizflycloud_custom_image" "custom_image" {
 }
 
 resource "bizflycloud_network_interface_attachment" "test_attachment" {
-  server_id            = bizflycloud_server.tf_server1.*.id[count.index]
   network_interface_id = bizflycloud_network_interface.test_lan1.*.id[count.index]
-  firewall_ids         = [
-    "9ff7fbdc-1461-4713-b4f8-ba8a22699bb4",
-    "0b1d6a90-24a0-4f86-b75f-fb07290e44dd",
-    "348b3be8-0610-4397-a781-10be10998b90"
-  ]
-  count = 2
+  server_id            = bizflycloud_server.tf_server1.*.id[count.index]
+  count                = 2
 }
 
 resource "bizflycloud_custom_image" "new_custom_image1" {
@@ -120,40 +127,32 @@ resource "bizflycloud_custom_image" "new_custom_image1" {
 }
 
 
-resource "bizflycloud_volume" "volume1" {
-  name              = "sapd-volume-tf5"
-  size              = 20
-  type              = data.bizflycloud_volume_type.example_volume_type.type
-  category          = "premium"
-  availability_zone = "HN2"
-}
-
 resource "bizflycloud_wan_ip" "test_wan_1" {
-  name              = "sapd-wan-ip-tf4"
+  name              = "sapd-wan-ip-tf5-${count.index}"
   availability_zone = "HN1"
+  firewall_ids      = [
+    "9ff7fbdc-1461-4713-b4f8-ba8a22699bb4",
+    "0b1d6a90-24a0-4f86-b75f-fb07290e44dd"
+
+  ]
+  count = 2
 }
 
+resource "bizflycloud_network_interface_attachment" "test_wan" {
+  network_interface_id = bizflycloud_wan_ip.test_wan_1.*.id[count.index]
+  server_id            = bizflycloud_server.tf_server1.*.id[count.index]
+  count                = 2
+}
+đ
 
-# data "bizflycloud_wan_ip" "wan_ip" {
-#   ip_address = "103.107.183.114"
-# }
-#
-# data "bizflycloud_wan_ip" "wan_ip_2" {
-#   ip_address = "45.124.94.87"
-# }
-#
-# data "bizflycloud_network_interface" "lan_ip_1" {
-#   ip_address = "10.27.214.140"
-# }
-#
-# data "bizflycloud_network_interface" "lan_ip_2" {
-#   ip_address = "10.27.214.158"
-# }
-#
-# data "bizflycloud_vpc_network" "vpc_network" {
-#   cidr = "10.20.9.0/24"
-# }
-#
-# data "bizflycloud_vpc_network" "vpc_network_1" {
-#   cidr = "10.20.8.0/24"
-# }
+ data "bizflycloud_wan_ip" "wan_ip" {
+   ip_address = "103.107.183.114"
+ }
+
+ data "bizflycloud_network_interface" "lan_ip_1" {
+   ip_address = "10.27.214.140"
+ }
+
+ data "bizflycloud_vpc_network" "vpc_network" {
+   cidr = "10.20.9.0/24"
+ }

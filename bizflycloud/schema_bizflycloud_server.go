@@ -31,10 +31,6 @@ func resourceServerSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Required: true,
 		},
-		"password": {
-			Type:     schema.TypeBool,
-			Optional: true,
-		},
 		"os_type": {
 			Type:     schema.TypeString,
 			Required: true,
@@ -55,10 +51,6 @@ func resourceServerSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Required: true,
 		},
-		"user_id": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
 		"project_id": {
 			Type:     schema.TypeString,
 			Computed: true,
@@ -77,11 +69,6 @@ func resourceServerSchema() map[string]*schema.Schema {
 		},
 		"user_data": {
 			Type:     schema.TypeString,
-			Optional: true,
-		},
-		"volume_ids": {
-			Type:     schema.TypeSet,
-			Elem:     &schema.Schema{Type: schema.TypeString},
 			Optional: true,
 		},
 		"network_plan": {
@@ -126,6 +113,11 @@ func resourceServerSchema() map[string]*schema.Schema {
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Computed: true,
 		},
+		"volume_ids": {
+			Type:     schema.TypeSet,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			Computed: true,
+		},
 	}
 }
 
@@ -138,6 +130,11 @@ func resourceServerFreeWANNetworkInterfaceSchema() map[string]*schema.Schema {
 		"firewall_ids": {
 			Type:     schema.TypeSet,
 			Elem:     &schema.Schema{Type: schema.TypeString},
+			Optional: true,
+		},
+		"enabled": {
+			Type:     schema.TypeBool,
+			Default:  true,
 			Optional: true,
 		},
 	}

@@ -2,9 +2,9 @@ package bizflycloud
 
 import "github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
-func resourceNetworkInterfaceAttachmentSchema() map[string]*schema.Schema {
+func resourceBizflyCloudVolumeAttachmentSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"network_interface_id": {
+		"volume_id": {
 			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,

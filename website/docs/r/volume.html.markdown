@@ -43,5 +43,5 @@ The following attributes are exported:
 * `category` - The category of the volume
 * `status` - The status of the volume
 * `availability_zone` - The availability zone of volume
-* `type` - The volume type
+* `type` - The volume type[resource_bizflycloud_network_interface.go](..%2F..%2F..%2Fbizflycloud%2Fresource_bizflycloud_network_interface.go)
 * `size` - The size of volume

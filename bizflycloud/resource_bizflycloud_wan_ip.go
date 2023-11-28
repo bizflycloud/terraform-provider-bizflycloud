@@ -33,7 +33,6 @@ func resourceBizflyCloudWanIPCreate(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*CombinedConfig).gobizflyClient()
 	createPayload := &gobizfly.CreateWanIpPayload{
 		Name:             d.Get("name").(string),
-		AttachedServer:   d.Get("attached_server").(string),
 		AvailabilityZone: d.Get("availability_zone").(string),
 	}
 	wanIP, err := client.WanIP.Create(context.Background(), createPayload)
@@ -41,6 +40,10 @@ func resourceBizflyCloudWanIPCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("error when creating wan ip: %s", err)
 	}
 	d.SetId(wanIP.ID)
+	firewallIDs := readStringArray(d.Get("firewall_ids").(*schema.Set).List())
+	if err := attachFirewallsForPort(client, wanIP.ID, firewallIDs); err != nil {
+		return fmt.Errorf("error when attaching firewalls: %s", err)
+	}
 	return resourceBizflyCloudWanIPRead(d, meta)
 }
 
@@ -85,10 +88,11 @@ func resourceBizflyCloudWanIPRead(d *schema.ResourceData, meta interface{}) erro
 	_ = d.Set("status", wanIP.Status)
 	_ = d.Set("created_at", wanIP.CreatedAt)
 	_ = d.Set("updated_at", wanIP.UpdatedAt)
-	_ = d.Set("security_groups", readSecurityGroups(wanIP.SecurityGroups))
+	_ = d.Set("firewall_ids", readSecurityGroups(wanIP.SecurityGroups))
 	_ = d.Set("billing_type", wanIP.BillingType)
 	_ = d.Set("bandwidth", wanIP.Bandwidth)
 	_ = d.Set("availability_zone", wanIP.AvailabilityZone)
+	_ = d.Set("server_id", wanIP.DeviceID)
 	return nil
 }
 
@@ -134,6 +138,11 @@ func resourceBizflyCloudWanIPUpdate(d *schema.ResourceData, meta interface{}) er
 			if err != nil {
 				return fmt.Errorf("error when converting to paid: %s", err)
 			}
+		}
+	}
+	if d.HasChange("firewall_ids") {
+		if err := updateFirewallForNetworkInterface(d, client, d.Id()); err != nil {
+			return fmt.Errorf("error when update firewall for network interface: %s, %v", d.Id(), err)
 		}
 	}
 	return resourceBizflyCloudWanIPRead(d, meta)
