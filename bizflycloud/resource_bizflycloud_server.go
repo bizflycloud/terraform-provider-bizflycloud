@@ -17,7 +17,6 @@
 
 package bizflycloud
 
-import "C"
 import (
 	"context"
 	"errors"
