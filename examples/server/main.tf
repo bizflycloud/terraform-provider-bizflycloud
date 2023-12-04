@@ -143,7 +143,7 @@ resource "bizflycloud_network_interface_attachment" "test_wan" {
   server_id            = bizflycloud_server.tf_server1.*.id[count.index]
   count                = 2
 }
-đ
+
 
  data "bizflycloud_wan_ip" "wan_ip" {
    ip_address = "103.107.183.114"
