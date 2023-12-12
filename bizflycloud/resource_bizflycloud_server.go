@@ -227,6 +227,13 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 func resourceBizflyCloudServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	id := d.Id()
+	if d.HasChange("name") {
+		// Rename server
+		newName := d.Get("name").(string)
+		if err := client.Server.Rename(context.Background(), id, newName); err != nil {
+			return fmt.Errorf("Error when rename server [%s]: %v", id, err)
+		}
+	}
 	if d.HasChange("flavor_name") {
 		// Resize server to new flavor
 		task, err := client.Server.Resize(context.Background(), id, d.Get("flavor_name").(string))
