@@ -137,5 +137,9 @@ func resourceServerFreeWANNetworkInterfaceSchema() map[string]*schema.Schema {
 			Default:  true,
 			Optional: true,
 		},
+		"ip_address": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
 	}
 }

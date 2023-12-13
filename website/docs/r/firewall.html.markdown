@@ -46,6 +46,7 @@ The following arguments are supported:
 * `name` - (Required) Name of the firewall
 * `ingress` - (Optional) Can be specified multiple times for each ingress rule. Each ingress block supports fields documented below
 * `egress` - (Optional) Can be specified multiple times for each egress rule. Each egress block supports fields documented below.
+* `network_interfaces` - (Optional) Can be specified network interfaces use the firewall.
 
 The `ingress` and `egress` block supports:
 
@@ -67,3 +68,4 @@ The following attributes are exported:
   * `port_range` - Port range. Example: `80` or `8000-9000`
 * `rules_count` - Number of rules of the firewall
 * `network_interface_count` - Number of network interface of the firewall
+* `network_interfaces` - (Optional) Can be specified network interfaces use the firewall.

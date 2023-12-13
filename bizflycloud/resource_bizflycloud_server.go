@@ -181,6 +181,8 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	}
 	vpcNetworkIDs := make([]string, 0)
 	networkInterfaceIds := make([]string, 0)
+	_ = d.Set("default_public_ipv6", make([]map[string]interface{}, 0))
+	_ = d.Set("default_public_ipv4", make([]map[string]interface{}, 0))
 	for _, networkInterface := range networkInterfaces {
 		if networkInterface.DeviceID != d.Id() {
 			continue
@@ -189,6 +191,7 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 		serverNetworkInterface["id"] = networkInterface.ID
 		serverNetworkInterface["firewall_ids"] = networkInterface.SecurityGroups
 		serverNetworkInterface["enabled"] = networkInterface.Status == "ACTIVE"
+		serverNetworkInterface["ip_address"] = networkInterface.IPAddress
 		if networkInterface.Type == "WAN" && networkInterface.BillingType == "free" {
 			if networkInterface.IPVersion == 6 {
 				_ = d.Set("default_public_ipv6", []map[string]interface{}{serverNetworkInterface})
@@ -227,6 +230,13 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 func resourceBizflyCloudServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	id := d.Id()
+	if d.HasChange("name") {
+		// Rename server
+		newName := d.Get("name").(string)
+		if err := client.Server.Rename(context.Background(), id, newName); err != nil {
+			return fmt.Errorf("Error when rename server [%s]: %v", id, err)
+		}
+	}
 	if d.HasChange("flavor_name") {
 		// Resize server to new flavor
 		task, err := client.Server.Resize(context.Background(), id, d.Get("flavor_name").(string))

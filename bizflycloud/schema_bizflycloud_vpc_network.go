@@ -64,6 +64,7 @@ func resourceVPCNetworkSchema() map[string]*schema.Schema {
 		"cidr": {
 			Type:     schema.TypeString,
 			Optional: true,
+			Computed: true,
 		},
 		"is_default": {
 			Type:     schema.TypeBool,
