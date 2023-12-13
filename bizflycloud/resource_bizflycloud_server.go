@@ -191,6 +191,7 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 		serverNetworkInterface["id"] = networkInterface.ID
 		serverNetworkInterface["firewall_ids"] = networkInterface.SecurityGroups
 		serverNetworkInterface["enabled"] = networkInterface.Status == "ACTIVE"
+		serverNetworkInterface["ip_address"] = networkInterface.IPAddress
 		if networkInterface.Type == "WAN" && networkInterface.BillingType == "free" {
 			if networkInterface.IPVersion == 6 {
 				_ = d.Set("default_public_ipv6", []map[string]interface{}{serverNetworkInterface})
