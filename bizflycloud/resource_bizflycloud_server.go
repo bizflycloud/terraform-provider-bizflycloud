@@ -181,8 +181,8 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	}
 	vpcNetworkIDs := make([]string, 0)
 	networkInterfaceIds := make([]string, 0)
-	d.Set("default_public_ipv6", make([]map[string]interface{}, 0))
-	d.Set("default_public_ipv4", make([]map[string]interface{}, 0))
+	_ = d.Set("default_public_ipv6", make([]map[string]interface{}, 0))
+	_ = d.Set("default_public_ipv4", make([]map[string]interface{}, 0))
 	for _, networkInterface := range networkInterfaces {
 		if networkInterface.DeviceID != d.Id() {
 			continue
