@@ -551,6 +551,32 @@ func checkIDInList(id string, IDs []string) bool {
 	return false
 }
 
+func enableIpv6ForServer(client *gobizfly.Client, serverID string) (wanIpv6 *gobizfly.WanIP, err error) {
+	enableErr := client.Server.EnableIpv6(context.Background(), serverID)
+	if enableErr != nil {
+		err = fmt.Errorf("Error enable ipv6 for server %s failed: %v", serverID, enableErr)
+		return
+	}
+	wanIps, wanIpsErr := client.WanIP.List(context.Background())
+	if wanIpsErr != nil {
+		err = fmt.Errorf("Error list wan ip failed: %v", wanIpsErr)
+		return
+	}
+	for _, wanIp := range wanIps {
+		if wanIp.DeviceID != serverID {
+			continue
+		}
+		if wanIp.BillingType == "free" && wanIp.IpVersion == 6 {
+			wanIpv6 = wanIp
+			break
+		}
+	}
+	if wanIpv6 == nil {
+		err = fmt.Errorf("Error enable ipv6 for server %s failed", serverID)
+	}
+	return
+}
+
 func updateFreeWantPort(d *schema.ResourceData, client *gobizfly.Client, field string) error {
 	oldPublicIP, newPublicIP := d.GetChange(field)
 	newPublicIPList := newPublicIP.([]interface{})
@@ -570,7 +596,34 @@ func updateFreeWantPort(d *schema.ResourceData, client *gobizfly.Client, field s
 		removeFreeWan = append(removeFreeWan, oldPublicIPList[0].(map[string]interface{})["id"].(string))
 	}
 	if len(oldPublicIPList) == 0 && len(newPublicIPList) == 1 {
-		return errors.New("cannot add free wan port after creating server")
+		if field == "default_public_ipv6" {
+			serverID := d.Id()
+			wanIpv6, err := enableIpv6ForServer(client, serverID)
+			if err != nil {
+				return err
+			}
+			freeWanID = wanIpv6.ID
+			newFreeWan := newPublicIPList[0].(map[string]interface{})
+			if newFreeWan["enabled"].(bool) {
+				enablePorts = append(enablePorts, freeWanID)
+			} else {
+				disablePorts = append(disablePorts, freeWanID)
+			}
+			newFirewallIDs := readStringArray(newFreeWan["firewall_ids"].(*schema.Set).List())
+			oldFirewallIDs := wanIpv6.SecurityGroups
+			for _, firewallID := range oldFirewallIDs {
+				if !checkIDInList(firewallID, newFirewallIDs) {
+					removeFirewallIDs = append(removeFirewallIDs, firewallID)
+				}
+			}
+			for _, firewallID := range newFirewallIDs {
+				if !checkIDInList(firewallID, oldFirewallIDs) {
+					addFirewallIDs = append(addFirewallIDs, firewallID)
+				}
+			}
+		} else {
+			return errors.New("cannot add free wan ipv4 after creating server")
+		}
 	}
 	// update firewall
 	if len(oldPublicIPList) == 1 && len(newPublicIPList) == 1 {
