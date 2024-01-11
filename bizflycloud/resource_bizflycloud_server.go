@@ -168,6 +168,11 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 		}
 		return fmt.Errorf("Error retrieving server: %v", err)
 	}
+	rootDisk, err := getServerRootDisk(client, server.ID)
+	if err != nil {
+		log.Printf("[WARN] get rootdisk of server %s failed: %+v", server.ID, err)
+		return err
+	}
 	networkInterfaces, _ := client.NetworkInterface.List(context.Background(), &gobizfly.ListNetworkInterfaceOptions{
 		Type: "LAN_WAN",
 	})
@@ -219,11 +224,16 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	_ = d.Set("is_available", server.IsAvailable)
 	_ = d.Set("locked", server.Locked)
 	_ = d.Set("network_plan", server.NetworkPlan)
+	_ = d.Set("ssh_key", server.KeyName)
 	_ = d.Set("vpc_network_ids", vpcNetworkIDs)
 	_ = d.Set("network_interface_ids", networkInterfaceIds)
 	if err = d.Set("volume_ids", flatternBizflyCloudVolumeIDs(server.AttachedVolumes)); err != nil {
 		return fmt.Errorf("Error setting `volume_ids`: %+v", err)
 	}
+	_ = d.Set("os_type", rootDisk.ImageMetadata.ImageType)
+	_ = d.Set("os_id", rootDisk.ImageMetadata.ImageID)
+	_ = d.Set("root_disk_volume_type", rootDisk.VolumeType)
+	_ = d.Set("root_disk_size", rootDisk.Size)
 	return nil
 }
 
@@ -714,4 +724,25 @@ func updateFreeWantPort(d *schema.ResourceData, client *gobizfly.Client, field s
 		return <-errChan
 	}
 	return nil
+}
+
+func getServerRootDisk(client *gobizfly.Client, serverId string) (*gobizfly.Volume, error) {
+	volumes, err := client.Volume.List(context.Background(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("list volume failed: %+v", err)
+	}
+
+	for _, vol := range volumes {
+		attachments := vol.Attachments
+		if len(attachments) == 0 {
+			continue
+		}
+		attachedServerId := attachments[0].ServerID
+		isRootDisk := vol.AttachedType == "rootdisk"
+		isServerRootDisk := (attachedServerId == serverId) && isRootDisk
+		if isServerRootDisk {
+			return vol, nil
+		}
+	}
+	return nil, fmt.Errorf("rootdisk of server %s not found.", serverId)
 }
