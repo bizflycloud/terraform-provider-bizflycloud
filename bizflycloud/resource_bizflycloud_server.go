@@ -234,6 +234,15 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	_ = d.Set("os_id", rootDisk.ImageMetadata.ImageID)
 	_ = d.Set("root_disk_volume_type", rootDisk.VolumeType)
 	_ = d.Set("root_disk_size", rootDisk.Size)
+	var state string
+	if server.Status == "ACTIVE" {
+		state = "running"
+	} else if server.Status == "SHUTOFF" {
+		state = "stopped"
+	} else {
+		state = server.Status
+	}
+	_ = d.Set("state", state)
 	return nil
 }
 
@@ -296,6 +305,23 @@ func resourceBizflyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 		if err := updateFreeWantPort(d, client, "default_public_ipv6"); err != nil {
 			log.Printf("[ERROR] Error updating free wan port: %v", err)
 			return err
+		}
+	}
+	if d.HasChange("state") {
+		oldState, newState := d.GetChange("state")
+		if oldState.(string) == "ERROR" {
+			return fmt.Errorf("cannot change server state because server state is %s", oldState.(string))
+		}
+		if newState.(string) == "running" {
+			_, err := client.Server.Start(context.Background(), d.Id())
+			if err != nil {
+				return fmt.Errorf("error changing state of server: %v", err)
+			}
+		} else if newState.(string) == "stopped" {
+			_, err := client.Server.Stop(context.Background(), d.Id())
+			if err != nil {
+				return fmt.Errorf("error changing state of server: %v", err)
+			}
 		}
 	}
 	return resourceBizflyCloudServerRead(d, meta)
