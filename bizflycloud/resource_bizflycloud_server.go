@@ -308,7 +308,10 @@ func resourceBizflyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 	if d.HasChange("state") {
-		_, newState := d.GetChange("state")
+		oldState, newState := d.GetChange("state")
+		if oldState.(string) == "ERROR" {
+			return fmt.Errorf("cannot change server state because server state is %s", oldState.(string))
+		}
 		if newState.(string) == "running" {
 			_, err := client.Server.Start(context.Background(), d.Id())
 			if err != nil {
