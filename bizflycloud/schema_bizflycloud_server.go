@@ -2,6 +2,7 @@ package bizflycloud
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 type ServerNetworkInterface struct {
@@ -117,6 +118,12 @@ func resourceServerSchema() map[string]*schema.Schema {
 			Type:     schema.TypeSet,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Computed: true,
+		},
+		"state": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			Default:      "running",
+			ValidateFunc: validation.StringInSlice([]string{"running", "stopped"}, false),
 		},
 	}
 }

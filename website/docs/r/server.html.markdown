@@ -30,6 +30,7 @@ resource "bizflycloud_server" "tf_server1" {
   network_plan           = "free_bandwidth"
   billing_plan           = "on_demand"
   vpc_network_ids        = [data.bizflycloud_vpc_network.vpc_network.id, data.bizflycloud_vpc_network.vpc_network_1.id]
+  state                  = "running"
   default_public_ipv4 {
     enabled = true
     firewall_ids = [
@@ -66,6 +67,7 @@ The following arguments are supported:
 * `billing_plan` - (Optional) The billing plan applied for the server (saving_plan/on_demand). Default value is
   saving_plan
 * `user_data` - (Optional) The user data to provide when launching the server.
+* `state` - (Optional) The state of server (running/stopped). Default value is running
 * `default_public_ipv4` - (Optional) The default public IPv4 WAN network interface of the server.
   - `firewall_ids` - (Optional) A list of the firewall IDs of the network interface.
   - `enabled` - (Optional) The enabled public IPv4 WAN (true/false). Default value is true.
@@ -102,6 +104,7 @@ The following attributes are exported:
 * `billing_plan` - The billing plan applied for the server
 * `is_available` - The state that the server is available (not in a VM action)
 * `locked` - Is the server locked state
+* `state` - The state of server.
 
 ## Import
 
