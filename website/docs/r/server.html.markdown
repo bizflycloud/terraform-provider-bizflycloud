@@ -29,7 +29,19 @@ resource "bizflycloud_server" "tf_server1" {
   root_disk_size         = 20
   network_plan           = "free_bandwidth"
   billing_plan           = "on_demand"
-  vpc_network_ids = [data.bizflycloud_vpc_network.vpc_network.id, data.bizflycloud_vpc_network.vpc_network_1.id]
+  vpc_network_ids        = [data.bizflycloud_vpc_network.vpc_network.id, data.bizflycloud_vpc_network.vpc_network_1.id]
+  default_public_ipv4 {
+    enabled = true
+    firewall_ids = [
+      "0ca6eaad-2941-4141-a537-d6623322ed8c"
+    ]
+  }
+  default_public_ipv6 {
+    enabled = true
+    firewall_ids = [
+      "56cf1f22-d8cb-41c3-948a-cc03582f0adc"
+    ]
+  }
 }
 ```
 
@@ -55,9 +67,11 @@ The following arguments are supported:
   saving_plan
 * `user_data` - (Optional) The user data to provide when launching the server.
 * `default_public_ipv4` - (Optional) The default public IPv4 WAN network interface of the server.
-  - `firewall_ids` - (Optional) A list of the firewall IDs of the network interface
+  - `firewall_ids` - (Optional) A list of the firewall IDs of the network interface.
+  - `enabled` - (Optional) The enabled public IPv4 WAN (true/false). Default value is true.
 * `default_private_ipv6` - (Optional) The default private IPv6 LAN network interface of the server.
-  - `firewall_ids` - (Optional) A list of the firewall IDs of the network interface
+  - `firewall_ids` - (Optional) A list of the firewall IDs of the network interface.
+  - `enabled` - (Optional) The enabled private IPv6 WAN (true/false). Default value is true.
 
 ## Attributes Reference
 
@@ -72,10 +86,16 @@ The following attributes are exported:
 * `root_disk_size` - The size of Server root disk
 * `availability_zone` - The availability zone of server
 * `volume_ids` - A list of the attached block storage volumes
-* `default_public_ipv4` - (Optional) The default public IPv4 WAN network interface of the server.
-  - `firewall_ids` - (Optional) A list of the firewall IDs of the network interface
-* `default_private_ipv6` - (Optional) The default private IPv6 LAN network interface of the server.
-  - `firewall_ids` - (Optional) A list of the firewall IDs of the network interface
+* `default_public_ipv4` - The default public IPv4 WAN network interface of the server.
+  - `id` - The ID of the IPv4 WAN.
+  - `firewall_ids` - A list of the firewall IDs of the network interface.
+  - `enabled` - The enabled public IPv4 WAN.
+  - `ip_address` - The IPv4 WAN address.
+* `default_private_ipv6` - The default private IPv6 LAN network interface of the server.
+  - `id` - The ID of the IPv6 WAN.
+  - `firewall_ids` - A list of the firewall IDs of the network interface.
+  - `enabled` - The enable private IPv6 WAN.
+  - `ip_address` - The IPv6 WAN address.
 * `network_interface_ids` - A list of the network interfaces
 * `network_plan` - The network plan for the server. The default value is free_datatransfer.
 * `vpc_network_ids` - A list of the VPC network IDs.
@@ -85,8 +105,8 @@ The following attributes are exported:
 
 ## Import
 
-Bizfly Cloud SSH key resource can be imported using the SSH key name in the Bizfly manage dashboard
+Bizfly Cloud Server resource can be imported using the server id in the Bizfly manage dashboard
 
 ```
-$ terraform import bizflycloud_ssh_key.example ssh-key-1
+$ terraform import bizflycloud_server.tf_server1 server-id
 ```
