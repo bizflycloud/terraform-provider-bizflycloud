@@ -3,8 +3,7 @@ layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_server"
 sidebar_current: "docs-bizflycloud-resource-server"
 description: |-
-Provides a Bizfly Cloud Server resource. This can be used to create, modify, and delete Servers. Servers also support
-provisioning.
+  Provides a Bizfly Cloud Server resource. This can be used to create, modify, and delete Servers. Servers also support provisioning.
 ---
 
 # bizflycloud\_server
@@ -29,7 +28,6 @@ resource "bizflycloud_server" "tf_server1" {
   root_disk_size         = 20
   network_plan           = "free_bandwidth"
   billing_plan           = "on_demand"
-  vpc_network_ids        = [data.bizflycloud_vpc_network.vpc_network.id, data.bizflycloud_vpc_network.vpc_network_1.id]
   state                  = "running"
   default_public_ipv4 {
     enabled = true
@@ -63,7 +61,6 @@ The following arguments are supported:
 * `root_disk_size` - (Required) The size of Root disk volume.
 * `volume_ids` - (Optional) A list of the attached block storage volumes
 * `network_plan` - (Optional) The network plan for the server. The default value is free_datatransfer.
-* `vpc_network_ids` - (Optional) A list of the VPC network IDs.
 * `billing_plan` - (Optional) The billing plan applied for the server (saving_plan/on_demand). Default value is
   saving_plan
 * `user_data` - (Optional) The user data to provide when launching the server.
