@@ -40,6 +40,10 @@ func resourceServerSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Required: true,
 		},
+		"root_disk_id": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
 		"root_disk_volume_type": {
 			Type:     schema.TypeString,
 			Optional: true,
