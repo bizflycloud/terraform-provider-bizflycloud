@@ -3,6 +3,7 @@ package bizflycloud
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/bizflycloud/gobizfly"
@@ -28,24 +29,30 @@ func resourceBizflyCloudCDN() *schema.Resource {
 
 func resourceBizflyCloudCDNCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	czp := &gobizfly.CreateZonePayload{
-		Name:        d.Get("name").(string),
-		Required:    d.Get("required").(bool),
-		Description: d.Get("description").(string),
+	log.Println("[DEBUG] Creating cdn resource")
+	log.Printf("[DEBUG] %v", d.Get("origin"))
+	origin := d.Get("origin")
+	o := &gobizfly.Origin{
+		Name: origin["name"].(string),
 	}
-	zone, err := client.DNS.CreateZone(context.Background(), czp)
+	cdp := &gobizfly.CreateDomainPayload{
+		Domain: d.Get("domain").(string),
+		Type:   1,
+		Origin: o,
+	}
+	_, err := client.CDN.Create(context.Background(), cdp)
 	if err != nil {
-		return fmt.Errorf("Error when create dns zone: %v", err)
+		return fmt.Errorf("error when create cdn resource: %v", err)
 	}
-	d.SetId(zone.ID)
-	return resourceBizflyCloudDNSRead(d, meta)
+	// d.SetId(domain.DomainID)
+	return resourceBizflyCloudCDNRead(d, meta)
 }
 
 func resourceBizflyCloudCDNRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	zone, err := client.DNS.GetZone(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error when get dns zone: %v", err)
+		return fmt.Errorf("error when get cdn resource: %v", err)
 	}
 	_ = d.Set("name", zone.Name)
 	_ = d.Set("active", zone.Active)
