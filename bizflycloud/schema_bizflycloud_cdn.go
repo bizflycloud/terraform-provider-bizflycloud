@@ -4,53 +4,54 @@ import "github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
 func resourceCDNSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"name": {
+		"domain": {
 			Type:     schema.TypeString,
 			Required: true,
 		},
-		"required": {
-			Type:     schema.TypeBool,
-			Optional: true,
-		},
-		"description": {
+		"domain_cdn": {
 			Type:     schema.TypeString,
-			Optional: true,
-		},
-		"created_at": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"updated_at": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"deleted": {
-			Type:     schema.TypeInt,
 			Computed: true,
 		},
 		"tenant_id": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"ttl": {
-			Type:     schema.TypeInt,
-			Computed: true,
-		},
-		"active": {
-			Type:     schema.TypeBool,
-			Optional: true,
-		},
-		"nameserver": {
-			Type:     schema.TypeList,
-			Elem:     &schema.Schema{Type: schema.TypeString},
-			Optional: true,
-		},
-		"record_set": {
-			Type:     schema.TypeList,
-			Computed: true,
-			Elem: &schema.Resource{
-				Schema: dataRecordSetInfoSchema(),
+		"origin": {
+			Type:     schema.TypeMap,
+			Required: true,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
 			},
+			// Elem: &schema.Resource{
+			// 	Schema: dataOriginSchema(),
+			// },
 		},
 	}
 }
+
+// func dataOriginSchema() map[string]*schema.Schema {
+// 	return map[string]*schema.Schema{
+// 		"name": {
+// 			Optional: true,
+// 			Type:     schema.TypeString,
+// 		},
+// 		"origin_type": {
+// 			Required: false,
+// 			Optional: true,
+// 			Type:     schema.TypeString,
+// 			Default:  "custom_origin",
+// 		},
+// 		"upstream_addrs": {
+// 			Required: true,
+// 			Type:     schema.TypeString,
+// 		},
+// 		"upstream_host": {
+// 			Required: true,
+// 			Type:     schema.TypeString,
+// 		},
+// 		"upstream_proto": {
+// 			Required: true,
+// 			Type:     schema.TypeString,
+// 		},
+// 	}
+// }
