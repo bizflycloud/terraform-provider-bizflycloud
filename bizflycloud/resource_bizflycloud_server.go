@@ -230,6 +230,7 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	if err = d.Set("volume_ids", flatternBizflyCloudVolumeIDs(server.AttachedVolumes)); err != nil {
 		return fmt.Errorf("Error setting `volume_ids`: %+v", err)
 	}
+	_ = d.Set("root_disk_id", rootDisk.ID)
 	_ = d.Set("os_type", rootDisk.ImageMetadata.ImageType)
 	_ = d.Set("os_id", rootDisk.ImageMetadata.ImageID)
 	_ = d.Set("root_disk_volume_type", rootDisk.VolumeType)
@@ -322,6 +323,22 @@ func resourceBizflyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 			if err != nil {
 				return fmt.Errorf("error changing state of server: %v", err)
 			}
+		}
+	}
+	if d.HasChange("root_disk_size") {
+		rootDiskID := d.Get("root_disk_id").(string)
+		oldRootDiskSize, newRootDiskSize := d.GetChange("root_disk_size")
+		oldRootDiskSizeInt, newRootDiskSizeInt := oldRootDiskSize.(int), newRootDiskSize.(int)
+		if oldRootDiskSizeInt >= newRootDiskSizeInt {
+			return fmt.Errorf("New rootdisk size must be greater than %d to extend rootdisk", oldRootDiskSizeInt)
+		}
+		task, err := client.Volume.ExtendVolume(context.Background(), rootDiskID, newRootDiskSizeInt)
+		if err != nil {
+			return err
+		}
+		_, err = waitToExtendVolume(d, meta, task.TaskID)
+		if err != nil {
+			return fmt.Errorf("wait to check extend rootdisk error: %v", err)
 		}
 	}
 	return resourceBizflyCloudServerRead(d, meta)
@@ -476,6 +493,31 @@ func waitToDeleteServerRefreshFunc(d *schema.ResourceData, meta interface{}, tas
 			return nil, "false", err
 		}
 		return server, strconv.FormatBool(resp.Ready), nil
+	}
+}
+
+func waitToExtendVolume(d *schema.ResourceData, meta interface{}, taskID string) (interface{}, error) {
+	log.Printf("[INFO] Waiting for volume with task id (%s) to be extend", d.Id())
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"false"},
+		Target:     []string{"true"},
+		Refresh:    extendVolumeRefreshFunc(meta, taskID),
+		Timeout:    600 * time.Second,
+		Delay:      5 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+	return stateConf.WaitForState()
+}
+
+func extendVolumeRefreshFunc(meta interface{}, taskID string) resource.StateRefreshFunc {
+	client := meta.(*CombinedConfig).gobizflyClient()
+	return func() (interface{}, string, error) {
+
+		resp, err := client.Server.GetTask(context.Background(), taskID)
+		if err != nil {
+			return nil, "false", err
+		}
+		return resp, strconv.FormatBool(resp.Ready), nil
 	}
 }
 

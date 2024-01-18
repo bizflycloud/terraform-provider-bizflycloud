@@ -84,6 +84,7 @@ The following attributes are exported:
 * `flavor_name` - The flavor of the server
 * `category` - The category of the server
 * `status` - The status of the Server
+* `root_disk_id` - The ID of Server root disk
 * `root_disk_type` - The type of Server root disk
 * `root_disk_size` - The size of Server root disk
 * `availability_zone` - The availability zone of server
