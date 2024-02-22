@@ -44,3 +44,12 @@ The following attributes are exported:
 * `created_at` - The time when Custom Image was created
 * `updated_at` - The time when Custom Image was updated
 * `description` - The description of Custom Image
+
+
+## Import
+
+Bizfly Cloud custom image resource can be imported using the custom image id in the Bizfly manage dashboard
+
+```
+$ terraform import bizflycloud_custom_image.new_custom_image1 custom-image-id
+```

@@ -20,12 +20,16 @@ package bizflycloud
 import (
 	"context"
 	"fmt"
+
 	"github.com/bizflycloud/gobizfly"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourceBizflyCloudFirewall() *schema.Resource {
 	return &schema.Resource{
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		Create: resourceBizflyCloudFirewallCreate,
 		Read:   resourceBizflyCloudFirewallRead,
 		Update: resourceBizflyCloudFirewallUpdate,

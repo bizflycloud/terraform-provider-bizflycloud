@@ -30,6 +30,9 @@ import (
 
 func resourceBizflyCloudVolume() *schema.Resource {
 	return &schema.Resource{
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		Create: resourceBizflyCloudVolumeCreate,
 		Read:   resourceBizflyCloudVolumeRead,
 		Update: resourceBizflyCloudVolumeUpdate,

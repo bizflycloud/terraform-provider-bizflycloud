@@ -42,3 +42,12 @@ In addition to all arguments above, the following attributes are exported:
 * `server_id` - The ID of the server to attach the network interface to.
 * `network_interface_id` - The ID of the network interface to attach to the server.
 * `firewall_ids` - A list of the firewall IDs of the network interface
+
+
+## Import
+
+Bizfly Cloud network interface attachment resource can be imported using the network interface id in the Bizfly manage dashboard
+
+```
+$ terraform import bizflycloud_network_interface_attachment.test_attachment network-interface-id
+```

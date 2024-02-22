@@ -35,3 +35,12 @@ The following attributes are exported:
 * `id` - The ID of the volume snapshot
 * `name`- The name of the volume snapshot
 * `size` - The size of volume volume
+
+
+## Import
+
+Bizfly Cloud volume snapshot resource can be imported using the snapshot id in the Bizfly manage dashboard
+
+```
+$ terraform import bizflycloud_volume_snapshot.snapshot1 snapshot-id
+```

@@ -27,6 +27,9 @@ import (
 
 func resourceBizflyCloudVolumeSnapshot() *schema.Resource {
 	return &schema.Resource{
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		Create:        resourceBizflyCloudVolumeSnapshotCreate,
 		Read:          resourceBizflyCloudVolumeSnapshotRead,
 		Delete:        resourceBizflyCloudVolumeSnapshotDelete,

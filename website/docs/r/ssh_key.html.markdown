@@ -38,15 +38,8 @@ The following attributes are exported:
 
 ## Import
 
-Bizfly Cloud server resource can be imported using the server id
-
-You can obtain server id from:
-
-- The UUID part in URL while managing the server in the web interface `https://hn.manage.bizflycloud.vn/iaas-cloud/servers/<ID>/details`
-
-- API
-
+Bizfly Cloud ssh key resource can be imported using the ssh key name
 
 ```
-$ terraform import bizflycloud_ssh_key.example 123e4567-e89b-12d3-a456-426614174000
+$ terraform import bizflycloud_ssh_key.sshkey ssh-key-name
 ```
