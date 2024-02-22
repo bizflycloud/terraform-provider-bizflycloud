@@ -34,3 +34,12 @@ The following attributes are exported:
 * `id` - The ID of the Volume ID
 * `server_id` - The ID of the server
 * `volume_id` - The ID of the volume
+
+
+## Import
+
+Bizfly Cloud volume attachment resource can be imported using the volume id in the Bizfly manage dashboard
+
+```
+$ terraform import bizflycloud_volume_attachment.volume_attachment1 volume-id
+```

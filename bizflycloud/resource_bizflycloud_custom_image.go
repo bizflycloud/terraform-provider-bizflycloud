@@ -2,14 +2,18 @@ package bizflycloud
 
 import (
 	"context"
+	"log"
+
 	"github.com/bizflycloud/gobizfly"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"log"
 )
 
 func resourceBizflyCloudCustomImage() *schema.Resource {
 	return &schema.Resource{
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		Create: resourceBizflyCloudCustomImageCreate,
 		Read:   resourceBizflyCloudCustomImageRead,
 		Delete: resourceBizflyCloudCustomImageDelete,

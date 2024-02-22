@@ -51,3 +51,12 @@ The following attributes are exported:
   * `allocation_pools` - The allocation pools subnets of VPC Network.
 * `create_at` - The created time.
 * `updated_at` - The updated time.
+
+
+## Import
+
+Bizfly Cloud vpc network resource can be imported using the vpc network id in the Bizfly manage dashboard
+
+```
+$ terraform import bizflycloud_vpc_network.vpc_network vpc-network-id
+```

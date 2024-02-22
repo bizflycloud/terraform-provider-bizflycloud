@@ -51,3 +51,12 @@ The following attributes are exported:
 * `firewall_ids` - List ID of security groups.
 * `created_at` - The created time of network interface.
 * `updated_at` - The updated time of network interface.
+
+
+## Import
+
+Bizfly Cloud network interface resource can be imported using the network interface id in the Bizfly manage dashboard
+
+```
+$ terraform import bizflycloud_network_interface.network_interface network-interface-id
+```

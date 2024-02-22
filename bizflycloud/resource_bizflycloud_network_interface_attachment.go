@@ -3,13 +3,17 @@ package bizflycloud
 import (
 	"context"
 	"fmt"
+	"log"
+
 	"github.com/bizflycloud/gobizfly"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"log"
 )
 
 func resourceBizflyCloudNetworkInterfaceAttachment() *schema.Resource {
 	return &schema.Resource{
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		Create: resourceBizflyCloudNetworkInterfaceAttachmentCreate,
 		Read:   resourceBizflyCloudNetworkInterfaceAttachmentRead,
 		Delete: resourceBizflyCloudNetworkInterfaceAttachmentDelete,

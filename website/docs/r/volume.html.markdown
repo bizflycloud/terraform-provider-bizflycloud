@@ -45,3 +45,12 @@ The following attributes are exported:
 * `availability_zone` - The availability zone of volume
 * `type` - The volume type[resource_bizflycloud_network_interface.go](..%2F..%2F..%2Fbizflycloud%2Fresource_bizflycloud_network_interface.go)
 * `size` - The size of volume
+
+
+## Import
+
+Bizfly Cloud volume resource can be imported using the volume id in the Bizfly manage dashboard
+
+```
+$ terraform import bizflycloud_volume.volume1 volume-id
+```

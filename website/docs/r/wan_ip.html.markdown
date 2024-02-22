@@ -48,3 +48,11 @@ The following attributes are exported:
 * `billing_type` - Billing type of the WAN IP.
 * `ip_address` - IP address of the WAN IP.
 * `ip_version` - IP version of the WAN IP.
+
+## Import
+
+Bizfly Cloud wan ip resource can be imported using the wan ip id in the Bizfly manage dashboard
+
+```
+$ terraform import bizflycloud_wan_ip.test_wan_1 wan-ip-id
+```

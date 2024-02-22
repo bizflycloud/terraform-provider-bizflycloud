@@ -2,12 +2,16 @@ package bizflycloud
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"log"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourceBizflyCloudVolumeAttachment() *schema.Resource {
 	return &schema.Resource{
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		Create: resourceBizflyCloudVolumeAttachmentCreate,
 		Read:   resourceBizflyCloudVolumeAttachmentRead,
 		Delete: resourceBizflyCloudVolumeAttachmentDelete,

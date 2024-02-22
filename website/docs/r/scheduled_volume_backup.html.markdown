@@ -47,3 +47,11 @@ The following attributes are exported:
 * `tenant_id` - The tenant id
 * `type` - The type of the resource
 * `billing_plan` - The billing plan
+
+## Import
+
+Bizfly Cloud volume backup resource can be imported using the backup id in the Bizfly manage dashboard
+
+```
+$ terraform import bizflycloud_scheduled_volume_backup.backup_test backup-id
+```

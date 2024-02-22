@@ -69,3 +69,12 @@ The following attributes are exported:
 * `rules_count` - Number of rules of the firewall
 * `network_interface_count` - Number of network interface of the firewall
 * `network_interfaces` - (Optional) Can be specified network interfaces use the firewall.
+
+
+## Import
+
+Bizfly Cloud firewall resource can be imported using the firewall id in the Bizfly manage dashboard
+
+```
+$ terraform import bizflycloud_firewall.fw1 firewall-id
+```
