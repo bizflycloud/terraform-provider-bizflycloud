@@ -3,7 +3,6 @@ package bizflycloud
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/bizflycloud/gobizfly"
@@ -29,46 +28,36 @@ func resourceBizflyCloudCDN() *schema.Resource {
 
 func resourceBizflyCloudCDNCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	log.Println("[DEBUG] Creating cdn resource")
-	log.Printf("[DEBUG] %v", d.Get("origin"))
-	origin := d.Get("origin")
-	o := &gobizfly.Origin{
-		Name: origin["name"].(string),
-	}
+
+	origins := d.Get("origin").(*schema.Set).List()
+	origin := origins[0].(map[string]interface{})
+
 	cdp := &gobizfly.CreateDomainPayload{
 		Domain: d.Get("domain").(string),
-		Type:   1,
-		Origin: o,
+		Origin: &gobizfly.Origin{
+			Name:          origin["name"].(string),
+			UpstreamHost:  origin["upstream_host"].(string),
+			UpstreamProto: origin["upstream_proto"].(string),
+			UpstreamAddrs: origin["upstream_addrs"].(string),
+		},
 	}
-	_, err := client.CDN.Create(context.Background(), cdp)
+	cdr, err := client.CDN.Create(context.Background(), cdp)
 	if err != nil {
 		return fmt.Errorf("error when create cdn resource: %v", err)
 	}
-	// d.SetId(domain.DomainID)
+	domain := cdr.Domain
+	d.SetId(domain.DomainID)
 	return resourceBizflyCloudCDNRead(d, meta)
 }
 
 func resourceBizflyCloudCDNRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	zone, err := client.DNS.GetZone(context.Background(), d.Id())
+	domain, err := client.CDN.Get(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("error when get cdn resource: %v", err)
 	}
-	_ = d.Set("name", zone.Name)
-	_ = d.Set("active", zone.Active)
-	_ = d.Set("created_at", zone.CreatedAt)
-	_ = d.Set("update_at", zone.UpdatedAt)
-	_ = d.Set("deleted", zone.Deleted)
-	_ = d.Set("ttl", zone.TTL)
-	_ = d.Set("tenant_id", zone.TenantId)
-
-	if err := d.Set("nameserver", readNameServer(zone.NameServer)); err != nil {
-		return fmt.Errorf("error setting nameserver: %w", err)
-	}
-
-	if err := d.Set("record_set", readRecordsSet(zone.RecordsSet)); err != nil {
-		return fmt.Errorf("error setting record_set: %w", err)
-	}
+	_ = d.Set("domain_cdn", domain.DomainCDN)
+	_ = d.Set("domain_id", domain.DomainID)
 
 	return nil
 }
@@ -81,7 +70,7 @@ func resourceBizflyCloudCDNDelete(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*CombinedConfig).gobizflyClient()
 	err := client.CDN.Delete(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error when delete cdn resource : %v", err)
+		return fmt.Errorf("error when delete cdn resource : %v", err)
 	}
 	return nil
 }

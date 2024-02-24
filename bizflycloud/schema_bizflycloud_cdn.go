@@ -12,19 +12,36 @@ func resourceCDNSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"tenant_id": {
+		"domain_id": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
 		"origin": {
-			Type:     schema.TypeMap,
+			Type:     schema.TypeSet,
 			Required: true,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"upstream_addrs": {
+						Type:        schema.TypeString,
+						Required:    true,
+						Description: "A domain name or IP of your origin source. Specify a port if custom.",
+					},
+					"upstream_host": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"upstream_proto": {
+						Type:     schema.TypeString,
+						Optional: true,
+						Default:  "http",
+					},
+					"name": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+				},
 			},
-			// Elem: &schema.Resource{
-			// 	Schema: dataOriginSchema(),
-			// },
 		},
 	}
 }
