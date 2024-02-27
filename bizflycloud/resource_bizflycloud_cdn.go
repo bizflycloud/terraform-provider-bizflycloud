@@ -63,7 +63,29 @@ func resourceBizflyCloudCDNRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceBizflyCloudCDNUpdate(d *schema.ResourceData, meta interface{}) error {
-	return nil
+	client := meta.(*CombinedConfig).gobizflyClient()
+	domain, err := client.CDN.Get(context.Background(), d.Id())
+	if err != nil {
+		return fmt.Errorf("error when get cdn resource: %v", err)
+	}
+
+	if d.HasChange("origin") {
+		origins := d.Get("origin").(*schema.Set).List()
+		origin := origins[0].(map[string]interface{})
+		udp := &gobizfly.UpdateDomainPayload{
+			Origin: &gobizfly.Origin{
+				Name:          origin["name"].(string),
+				UpstreamHost:  origin["upstream_host"].(string),
+				UpstreamProto: origin["upstream_proto"].(string),
+				UpstreamAddrs: origin["upstream_addrs"].(string),
+			},
+		}
+		_, err := client.CDN.Update(context.Background(), domain.DomainID, udp)
+		if err != nil {
+			return fmt.Errorf("error when update cdn resource: %v", err)
+		}
+	}
+	return resourceBizflyCloudCDNRead(d, meta)
 }
 
 func resourceBizflyCloudCDNDelete(d *schema.ResourceData, meta interface{}) error {
