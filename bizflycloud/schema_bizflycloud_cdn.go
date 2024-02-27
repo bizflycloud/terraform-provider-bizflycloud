@@ -45,30 +45,3 @@ func resourceCDNSchema() map[string]*schema.Schema {
 		},
 	}
 }
-
-// func dataOriginSchema() map[string]*schema.Schema {
-// 	return map[string]*schema.Schema{
-// 		"name": {
-// 			Optional: true,
-// 			Type:     schema.TypeString,
-// 		},
-// 		"origin_type": {
-// 			Required: false,
-// 			Optional: true,
-// 			Type:     schema.TypeString,
-// 			Default:  "custom_origin",
-// 		},
-// 		"upstream_addrs": {
-// 			Required: true,
-// 			Type:     schema.TypeString,
-// 		},
-// 		"upstream_host": {
-// 			Required: true,
-// 			Type:     schema.TypeString,
-// 		},
-// 		"upstream_proto": {
-// 			Required: true,
-// 			Type:     schema.TypeString,
-// 		},
-// 	}
-// }
