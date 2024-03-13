@@ -25,9 +25,11 @@ import (
 	"time"
 
 	"github.com/bizflycloud/gobizfly"
+	"github.com/bizflycloud/terraform-provider-bizflycloud/constants"
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceBizflyCloudKubernetes() *schema.Resource {
@@ -75,6 +77,22 @@ func resourceBizflyCloudKubernetes() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"auto_upgrade": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"local_dns": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"cni_plugin": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      constants.KubernetesKubeRouter,
+				ValidateFunc: validation.StringInSlice(constants.ValidCNIPlugins, false),
+			},
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(20 * time.Minute),
@@ -84,6 +102,10 @@ func resourceBizflyCloudKubernetes() *schema.Resource {
 
 func workerPoolSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
+		"id": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
 		"name": {
 			Type:     schema.TypeString,
 			Required: true,
@@ -143,14 +165,27 @@ func workerPoolSchema() map[string]*schema.Schema {
 				Schema: taintsSchema(),
 			},
 		},
+		"network_plan": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			Default:      constants.FreeDatatransfer,
+			ValidateFunc: validation.StringInSlice(constants.ValidNetworkPlans, false),
+		},
+		"billing_plan": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			Default:      constants.OnDemand,
+			ValidateFunc: validation.StringInSlice(constants.ValidBillingPlans, false),
+		},
 	}
 }
 
 func taintsSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"effect": {
-			Type:     schema.TypeString,
-			Required: true,
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(constants.ValidEffects, false),
 		},
 		"key": {
 			Type:     schema.TypeString,
@@ -158,7 +193,7 @@ func taintsSchema() map[string]*schema.Schema {
 		},
 		"value": {
 			Type:     schema.TypeString,
-			Required: true,
+			Optional: true,
 		},
 	}
 }
@@ -178,6 +213,9 @@ func resourceBizflyClusterCreate(d *schema.ResourceData, meta interface{}) error
 		Name:         d.Get("name").(string),
 		Version:      d.Get("version").(string),
 		VPCNetworkID: d.Get("vpc_network_id").(string),
+		AutoUpgrade:  d.Get("auto_upgrade").(bool),
+		LocalDNS:     d.Get("local_dns").(bool),
+		CNIPlugin:    d.Get("cni_plugin").(string),
 		WorkerPools:  readWorkerPoolFromConfig(d),
 		Tags:         tags,
 	}
@@ -204,11 +242,16 @@ func resourceBizflyCloudClusterRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error retrieved cluster: %v", err)
 	}
 	_ = d.Set("name", cluster.Name)
+	_ = d.Set("version", cluster.Version.ID)
 	_ = d.Set("vpc_network_id", cluster.VPCNetworkID)
 	_ = d.Set("worker_pools_count", cluster.WorkerPoolsCount)
 	_ = d.Set("create_at", cluster.CreatedAt)
 	_ = d.Set("created_by", cluster.CreatedBy)
-	_ = d.Set("worker_pools", cluster.WorkerPools)
+	_ = d.Set("auto_upgrade", cluster.AutoUpgrade)
+	_ = d.Set("local_dns", cluster.LocalDNS)
+	_ = d.Set("cni_plugin", cluster.CNIPlugin)
+	workerPools := parseWorkerPools(cluster.WorkerPools)
+	_ = d.Set("worker_pools", workerPools)
 	return nil
 }
 
@@ -223,9 +266,22 @@ func resourceBizflyCloudClusterDelete(d *schema.ResourceData, meta interface{}) 
 
 func resourceBizflyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	cluster, err := client.KubernetesEngine.Get(context.Background(), d.Id())
+	clusterId := d.Id()
+	cluster, err := client.KubernetesEngine.Get(context.Background(), clusterId)
 	if err != nil {
 		return fmt.Errorf("Error update cluster: %v", err)
+	}
+	if d.HasChange("auto_upgrade") {
+		_, new_auto_upgrade := d.GetChange("auto_upgrade")
+		update_auto_upgrade := new_auto_upgrade.(bool)
+		updateClusterPayload := gobizfly.UpdateClusterRequest{
+			AutoUpgrade: &update_auto_upgrade,
+		}
+		log.Printf("[DEBUG] Update cluster payload: %+v", updateClusterPayload)
+		_, err = client.KubernetesEngine.UpdateCluster(context.Background(), clusterId, &updateClusterPayload)
+		if err != nil {
+			return fmt.Errorf("Error update auto_upgrade: %+v", err)
+		}
 	}
 	if d.HasChange("worker_pools") {
 		newPools := readWorkerPoolFromConfig(d)
@@ -321,6 +377,8 @@ func readWorkerPoolFromConfig(l *schema.ResourceData) []gobizfly.WorkerPool {
 			EnableAutoScaling: l.Get(pattern + "enable_autoscaling").(bool),
 			MinSize:           l.Get(pattern + "min_size").(int),
 			MaxSize:           l.Get(pattern + "max_size").(int),
+			NetworkPlan:       l.Get(pattern + "network_plan").(string),
+			BillingPlan:       l.Get(pattern + "billing_plan").(string),
 			Tags:              tags,
 			Labels:            labels,
 			Taints:            taints,
@@ -384,4 +442,44 @@ func newPoolStatusRefreshFunc(d *schema.ResourceData, poolID string, meta interf
 		}
 		return pool, pool.ProvisionStatus, nil
 	}
+}
+
+func parseWorkerPoolTaints(taints []gobizfly.Taint) []map[string]interface{} {
+	results := make([]map[string]interface{}, 0)
+	for _, taint := range taints {
+		result := map[string]interface{}{
+			"effect": taint.Effect,
+			"key":    taint.Key,
+			"value":  taint.Value,
+		}
+		results = append(results, result)
+	}
+	return results
+}
+
+func parseWorkerPools(workerPools []gobizfly.ExtendedWorkerPool) []map[string]interface{} {
+	results := make([]map[string]interface{}, 0)
+	for _, workerPool := range workerPools {
+		taints := parseWorkerPoolTaints(workerPool.Taints)
+		result := map[string]interface{}{
+			"id":                 workerPool.UID,
+			"name":               workerPool.Name,
+			"flavor":             workerPool.Flavor,
+			"profile_type":       workerPool.ProfileType,
+			"volume_type":        workerPool.VolumeType,
+			"volume_size":        workerPool.VolumeSize,
+			"availability_zone":  workerPool.AvailabilityZone,
+			"desired_size":       workerPool.DesiredSize,
+			"enable_autoscaling": workerPool.EnableAutoScaling,
+			"min_size":           workerPool.MinSize,
+			"max_size":           workerPool.MaxSize,
+			"tags":               workerPool.Tags,
+			"labels":             workerPool.Labels,
+			"taints":             taints,
+			"network_plan":       workerPool.NetworkPlan,
+			"billing_plan":       workerPool.BillingPlan,
+		}
+		results = append(results, result)
+	}
+	return results
 }
