@@ -93,6 +93,23 @@ func resourceBizflyCloudKubernetes() *schema.Resource {
 				Default:      constants.KubernetesKubeRouter,
 				ValidateFunc: validation.StringInSlice(constants.ValidCNIPlugins, false),
 			},
+			"enabled_upgrade_version": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"is_latest": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"current_version": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"next_version": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(20 * time.Minute),
@@ -241,6 +258,12 @@ func resourceBizflyCloudClusterRead(d *schema.ResourceData, meta interface{}) er
 		}
 		return fmt.Errorf("Error retrieved cluster: %v", err)
 	}
+	clusterID := cluster.UID
+	upgradeVersion, err := client.KubernetesEngine.GetUpgradeClusterVersion(context.Background(), clusterID)
+	if err != nil {
+		log.Printf("Error get upragde cluster %s version failed: %+v", clusterID, err)
+		upgradeVersion = &gobizfly.UpgradeClusterVersionResponse{}
+	}
 	_ = d.Set("name", cluster.Name)
 	_ = d.Set("version", cluster.Version.ID)
 	_ = d.Set("vpc_network_id", cluster.VPCNetworkID)
@@ -250,6 +273,11 @@ func resourceBizflyCloudClusterRead(d *schema.ResourceData, meta interface{}) er
 	_ = d.Set("auto_upgrade", cluster.AutoUpgrade)
 	_ = d.Set("local_dns", cluster.LocalDNS)
 	_ = d.Set("cni_plugin", cluster.CNIPlugin)
+	_ = d.Set("is_latest", upgradeVersion.IsLatest)
+	_ = d.Set("current_version", cluster.Version.K8SVersion)
+	_ = d.Set("next_version", upgradeVersion.UpgradeTo)
+	_ = d.Set("enabled_upgrade_version", false)
+
 	workerPools := parseWorkerPools(cluster.WorkerPools)
 	_ = d.Set("worker_pools", workerPools)
 	return nil
@@ -281,6 +309,17 @@ func resourceBizflyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 		_, err = client.KubernetesEngine.UpdateCluster(context.Background(), clusterId, &updateClusterPayload)
 		if err != nil {
 			return fmt.Errorf("Error update auto_upgrade: %+v", err)
+		}
+	}
+	if d.HasChange("enabled_upgrade_version") {
+		if d.Get("is_latest").(bool) {
+			log.Printf("[DEBUG] Cluster version is latest.")
+		} else {
+			payload := gobizfly.UpgradeClusterVersionRequest{}
+			err := client.KubernetesEngine.UpgradeClusterVersion(context.Background(), clusterId, &payload)
+			if err != nil {
+				return fmt.Errorf("Upragde cluster version error: %+v", err)
+			}
 		}
 	}
 	if d.HasChange("worker_pools") {

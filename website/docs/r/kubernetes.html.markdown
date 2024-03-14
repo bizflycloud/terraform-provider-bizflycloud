@@ -20,6 +20,7 @@ resource "bizflycloud_kubernetes" "tf_create_k8s" {
   local_dns       = false
   version         = "64c8709c3f881935b73b43f0"
   vpc_network_id  = "e15c7244-7f16-4af6-8a67-2a31f7af38f9"
+  enabled_upgrade_version = false
   worker_pools {
       availability_zone  = "HN1"
       billing_plan       = "saving_plan"
@@ -64,6 +65,7 @@ The following arguments are supported:
 * `auto_upgrade` - (Optional) The auto upgrade (true/false). Default value is false.
 * `local_dns` - (Optional) The local DNS (true/false). Default value is false.
 * `cni_plugin` - (Optional) The CNI plugin (kube-router/cilium). Default value is kube-router.
+* `enabled_upgrade_version` - (Optional) The enabled upgrade cluster version (true/false). Default value is false
 * `worker_pools` - (Required) The worker pools of Cluster
   * `name` - (Required) The worker pool name
   * `flavor` - (Required) The flavor of pool
@@ -98,6 +100,10 @@ The following attributes are exported:
 * `cni_plugin` - The CNI plugin
 * `tags` - The tags of cluster
 * `vpc_network_id` - The VPC network id
+* `enabled_upgrade_version` - The enabled upgrade cluster version
+* `is_latest` - The cluster version is latest
+* `current_version` - The current version of cluster
+* `next_version` - The next version for upgrade cluster version
 * `worker_pools` - The worker pools of Cluster
   * `id` - The worker pool ID
   * `name` - The worker pool name
