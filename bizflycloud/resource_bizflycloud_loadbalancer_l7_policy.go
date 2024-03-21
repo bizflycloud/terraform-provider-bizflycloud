@@ -6,7 +6,9 @@ import (
 	"log"
 
 	"github.com/bizflycloud/gobizfly"
+	"github.com/bizflycloud/terraform-provider-bizflycloud/constants"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceBizflyCloudLoadBalancerL7Policy() *schema.Resource {
@@ -24,8 +26,9 @@ func resourceBizflyCloudLoadBalancerL7Policy() *schema.Resource {
 				Required: true,
 			},
 			"action": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(constants.ValidL7PolicyActions, false),
 			},
 			"redirect_pool_id": {
 				Type:     schema.TypeString,
@@ -46,9 +49,10 @@ func resourceBizflyCloudLoadBalancerL7Policy() *schema.Resource {
 			"position": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Default:  1,
 			},
 			"rules": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: getL7PolicyRuleSchema(),
@@ -69,12 +73,14 @@ func getL7PolicyRuleSchema() map[string]*schema.Schema {
 			Required: true,
 		},
 		"type": {
-			Type:     schema.TypeString,
-			Required: true,
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(constants.ValidACLsTypes, false),
 		},
 		"compare_type": {
-			Type:     schema.TypeString,
-			Required: true,
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(constants.ValidACLsCompareType, false),
 		},
 		"key": {
 			Type:     schema.TypeString,
@@ -108,7 +114,43 @@ func getL7PolicyRuleSchema() map[string]*schema.Schema {
 }
 
 func resourceBizflycloudLoadbalancerL7PolicyCreate(d *schema.ResourceData, meta interface{}) error {
-	return nil
+	client := meta.(*CombinedConfig).gobizflyClient()
+	listenerId := d.Get("listener_id").(string)
+
+	_, err := client.Listener.Get(context.Background(), listenerId)
+	if err != nil {
+		return fmt.Errorf("Get listener %s error: %v", listenerId, err)
+	}
+	position := d.Get("position").(int)
+	positionStr := fmt.Sprintf("%v", position)
+	redirectPrefix := d.Get("redirect_prefix").(string)
+	rules := getL7PolicyRulesFromConfig(d)
+	createReq := gobizfly.CreateL7PolicyRequest{
+		Name:     d.Get("name").(string),
+		Action:   d.Get("action").(string),
+		Position: positionStr,
+		Rules:    rules,
+	}
+	action := d.Get("action").(string)
+	switch action {
+	case constants.RedirectToUrlAction:
+		createReq.RedirectUrl = d.Get("redirect_url").(string)
+	case constants.RedirectToPoolAction:
+		// TODO: check existed pool
+		createReq.RedirectPoolId = d.Get("redirect_pool_id").(string)
+	case constants.RedirectPrefixAction:
+		createReq.RedirectPrefix = &redirectPrefix
+	case constants.RejectAction:
+	default:
+		return fmt.Errorf("Invalid l7 policy action %s.", action)
+	}
+	log.Printf("[DEBUG] create l7 policy payload for listener %s: %#v", listenerId, createReq)
+	l7Policy, createErr := client.L7Policy.Create(context.Background(), listenerId, &createReq)
+	if createErr != nil {
+		return fmt.Errorf("Create l7 policy for listener %s error: %v", listenerId, createErr)
+	}
+	d.SetId(l7Policy.Id)
+	return resourceBizflycloudLoadbalancerL7PolicyRead(d, meta)
 }
 
 func resourceBizflycloudLoadbalancerL7PolicyRead(d *schema.ResourceData, meta interface{}) error {
@@ -142,6 +184,23 @@ func resourceBizflycloudLoadbalancerL7PolicyUpdate(d *schema.ResourceData, meta 
 
 func resourceBizflycloudLoadbalancerL7PolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
+}
+
+func getL7PolicyRulesFromConfig(d *schema.ResourceData) []gobizfly.L7PolicyRuleRequest {
+	rules := make([]gobizfly.L7PolicyRuleRequest, 0)
+	rulesLen := len(d.Get("rules").([]interface{}))
+	for idx := 0; idx < rulesLen; idx++ {
+		pattern := fmt.Sprintf("rules.%d.", idx)
+		rule := gobizfly.L7PolicyRuleRequest{
+			Invert:      d.Get(pattern + "invert").(bool),
+			Type:        d.Get(pattern + "type").(string),
+			CompareType: d.Get(pattern + "compare_type").(string),
+			Key:         d.Get(pattern + "key").(string),
+			Value:       d.Get(pattern + "value").(string),
+		}
+		rules = append(rules, rule)
+	}
+	return rules
 }
 
 func parseL7PolicyRules(rules []gobizfly.DetailL7PolicyRule) []map[string]interface{} {
