@@ -83,6 +83,7 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_firewall":                         resourceBizflyCloudFirewall(),
 			"bizflycloud_loadbalancer":                     resourceBizflyCloudLoadBalancer(),
 			"bizflycloud_loadbalancer_listener":            resourceBizflyCloudLoadBalancerListener(),
+			"bizflycloud_loadbalancer_l7policy":            resourceBizflyCloudLoadBalancerL7Policy(),
 			"bizflycloud_loadbalancer_pool":                resourceBizflyCloudLoadBalancerPool(),
 			"bizflycloud_autoscaling_group":                resourceBizflyCloudAutoscalingGroup(),
 			"bizflycloud_autoscaling_scalein_policy":       resourceBizflyCloudAutoscalingScaleInPolicy(),
