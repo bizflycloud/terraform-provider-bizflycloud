@@ -60,3 +60,20 @@ var (
 		ACLsCompareTypeStartsWith,
 	}
 )
+
+// Loadbalancer listener
+const (
+	HttpProtocol            = "HTTP"
+	TerminatedHttpsProtocol = "TERMINATED_HTTPS"
+	TcpProtocol             = "TCP"
+	UdpProtocol             = "UDP"
+)
+
+var (
+	ValidListenerProtocols = []string{
+		HttpProtocol,
+		TerminatedHttpsProtocol,
+		TcpProtocol,
+		UdpProtocol,
+	}
+)

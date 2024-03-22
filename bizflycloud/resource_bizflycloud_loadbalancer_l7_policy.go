@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/bizflycloud/gobizfly"
 	"github.com/bizflycloud/terraform-provider-bizflycloud/constants"
@@ -21,6 +22,9 @@ func resourceBizflyCloudLoadBalancerL7Policy() *schema.Resource {
 		Read:   resourceBizflycloudLoadbalancerL7PolicyRead,
 		Update: resourceBizflycloudLoadbalancerL7PolicyUpdate,
 		Delete: resourceBizflycloudLoadbalancerL7PolicyDelete,
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(20 * time.Minute),
+		},
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
