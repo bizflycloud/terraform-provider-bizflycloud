@@ -9,6 +9,7 @@ import (
 	"github.com/bizflycloud/terraform-provider-bizflycloud/constants"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 func resourceBizflyCloudLoadBalancerL7Policy() *schema.Resource {
@@ -116,10 +117,10 @@ func getL7PolicyRuleSchema() map[string]*schema.Schema {
 func resourceBizflycloudLoadbalancerL7PolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	listenerId := d.Get("listener_id").(string)
-
-	_, err := client.Listener.Get(context.Background(), listenerId)
+	_, err := waitListenerActiveProvisioningStatus(client, listenerId)
 	if err != nil {
-		return fmt.Errorf("Get listener %s error: %v", listenerId, err)
+		log.Printf("[ERROR] wait listener active provisioning status failed: %v", err)
+		return err
 	}
 	position := d.Get("position").(int)
 	positionStr := fmt.Sprintf("%v", position)
@@ -183,6 +184,18 @@ func resourceBizflycloudLoadbalancerL7PolicyUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceBizflycloudLoadbalancerL7PolicyDelete(d *schema.ResourceData, meta interface{}) error {
+	policyId := d.Id()
+	listenerId := d.Get("listener_id").(string)
+	client := meta.(*CombinedConfig).gobizflyClient()
+	_, err := waitListenerActiveProvisioningStatus(client, listenerId)
+	if err != nil {
+		log.Printf("[ERROR] wait listener active provisioning status failed: %v", err)
+		return err
+	}
+	err = client.L7Policy.Delete(context.Background(), policyId)
+	if err != nil {
+		return fmt.Errorf("Error when delete l7 policy: %v", err)
+	}
 	return nil
 }
 
@@ -222,4 +235,35 @@ func parseL7PolicyRules(rules []gobizfly.DetailL7PolicyRule) []map[string]interf
 		results = append(results, result)
 	}
 	return results
+}
+
+func waitListenerActiveProvisioningStatus(client *gobizfly.Client, listenerId string) (*gobizfly.Listener, error) {
+	var lb *gobizfly.Listener
+	backoff := wait.Backoff{
+		Duration: loadbalancerActiveInitDelay,
+		Factor:   loadbalancerActiveFactor,
+		Steps:    loadbalancerActiveSteps,
+	}
+	err := wait.ExponentialBackoff(backoff, func() (bool, error) {
+		listener, err := client.Listener.Get(context.Background(), listenerId)
+		if err != nil {
+			return true, err
+		}
+		if listener.ProvisoningStatus == activeStatus {
+			return true, nil
+		} else if listener.ProvisoningStatus == errorStatus {
+			return true, fmt.Errorf("Listener %s has gone into ERROR state", listenerId)
+		} else {
+			return false, nil
+		}
+
+	})
+	if err != nil {
+		if err == wait.ErrWaitTimeout {
+			err = fmt.Errorf("Listener failed to go into ACTIVE provisioning status within allotted time")
+		}
+		return nil, err
+	}
+
+	return lb, err
 }
