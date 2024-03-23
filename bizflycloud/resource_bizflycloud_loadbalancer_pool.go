@@ -248,9 +248,15 @@ func resourceBizflyCloudLoadBalancerPoolRead(d *schema.ResourceData, meta interf
 	if err != nil {
 		return fmt.Errorf("Error when retrieving load balancer pool %s: %v", d.Id(), err)
 	}
+	networkNameMap, err := getNetworkNameMap(client)
+	log.Printf("[DEBUG] Network name mapping: %+v", networkNameMap)
+	if err != nil {
+		return fmt.Errorf("Error when list vpc networks: %v", err)
+	}
 	healthMonitor := convertHealthMonitor(pool.HealthMonitor)
 	persistent := convertSessionPersistent(pool.SessionPersistence)
-	members := convertMember(pool.Members)
+	members := convertMember(pool.Members, networkNameMap)
+
 	_ = d.Set("name", pool.Name)
 	_ = d.Set("algorithm", pool.LBAlgorithm)
 	_ = d.Set("description", pool.Description)
@@ -467,15 +473,17 @@ func flatternMembers(rules *schema.Set) []gobizfly.MemberCreateRequest {
 	return members
 }
 
-func convertMember(members []gobizfly.Member) []map[string]interface{} {
+func convertMember(members []gobizfly.Member, networkNameMap map[string]string) []map[string]interface{} {
 	result := make([]map[string]interface{}, len(members))
 	for i, v := range members {
+		networkName := networkNameMap[v.SubnetID]
 		result[i] = map[string]interface{}{
 			"id":                  v.ID,
 			"name":                v.Name,
 			"weight":              v.Weight,
 			"address":             v.Address,
 			"protocol_port":       v.ProtocolPort,
+			"network_name":        networkName,
 			"backup":              v.Backup,
 			"operating_status":    v.OperatingStatus,
 			"provisioning_status": v.ProvisoningStatus,
@@ -582,4 +590,21 @@ func waitPoolActiveProvisioningStatus(client *gobizfly.Client, poolID string) (*
 	}
 
 	return pool, err
+}
+
+func getNetworkNameMap(client *gobizfly.Client) (map[string]string, error) {
+	networkNameMap := make(map[string]string, 0)
+	vpcNetworks, err := client.VPC.List(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	for _, vpc := range vpcNetworks {
+		vpcNetworkName := vpc.Name
+		for _, subnet := range vpc.Subnets {
+			subnetID := subnet.ID
+			networkNameMap[subnetID] = vpcNetworkName
+		}
+	}
+
+	return networkNameMap, nil
 }
