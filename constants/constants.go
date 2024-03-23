@@ -1,5 +1,7 @@
 package constants
 
+import "regexp"
+
 // Kubernetes
 const (
 	KubernetesKubeRouter = "kube-router"
@@ -69,6 +71,10 @@ const (
 	UdpProtocol             = "UDP"
 	ProxyProtocol           = "PROXY"
 	HttpsProtocol           = "HTTPS"
+	UdpConnectProtocol      = "UDP-CONNECT"
+	PingProtocol            = "PING"
+	SctpProtocol            = "SCTP"
+	TlsHelloProtocol        = "TLS-HELLO"
 
 	GetMethod     = "GET"
 	PostMethod    = "POST"
@@ -83,8 +89,15 @@ const (
 	RoundRobin       = "ROUND_ROBIN"
 	LeastConnections = "LEAST_CONNECTIONS"
 	SourceIp         = "SOURCE_IP"
-	HttpCookie       = "HTTP_COOKIE"
-	AppCookie        = "APP_COOKIE"
+
+	HttpCookie = "HTTP_COOKIE"
+	AppCookie  = "APP_COOKIE"
+
+	OkStatus               = "200"
+	CreatedStatus          = "201"
+	AcceptedStatus         = "202"
+	NonAuthoritativeStatus = "203"
+	NoContentStatus        = "204"
 )
 
 var (
@@ -105,11 +118,14 @@ var (
 		ProxyProtocol,
 		UdpProtocol,
 	}
-	ValidMemberProtocols = []string{
+	ValidHealthMonitorProtocols = []string{
 		HttpProtocol,
 		HttpsProtocol,
+		PingProtocol,
+		SctpProtocol,
 		TcpProtocol,
-		UdpProtocol,
+		TlsHelloProtocol,
+		UdpConnectProtocol,
 	}
 	ValidHealthMonitorMethods = []string{
 		GetMethod,
@@ -122,9 +138,17 @@ var (
 		PatchMethod,
 		ConnectMethod,
 	}
+	ValidHealthMonitorExceptedCodes = []string{
+		OkStatus,
+		CreatedStatus,
+		AcceptedStatus,
+		NonAuthoritativeStatus,
+		NoContentStatus,
+	}
 	ValidStickySessions = []string{
 		AppCookie,
 		HttpCookie,
 		SourceIp,
 	}
+	ValidUrlPathRegex, _ = regexp.Compile(`^/.*`)
 )

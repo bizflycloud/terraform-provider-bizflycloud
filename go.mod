@@ -93,4 +93,4 @@ require (
 	k8s.io/klog/v2 v2.2.0 // indirect
 )
 
-replace github.com/bizflycloud/gobizfly v1.0.25 => github.com/duc20176723/gobizfly v0.0.0-20240323034320-35a4d9744294
+replace github.com/bizflycloud/gobizfly v1.0.25 => github.com/duc20176723/gobizfly v0.0.0-20240323100606-6ce2b882ecfb
