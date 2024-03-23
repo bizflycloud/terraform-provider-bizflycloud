@@ -61,12 +61,30 @@ var (
 	}
 )
 
-// Loadbalancer listener
+// Loadbalancer
 const (
 	HttpProtocol            = "HTTP"
 	TerminatedHttpsProtocol = "TERMINATED_HTTPS"
 	TcpProtocol             = "TCP"
 	UdpProtocol             = "UDP"
+	ProxyProtocol           = "PROXY"
+	HttpsProtocol           = "HTTPS"
+
+	GetMethod     = "GET"
+	PostMethod    = "POST"
+	HeadMethod    = "HEAD"
+	PutMethod     = "PUT"
+	DeleteMethod  = "DELETE"
+	TraceMethod   = "TRACE"
+	OptionsMethod = "OPTIONS"
+	PatchMethod   = "PATCH"
+	ConnectMethod = "CONNECT"
+
+	RoundRobin       = "ROUND_ROBIN"
+	LeastConnections = "LEAST_CONNECTIONS"
+	SourceIp         = "SOURCE_IP"
+	HttpCookie       = "HTTP_COOKIE"
+	AppCookie        = "APP_COOKIE"
 )
 
 var (
@@ -75,5 +93,38 @@ var (
 		TerminatedHttpsProtocol,
 		TcpProtocol,
 		UdpProtocol,
+	}
+	ValidAlgorithms = []string{
+		RoundRobin,
+		LeastConnections,
+		SourceIp,
+	}
+	ValidPoolProtocols = []string{
+		HttpProtocol,
+		TcpProtocol,
+		ProxyProtocol,
+		UdpProtocol,
+	}
+	ValidMemberProtocols = []string{
+		HttpProtocol,
+		HttpsProtocol,
+		TcpProtocol,
+		UdpProtocol,
+	}
+	ValidHealthMonitorMethods = []string{
+		GetMethod,
+		PostMethod,
+		HeadMethod,
+		PutMethod,
+		DeleteMethod,
+		TraceMethod,
+		OptionsMethod,
+		PatchMethod,
+		ConnectMethod,
+	}
+	ValidStickySessions = []string{
+		AppCookie,
+		HttpCookie,
+		SourceIp,
 	}
 )

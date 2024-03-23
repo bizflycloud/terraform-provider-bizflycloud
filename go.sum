@@ -102,8 +102,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/docker/spdystream v0.0.0-20160310174837-449fdfce4d96/go.mod h1:Qh8CwZgvJUkLughtfhJv5dyTYa91l1fOUCrgjqmcifM=
 github.com/docopt/docopt-go v0.0.0-20180111231733-ee0de3bc6815/go.mod h1:WwZ+bS3ebgob9U8Nd0kOddGdZWjyMGR8Wziv+TBNwSE=
-github.com/duc20176723/gobizfly v0.0.0-20240322063201-c62ec467f1a9 h1:VHGjKVIteU8u5iF+NkllJmPIW67lb7Vk6ucsGu6b0yc=
-github.com/duc20176723/gobizfly v0.0.0-20240322063201-c62ec467f1a9/go.mod h1:Zav85BLm6aSbfM6NRFUmmWzkVfXlQ1YoRTl+dFQJmho=
+github.com/duc20176723/gobizfly v0.0.0-20240323034320-35a4d9744294 h1:uUEP0WZgadF9bu0BzA6sSqc6sy3T9UXWMIU6OWuv3gw=
+github.com/duc20176723/gobizfly v0.0.0-20240323034320-35a4d9744294/go.mod h1:Zav85BLm6aSbfM6NRFUmmWzkVfXlQ1YoRTl+dFQJmho=
 github.com/elazarl/goproxy v0.0.0-20180725130230-947c36da3153/go.mod h1:/Zj4wYkgs4iZTTu3o/KG3Itv/qCCa8VVMlb3i9OVuzc=
 github.com/emicklei/go-restful v0.0.0-20170410110728-ff4f55a20633/go.mod h1:otzb+WCGbkyDHkqmQmT5YD2WR4BBwUdeQoFo8l/7tVs=
 github.com/emirpasic/gods v1.12.0 h1:QAUIPSaCu4G+POclxeqb3F+WPpdKqFGlw36+yOzGlrg=

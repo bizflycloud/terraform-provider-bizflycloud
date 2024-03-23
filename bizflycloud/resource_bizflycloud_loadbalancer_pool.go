@@ -3,14 +3,21 @@ package bizflycloud
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/bizflycloud/gobizfly"
+	"github.com/bizflycloud/terraform-provider-bizflycloud/constants"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 func resourceBizflyCloudLoadBalancerPool() *schema.Resource {
 	return &schema.Resource{
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		Create: resourceBizflyCloudLoadBalancerPoolCreate,
 		Update: resourceBizflyCloudLoadBalancerPoolUpdate,
 		Read:   resourceBizflyCloudLoadBalancerPoolRead,
@@ -24,23 +31,25 @@ func resourceBizflyCloudLoadBalancerPool() *schema.Resource {
 				Required: true,
 			},
 			"algorithm": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(constants.ValidAlgorithms, false),
 			},
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
 			"protocol": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(constants.ValidPoolProtocols, false),
 			},
 			"load_balancer_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 			"members": {
-				Type:       schema.TypeSet,
+				Type:       schema.TypeList,
 				Optional:   true,
 				Computed:   true,
 				ConfigMode: schema.SchemaConfigModeAttr,
@@ -53,55 +62,7 @@ func resourceBizflyCloudLoadBalancerPool() *schema.Resource {
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Default:  "pool-monitor",
-							Optional: true,
-						},
-						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							//	TODO Validate type
-						},
-						"timeout": {
-							Type:     schema.TypeInt,
-							Default:  3,
-							Optional: true,
-						},
-						"max_retries": {
-							Type:     schema.TypeInt,
-							Default:  3,
-							Optional: true,
-						},
-						"max_retries_down": {
-							Type:     schema.TypeInt,
-							Default:  3,
-							Optional: true,
-						},
-						"delay": {
-							Type:     schema.TypeInt,
-							Default:  3,
-							Optional: true,
-						},
-						"http_method": {
-							Type:     schema.TypeString,
-							Optional: true,
-							//	TODO validate http method
-						},
-						"url_path": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"expected_code": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-					},
+					Schema: getHealthMonitorSchema(),
 				},
 			},
 			"persistent": {
@@ -109,70 +70,196 @@ func resourceBizflyCloudLoadBalancerPool() *schema.Resource {
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"cookie_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-					},
+					Schema: getPersistentSchema(),
 				},
 			},
 		},
 	}
 }
-func resourceBizflyCloudLoadBalancerPoolCreate(d *schema.ResourceData, meta interface{}) error {
 
+func loadbalancerMemberSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"id": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"name": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"weight": {
+			Type:     schema.TypeInt,
+			Optional: true,
+			Default:  1,
+		},
+		"address": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"protocol_port": {
+			Type:     schema.TypeInt,
+			Required: true,
+		},
+		"network_name": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"backup": {
+			Type:     schema.TypeBool,
+			Required: false,
+			Optional: true,
+		},
+		"operating_status": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"provisioning_status": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"subnet_id": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"project_id": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"created_at": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"updated_at": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+	}
+}
+
+func getHealthMonitorSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"id": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"name": {
+			Type:     schema.TypeString,
+			Default:  "pool-monitor",
+			Optional: true,
+		},
+		"type": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(constants.ValidMemberProtocols, false),
+		},
+		"timeout": {
+			Type:     schema.TypeInt,
+			Default:  5,
+			Optional: true,
+		},
+		"max_retries": {
+			Type:     schema.TypeInt,
+			Default:  3,
+			Optional: true,
+		},
+		"max_retries_down": {
+			Type:     schema.TypeInt,
+			Default:  3,
+			Optional: true,
+		},
+		"delay": {
+			Type:     schema.TypeInt,
+			Default:  5,
+			Optional: true,
+		},
+		"http_method": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(constants.ValidHealthMonitorMethods, false),
+		},
+		"url_path": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Default:  "/",
+		},
+		"expected_code": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Default:  "200",
+		},
+		"operating_status": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"provisioning_status": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"created_at": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"updated_at": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+	}
+}
+
+func getPersistentSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"type": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(constants.ValidStickySessions, false),
+		},
+		"cookie_name": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+	}
+}
+
+func resourceBizflyCloudLoadBalancerPoolCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	lbID := d.Get("load_balancer_id").(string)
-	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID, loadbalancerResource)
-	poolName := d.Get("name").(string)
-
-	pcr := gobizfly.PoolCreateRequest{
-		Name:        &poolName,
-		LBAlgorithm: d.Get("algorithm").(string),
-		Protocol:    d.Get("protocol").(string),
-	}
-	// Get session persistent
-	sessionPersistent := d.Get("persistent").([]interface{})
-	if len(sessionPersistent) == 1 {
-		sp := sessionPersistent[0].(map[string]interface{})
-		spType := sp["type"].(string)
-		var sess gobizfly.SessionPersistence
-		sess.Type = spType
-		if spType == "APP_COOKIE" {
-			cookieName := sp["cookie_name"].(string)
-			sess.CookieName = &cookieName
-		}
-		pcr.SessionPersistence = &sess
-	}
-	pool, err := client.Pool.Create(context.Background(), lbID, &pcr)
-	if err != nil {
-		return fmt.Errorf("Error when creating load balancer pool: %v", err)
-	}
-	d.SetId(pool.ID)
-	_, _ = waitLoadbalancerActiveProvisioningStatus(client, pool.ID, poolResource)
-	// create member
-	if v, ok := d.GetOk("members"); ok {
-		mcr := flatternMembers(v.(*schema.Set))
-		for _, m := range mcr {
-			_, _ = waitLoadbalancerActiveProvisioningStatus(client, pool.ID, poolResource)
-			_, err := client.Member.Create(context.Background(), pool.ID, &m)
-			if err != nil {
-				return fmt.Errorf("Error when creating member %s: %v", m.Address, err)
-			}
-		}
-	}
-	// create health monitor
-	err = createHealthMonitor(client, d.Get("health_monitor").([]interface{}), pool.ID)
+	_, err := waitLoadbalancerActiveProvisioningStatus(client, lbID, loadbalancerResource)
 	if err != nil {
 		return err
 	}
-
+	createReq := getCreatePoolPayloadFromConfig(d)
+	log.Printf("[DEBUG] Create pool payload: %+v", createReq)
+	pool, err := client.Pool.Create(context.Background(), lbID, &createReq)
+	if err != nil {
+		return fmt.Errorf("Error when create pool for loadbalancer %s: %+v", lbID, err)
+	}
+	_, err = waitPoolActiveProvisioningStatus(client, pool.ID)
+	if err != nil {
+		log.Printf("[ERROR] wait pool %s active provisioning status failed: %+v", pool.ID, err)
+		return err
+	}
+	d.SetId(pool.ID)
 	return resourceBizflyCloudLoadBalancerPoolRead(d, meta)
+}
+
+func resourceBizflyCloudLoadBalancerPoolRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*CombinedConfig).gobizflyClient()
+	pool, err := client.Pool.Get(context.Background(), d.Id())
+	if err != nil {
+		return fmt.Errorf("Error when retrieving load balancer pool %s: %v", d.Id(), err)
+	}
+	healthMonitor := convertHealthMonitor(pool.HealthMonitor)
+	persistent := convertSessionPersistent(pool.SessionPersistence)
+	members := convertMember(pool.Members)
+	_ = d.Set("name", pool.Name)
+	_ = d.Set("algorithm", pool.LBAlgorithm)
+	_ = d.Set("description", pool.Description)
+	_ = d.Set("protocol", pool.Protocol)
+	_ = d.Set("load_balancer_id", pool.LoadBalancers[0].ID)
+	_ = d.Set("health_monitor", healthMonitor)
+	_ = d.Set("persistent", persistent)
+	_ = d.Set("members", members)
+	return nil
 }
 
 func resourceBizflyCloudLoadBalancerPoolUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -277,28 +364,6 @@ func resourceBizflyCloudLoadBalancerPoolUpdate(d *schema.ResourceData, meta inte
 	}
 	return resourceBizflyCloudLoadBalancerPoolRead(d, meta)
 }
-func resourceBizflyCloudLoadBalancerPoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*CombinedConfig).gobizflyClient()
-	pool, err := client.Pool.Get(context.Background(), d.Id())
-	if err != nil {
-		return fmt.Errorf("Error when retrieving load balancer pool: %v", err)
-	}
-	_ = d.Set("name", pool.Name)
-	_ = d.Set("algorithm", pool.LBAlgorithm)
-	_ = d.Set("description", pool.Description)
-	_ = d.Set("protocol", pool.Protocol)
-	_ = d.Set("load_balancer_id", pool.LoadBalancers[0].ID)
-	members, err := client.Member.List(context.Background(), pool.ID, &gobizfly.ListOptions{})
-	if err != nil {
-		return fmt.Errorf("Error when getting pool member of pool: %s, %v", pool.Name, err)
-	}
-	if len(members) > 0 {
-		_ = d.Set("members", convertMember(members))
-	}
-	_ = d.Set("health_monitor", convertHealthMonitor(pool.HealthMonitor))
-	_ = d.Set("persistent", convertSessionPersistent(pool.SessionPersistence))
-	return nil
-}
 
 func resourceBizflyCloudLoadBalancerPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
@@ -311,31 +376,79 @@ func resourceBizflyCloudLoadBalancerPoolDelete(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func loadbalancerMemberSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"name": {
-			Type:     schema.TypeString,
-			Required: true,
-		},
-		"weight": {
-			Type:     schema.TypeInt,
-			Optional: true,
-			Default:  1,
-		},
-		"address": {
-			Type:     schema.TypeString,
-			Required: true,
-		},
-		"protocol_port": {
-			Type:     schema.TypeInt,
-			Required: true,
-		},
-		"backup": {
-			Type:     schema.TypeBool,
-			Required: false,
-			Optional: true,
-		},
+func getCreatePoolPayloadFromConfig(d *schema.ResourceData) gobizfly.PoolCreateRequest {
+	poolName := d.Get("name").(string)
+	healthMonitorReq := getHealthMonitorPayloadFromConfig(d)
+	poolMembersReq := getMembersPaylaodFromConfig(d)
+	stickySessionReq := getSessionPersistentPayloadFromConfig(d)
+	poolReq := gobizfly.PoolCreateRequest{
+		Name:               &poolName,
+		LBAlgorithm:        d.Get("algorithm").(string),
+		Protocol:           d.Get("protocol").(string),
+		HealthMonitor:      healthMonitorReq,
+		Members:            poolMembersReq,
+		SessionPersistence: stickySessionReq,
 	}
+	return poolReq
+}
+
+func getSessionPersistentPayloadFromConfig(d *schema.ResourceData) *gobizfly.SessionPersistence {
+	sessionPersistents := d.Get("persistent").([]interface{})
+	if len(sessionPersistents) == 0 {
+		return nil
+	}
+	sessionPersistent := sessionPersistents[0].(map[string]interface{})
+	sesstionType := sessionPersistent["type"].(string)
+	sessionPersistentReq := gobizfly.SessionPersistence{
+		Type: sesstionType,
+	}
+	if sesstionType == constants.AppCookie {
+		cookieName := sessionPersistent["cookie_name"].(string)
+		sessionPersistentReq.CookieName = &cookieName
+	}
+	return &sessionPersistentReq
+}
+
+func getMembersPaylaodFromConfig(d *schema.ResourceData) []gobizfly.PoolMemberRequest {
+	poolMembers := d.Get("members").([]interface{})
+	if len(poolMembers) == 0 {
+		return nil
+	}
+
+	poolMembersReq := make([]gobizfly.PoolMemberRequest, 0)
+	for idx, member := range poolMembers {
+		castedMember := member.(map[string]interface{})
+		memberReq := gobizfly.PoolMemberRequest{
+			ID:          idx,
+			Name:        castedMember["name"].(string),
+			Address:     castedMember["address"].(string),
+			Weight:      castedMember["weight"].(int),
+			Port:        castedMember["protocol_port"].(int),
+			NetworkName: castedMember["network_name"].(string),
+		}
+		poolMembersReq = append(poolMembersReq, memberReq)
+	}
+	return poolMembersReq
+}
+
+func getHealthMonitorPayloadFromConfig(d *schema.ResourceData) *gobizfly.PoolHealthMonitorRequest {
+	healthMonitors := d.Get("health_monitor").([]interface{})
+	if len(healthMonitors) == 0 {
+		return nil
+	}
+	healthMonitor := healthMonitors[0].(map[string]interface{})
+	healthMonitorReq := gobizfly.PoolHealthMonitorRequest{
+		Name:           healthMonitor["name"].(string),
+		Type:           healthMonitor["type"].(string),
+		Timeout:        healthMonitor["timeout"].(int),
+		Delay:          healthMonitor["delay"].(int),
+		MaxRetries:     healthMonitor["max_retries"].(int),
+		MaxRetriesDown: healthMonitor["max_retries_down"].(int),
+		HttpMethod:     healthMonitor["http_method"].(string),
+		UrlPath:        healthMonitor["url_path"].(string),
+		ExpectedCodes:  healthMonitor["expected_code"].(string),
+	}
+	return &healthMonitorReq
 }
 
 func flatternMembers(rules *schema.Set) []gobizfly.MemberCreateRequest {
@@ -354,49 +467,63 @@ func flatternMembers(rules *schema.Set) []gobizfly.MemberCreateRequest {
 	return members
 }
 
-func convertMember(members []*gobizfly.Member) []map[string]interface{} {
+func convertMember(members []gobizfly.Member) []map[string]interface{} {
 	result := make([]map[string]interface{}, len(members))
 	for i, v := range members {
 		result[i] = map[string]interface{}{
-			"name":          v.Name,
-			"address":       v.Address,
-			"protocol_port": v.ProtocolPort,
-			"weight":        v.Weight,
-			"backup":        v.Backup,
+			"id":                  v.ID,
+			"name":                v.Name,
+			"weight":              v.Weight,
+			"address":             v.Address,
+			"protocol_port":       v.ProtocolPort,
+			"backup":              v.Backup,
+			"operating_status":    v.OperatingStatus,
+			"provisioning_status": v.ProvisoningStatus,
+			"subnet_id":           v.SubnetID,
+			"project_id":          v.ProjectID,
+			"created_at":          v.CreatedAt,
+			"updated_at":          v.UpdatedAt,
 		}
 	}
 	return result
 }
 
 func convertHealthMonitor(healthMonitor *gobizfly.HealthMonitor) []map[string]interface{} {
-	result := make([]map[string]interface{}, 0, 1)
+	results := make([]map[string]interface{}, 0, 1)
 	if healthMonitor == nil {
 		return nil
 	}
-	r := make(map[string]interface{})
-	r["id"] = healthMonitor.ID
-	r["name"] = healthMonitor.Name
-	r["type"] = healthMonitor.Type
-	r["timeout"] = healthMonitor.TimeOut
-	r["max_retries"] = healthMonitor.MaxRetries
-	r["max_retries_down"] = healthMonitor.MaxRetriesDown
-	r["delay"] = healthMonitor.Delay
-	r["http_method"] = healthMonitor.HTTPMethod
-	r["expected_code"] = healthMonitor.ExpectedCodes
-	result = append(result, r)
-	return result
+	result := map[string]interface{}{
+		"id":                  healthMonitor.ID,
+		"name":                healthMonitor.Name,
+		"type":                healthMonitor.Type,
+		"timeout":             healthMonitor.TimeOut,
+		"max_retries":         healthMonitor.MaxRetries,
+		"max_retries_down":    healthMonitor.MaxRetriesDown,
+		"delay":               healthMonitor.Delay,
+		"http_method":         healthMonitor.HTTPMethod,
+		"url_path":            healthMonitor.UrlPath,
+		"expected_code":       healthMonitor.ExpectedCodes,
+		"operating_status":    healthMonitor.OperatingStatus,
+		"provisioning_status": healthMonitor.ProvisioningStatus,
+		"created_at":          healthMonitor.CreatedAt,
+		"updated_at":          healthMonitor.UpdatedAt,
+	}
+	results = append(results, result)
+	return results
 }
 
 func convertSessionPersistent(sessionPersistent *gobizfly.SessionPersistence) []map[string]interface{} {
-	result := make([]map[string]interface{}, 0, 1)
+	results := make([]map[string]interface{}, 0, 1)
 	if sessionPersistent == nil {
 		return nil
 	}
-	r := make(map[string]interface{})
-	r["type"] = sessionPersistent.Type
-	r["cookie_name"] = sessionPersistent.CookieName
-	result = append(result, r)
-	return result
+	result := map[string]interface{}{
+		"type":        sessionPersistent.Type,
+		"cookie_name": sessionPersistent.CookieName,
+	}
+	results = append(results, result)
+	return results
 }
 
 func createHealthMonitor(client *gobizfly.Client, healthMonitor []interface{}, poolID string) error {
@@ -423,4 +550,36 @@ func createHealthMonitor(client *gobizfly.Client, healthMonitor []interface{}, p
 		}
 	}
 	return nil
+}
+
+// Check loadbalancer pool active status
+func waitPoolActiveProvisioningStatus(client *gobizfly.Client, poolID string) (*gobizfly.Pool, error) {
+	var pool *gobizfly.Pool
+	backoff := wait.Backoff{
+		Duration: loadbalancerActiveInitDelay,
+		Factor:   loadbalancerActiveFactor,
+		Steps:    loadbalancerActiveSteps,
+	}
+	err := wait.ExponentialBackoff(backoff, func() (bool, error) {
+		pool, err := client.Pool.Get(context.Background(), poolID)
+		if err != nil {
+			return true, err
+		}
+		if pool.ProvisoningStatus == activeStatus {
+			return true, nil
+		} else if pool.ProvisoningStatus == errorStatus {
+			return true, fmt.Errorf("Loadbalancer Pool %s has gone into ERROR state", poolID)
+		} else {
+			return false, nil
+		}
+
+	})
+	if err != nil {
+		if err == wait.ErrWaitTimeout {
+			err = fmt.Errorf("Loadbalancer Pool %s failed to go into ACTIVE provisioning status within allotted time", poolID)
+		}
+		return nil, err
+	}
+
+	return pool, err
 }
