@@ -464,12 +464,12 @@ func getCreateHealthMonitorPayloadFromConfig(d *schema.ResourceData) *gobizfly.H
 		MaxRetries:     healthMonitor["max_retries"].(int),
 		MaxRetriesDown: healthMonitor["max_retries_down"].(int),
 	}
-	if (healthMonitorType == constants.TcpProtocol) ||
-		(healthMonitorType == constants.UdpConnectProtocol) {
+	if (healthMonitorType != constants.TcpProtocol) &&
+		(healthMonitorType != constants.UdpConnectProtocol) {
 
-		healthMonitorReq.HTTPMethod = ""
-		healthMonitorReq.URLPath = ""
-		healthMonitorReq.ExpectedCodes = ""
+		healthMonitorReq.HTTPMethod = healthMonitor["http_method"].(string)
+		healthMonitorReq.URLPath = healthMonitor["url_path"].(string)
+		healthMonitorReq.ExpectedCodes = healthMonitor["expected_code"].(string)
 	}
 	return &healthMonitorReq
 }
@@ -504,12 +504,21 @@ func getUpdateHealthMonitorFromConfig(d *schema.ResourceData) (string, *gobizfly
 	}
 
 	healthMonitorType := healthMonitorMap["type"].(string)
-	if (healthMonitorType == constants.TcpProtocol) ||
-		(healthMonitorType == constants.UdpConnectProtocol) {
+	if (healthMonitorType != constants.TcpProtocol) &&
+		(healthMonitorType != constants.UdpConnectProtocol) {
 
-		updateReq.HTTPMethod = nil
-		updateReq.URLPath = nil
-		updateReq.ExpectedCodes = nil
+		httpMethodStr := healthMonitorMap["http_method"].(string)
+		if httpMethodStr != "" {
+			updateReq.HTTPMethod = &httpMethodStr
+		}
+		urlPathStr := healthMonitorMap["url_path"].(string)
+		if urlPathStr != "" {
+			updateReq.URLPath = &urlPathStr
+		}
+		expectedCodeStr := healthMonitorMap["expected_code"].(string)
+		if expectedCodeStr != "" {
+			updateReq.ExpectedCodes = &expectedCodeStr
+		}
 	}
 
 	poolHealthMonitorId := healthMonitorMap["id"].(string)

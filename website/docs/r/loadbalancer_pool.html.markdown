@@ -11,7 +11,42 @@ description: |-
 Provides a Bizfly Cloud Pool of Load Balancer resource. This can be used to create,
 modify, and delete pools of Load Balancer.
 
-## Example Create Pool for Load Balancer 
+## Example Create Pool for Load Balancer with TCP protocol
+
+```hcl
+# Create a new Pool for Load Balancer
+resource "bizflycloud_loadbalancer_pool" "pool1" {
+    name = "sapd-pool-tf-1"
+    protocol = "TCP"
+    algorithm = "ROUND_ROBIN"
+    load_balancer_id = "${bizflycloud_loadbalancer.lb1.id}"
+    members {
+        name = "member2"
+        address = "10.20.165.30"
+        protocol_port = 80
+        weight = 1
+    }
+    members {
+        name = "member2"
+        address = "10.20.165.40"
+        protocol_port = 80
+        weight = 1
+    }
+    health_monitor {
+        name = "hm1"
+        type = "TCP"
+        timeout = 100
+        max_retries = 3
+        max_retries_down = 3
+        delay = 5
+    }
+    persistent {
+        type = "SOURCE_IP"
+    }
+}
+```
+
+## Example Create Pool for Load Balancer with HTTP protocol
 
 ```hcl
 # Create a new Pool for Load Balancer
@@ -34,11 +69,14 @@ resource "bizflycloud_loadbalancer_pool" "pool1" {
     }
     health_monitor {
         name = "hm1"
-        type = "TCP"
+        type = "HTML"
         timeout = 100
         max_retries = 3
         max_retries_down = 3
         delay = 5
+        http_method = "GET"
+        url_path = "/healthcheck"
+        expected_code = "200"
     }
     persistent {
         type = "APP_COOKIE"

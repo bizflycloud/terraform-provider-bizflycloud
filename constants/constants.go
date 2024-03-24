@@ -98,6 +98,13 @@ const (
 	AcceptedStatus         = "202"
 	NonAuthoritativeStatus = "203"
 	NoContentStatus        = "204"
+
+	InternalNetworkType = "internal"
+	ExternalNetworkType = "external"
+
+	LbSmallType  = "small"
+	LbMediumType = "medium"
+	LbLargeType  = "large"
 )
 
 var (
@@ -151,4 +158,6 @@ var (
 		SourceIp,
 	}
 	ValidUrlPathRegex, _ = regexp.Compile(`^/.*`)
+	ValidLbNetworkTypes  = []string{ExternalNetworkType, InternalNetworkType}
+	ValidLbTypes         = []string{LbSmallType, LbMediumType, LbLargeType}
 )

@@ -17,6 +17,7 @@ modify, and delete Load Balancer.
 # Create a new Load Balancer with external network facing
 resource "bizflycloud_loadbalancer" "lb1" {
     name = "sapd-tf-lb-1"
+    description = "create new loadbalancer"
     type = "small"
     network_type = "external"
 }
@@ -28,6 +29,7 @@ resource "bizflycloud_loadbalancer" "lb1" {
 # Create a new Load Balancer with only internal network
 resource "bizflycloud_loadbalancer" "lb2" {
     name = "bizfly-tf-lb-2"
+    description = "create new loadbalancer"
     type = "medium"
     network_type = "internal"
 }
@@ -38,6 +40,7 @@ resource "bizflycloud_loadbalancer" "lb2" {
 The following arguments are supported:
 
 * `name` - (Required) The name of load balancer
+* `description` - (Optional) The description of load balancer
 * `network_type` - (Optional) - The type of network: `external` or `internal`. Default value is `external`
 * `type` - (Optional) The type of load balancer: `small`, `medium` or `large`. Default is `medium`
 ## Attributes Reference
@@ -46,6 +49,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Load Balancer
 * `name`- The name of the Load Balancer
+* `description` - The description of load balancer
 * `network_type` - The type of network 
 * `type` - The type of Load Balancer
 * `vip_address` - The VIP of Load Balancer
@@ -53,3 +57,12 @@ The following attributes are exported:
 * `operating_status` - The operating status of Load Balancer
 * `pools` - The list ID of pool belong to load balancer
 * `listeners` - The list ID of listener belong to load balancer
+
+
+## Import
+
+Bizfly Cloud load balancer resource can be imported using the load balancer id in the Bizfly manage dashboard
+
+```
+$ terraform import bizflycloud_loadbalancer.lb2 loadbalancer-id
+```
