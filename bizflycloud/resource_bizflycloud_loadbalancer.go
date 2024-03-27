@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"github.com/bizflycloud/gobizfly"
+	"github.com/bizflycloud/terraform-provider-bizflycloud/constants"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
@@ -25,6 +27,9 @@ const (
 
 func resourceBizflyCloudLoadBalancer() *schema.Resource {
 	return &schema.Resource{
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		Create: resourceBizflyCloudLoadBalancerCreate,
 		Read:   resourceBizflyCloudLoadBalancerRead,
 		Update: resourceBizflyCloudLoadBalancerUpdate,
@@ -39,14 +44,16 @@ func resourceBizflyCloudLoadBalancer() *schema.Resource {
 				Optional: true,
 			},
 			"network_type": {
-				Type:     schema.TypeString,
-				Default:  "external",
-				Optional: true,
+				Type:         schema.TypeString,
+				Default:      constants.ExternalNetworkType,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(constants.ValidLbNetworkTypes, false),
 			},
 			"type": {
-				Type:     schema.TypeString,
-				Default:  "medium",
-				Optional: true,
+				Type:         schema.TypeString,
+				Default:      "medium",
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(constants.ValidLbTypes, false),
 			},
 			"vip_address": {
 				Type:     schema.TypeString,
@@ -89,12 +96,9 @@ func resourceBizflyCloudLoadBalancerCreate(d *schema.ResourceData, meta interfac
 	}
 	lb, err := client.LoadBalancer.Create(context.Background(), &lbcr)
 	if err != nil {
-		return fmt.Errorf("Error when creating load balancer")
+		return fmt.Errorf("Error when creating load balancer: %v", err)
 	}
 	d.SetId(lb.ID)
-
-	// TODO add pool and listener
-
 	return resourceBizflyCloudLoadBalancerRead(d, meta)
 }
 
@@ -111,6 +115,7 @@ func resourceBizflyCloudLoadBalancerRead(d *schema.ResourceData, meta interface{
 	_ = d.Set("vip_address", lb.VipAddress)
 	_ = d.Set("provisioning_status", lb.ProvisioningStatus)
 	_ = d.Set("operating_status", lb.OperatingStatus)
+
 	pools := schema.NewSet(schema.HashString, []interface{}{})
 	for _, v := range lb.Pools {
 		pools.Add(v.ID)
@@ -120,7 +125,7 @@ func resourceBizflyCloudLoadBalancerRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error setting pools: %v", err)
 	}
 	listeners := schema.NewSet(schema.HashString, []interface{}{})
-	for _, v := range lb.Pools {
+	for _, v := range lb.Listeners {
 		listeners.Add(v.ID)
 	}
 	if err := d.Set("listeners", listeners); err != nil {
@@ -130,17 +135,7 @@ func resourceBizflyCloudLoadBalancerRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceBizflyCloudLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) error {
-	//client := meta.(*CombinedConfig).gobizflyClient()
-	//if d.HasChange("type") {
-	//	// TODO update new type of load balancer
-	//}
-	//if d.HasChange("listeners") {
-	//	//	TODO update listeners in a load balancer
-	//}
-	//if d.HasChange("pools") {
-	//	//	TODO update pool in a load balancer
-	//}
-	return nil
+	return resourceBizflyCloudLoadBalancerRead(d, meta)
 }
 
 func resourceBizflyCloudLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
