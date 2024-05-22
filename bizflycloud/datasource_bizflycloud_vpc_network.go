@@ -21,14 +21,14 @@ func dataSourceBizflyCloudVPCNetwork() *schema.Resource {
 func dataSourceBizflyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
-	var matchVPC *gobizfly.VPC
+	var matchVPC *gobizfly.VPCNetwork
 	cidr := d.Get("cidr")
 
 	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		var err error
 
 		log.Printf("[DEBUG] Reading vpc network: %s", d.Id())
-		vpcs, err := client.VPC.List(context.Background())
+		vpcs, err := client.CloudServer.VPCNetworks().List(context.Background())
 
 		// Retry on any API "not found" errors, but only on new resources.
 		if d.IsNewResource() && errors.Is(err, gobizfly.ErrNotFound) {

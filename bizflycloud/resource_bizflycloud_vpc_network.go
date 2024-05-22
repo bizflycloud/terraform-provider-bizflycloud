@@ -54,7 +54,7 @@ func resourceBizflyCloudVPCNetworkCreate(d *schema.ResourceData, meta interface{
 		CIDR:        d.Get("cidr").(string),
 		IsDefault:   d.Get("is_default").(bool),
 	}
-	network, err := client.VPC.Create(context.Background(), cvp)
+	network, err := client.CloudServer.VPCNetworks().Create(context.Background(), cvp)
 	if err != nil {
 		return fmt.Errorf("Error when create vpc network: %v", err)
 	}
@@ -64,12 +64,12 @@ func resourceBizflyCloudVPCNetworkCreate(d *schema.ResourceData, meta interface{
 
 func resourceBizflyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	var vpc *gobizfly.VPC
+	var vpc *gobizfly.VPCNetwork
 	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		var err error
 
 		log.Printf("[DEBUG] Reading vpc: %s", d.Id())
-		vpc, err = client.VPC.Get(context.Background(), d.Id())
+		vpc, err = client.CloudServer.VPCNetworks().Get(context.Background(), d.Id())
 
 		// Retry on any API "not found" errors, but only on new resources.
 		if d.IsNewResource() && errors.Is(err, gobizfly.ErrNotFound) {
@@ -123,7 +123,7 @@ func resourceBizflyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{})
 func resourceBizflyCloudVPCNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	vpcOpts := VPCRequestBuilder(d)
-	network, err := client.VPC.Update(context.Background(), d.Id(), &vpcOpts)
+	network, err := client.CloudServer.VPCNetworks().Update(context.Background(), d.Id(), &vpcOpts)
 	if err != nil {
 		return fmt.Errorf("Error when update vpc network: %s, %v", d.Id(), err)
 	}
@@ -133,7 +133,7 @@ func resourceBizflyCloudVPCNetworkUpdate(d *schema.ResourceData, meta interface{
 
 func resourceBizflyCloudVPCNetworkDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	err := client.VPC.Delete(context.Background(), d.Id())
+	err := client.CloudServer.VPCNetworks().Delete(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("Error when delete vpc network: %v", err)
 	}

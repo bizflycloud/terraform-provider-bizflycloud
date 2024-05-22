@@ -64,7 +64,7 @@ func testAccCheckBizflyCloudScheduledVolumeBackupExists(n string, backup *gobizf
 			return fmt.Errorf("No Backup ID is set")
 		}
 		client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
-		retrieveBackup, err := client.ScheduledVolumeBackup.Get(context.Background(), rs.Primary.ID)
+		retrieveBackup, err := client.CloudServer.ScheduledVolumeBackups().Get(context.Background(), rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -94,7 +94,7 @@ func testAccCheckBizflyCloudScheduledVolumeBackupDestroy(s *terraform.State) err
 		if rs.Type != "bizflycloud_scheduled_volume_backup" {
 			continue
 		}
-		_, err := client.ScheduledVolumeBackup.Get(context.Background(), rs.Primary.ID)
+		_, err := client.CloudServer.ScheduledVolumeBackups().Get(context.Background(), rs.Primary.ID)
 		if err == nil {
 			if !errors.Is(err, gobizfly.ErrNotFound) {
 				return fmt.Errorf("Error: %v", err)

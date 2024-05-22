@@ -44,7 +44,7 @@ func dataSourceBizflyCloudSSHKey() *schema.Resource {
 
 func dataSourceBizflyClouldSSHKeyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	sshKey, err := client.SSHKey.Get(context.Background(), d.Get("name").(string))
+	sshKey, err := client.CloudServer.SSHKeys().Get(context.Background(), d.Get("name").(string))
 	if err != nil {
 		return err
 	}

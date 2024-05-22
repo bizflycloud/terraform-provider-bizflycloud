@@ -36,7 +36,7 @@ func datasourceBizflyCloudVolumeTypes() *schema.Resource {
 
 func datasourceBizflyCloudVolumeTypesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	volumeTypes, err := client.Volume.ListVolumeTypes(context.Background(), &gobizfly.ListVolumeTypesOptions{})
+	volumeTypes, err := client.CloudServer.Volumes().ListVolumeTypes(context.Background(), &gobizfly.ListVolumeTypesOptions{})
 	if err != nil {
 		return err
 	}

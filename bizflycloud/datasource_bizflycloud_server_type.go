@@ -38,7 +38,7 @@ func dataSourceBizflyCloudServerTypeRead(d *schema.ResourceData, meta interface{
 	client := meta.(*CombinedConfig).gobizflyClient()
 	var matchServerType *gobizfly.ServerType
 	err := resource.Retry(d.Timeout(schema.TimeoutRead), func() *resource.RetryError {
-		serverTypes, err := client.Server.ListServerTypes(context.Background())
+		serverTypes, err := client.CloudServer.ListServerTypes(context.Background())
 		if err != nil {
 			return resource.RetryableError(err)
 		}

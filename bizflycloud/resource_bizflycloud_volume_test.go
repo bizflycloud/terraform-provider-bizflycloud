@@ -71,7 +71,7 @@ func testAccCheckBizflyCloudVolumeExists(n string, volume *gobizfly.Volume) reso
 		}
 		client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
 
-		retrieveVolume, err := client.Volume.Get(context.Background(), rs.Primary.ID)
+		retrieveVolume, err := client.CloudServer.Volumes().Get(context.Background(), rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -111,7 +111,7 @@ func testAccCheckBizflyCloudVolumeDestroy(s *terraform.State) error {
 		}
 
 		// Try to find the volume
-		_, err := client.Volume.Get(context.Background(), rs.Primary.ID)
+		_, err := client.CloudServer.Volumes().Get(context.Background(), rs.Primary.ID)
 
 		// Wait
 

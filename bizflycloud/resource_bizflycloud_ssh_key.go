@@ -55,7 +55,7 @@ func resourceBizflyCloudSSHKey() *schema.Resource {
 
 func resourceBizflyCloudSSHKeyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	resp, err := client.SSHKey.Create(context.Background(), &gobizfly.SSHKeyCreateRequest{
+	resp, err := client.CloudServer.SSHKeys().Create(context.Background(), &gobizfly.SSHKeyCreateRequest{
 		Name:      d.Get("name").(string),
 		PublicKey: d.Get("public_key").(string),
 	})
@@ -69,7 +69,7 @@ func resourceBizflyCloudSSHKeyCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceBizflyCloudSSHKeyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	sshkeys, err := client.SSHKey.List(context.Background(), &gobizfly.ListOptions{})
+	sshkeys, err := client.CloudServer.SSHKeys().List(context.Background(), &gobizfly.ListOptions{})
 	if err != nil {
 		return fmt.Errorf("Error retrieving ssh keys: %v", err)
 	}
@@ -86,7 +86,7 @@ func resourceBizflyCloudSSHKeyRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceBizflyCloudSSHKeyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	_, err := client.SSHKey.Delete(context.Background(), d.Id())
+	_, err := client.CloudServer.SSHKeys().Delete(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("Error deleting ssh key: %v", err)
 	}
