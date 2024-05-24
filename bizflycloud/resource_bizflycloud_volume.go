@@ -96,7 +96,7 @@ func resourceBizflyCloudVolumeCreate(d *schema.ResourceData, meta interface{}) e
 		AvailabilityZone: d.Get("availability_zone").(string),
 	}
 	log.Printf("[DEBUG] Create Volume configuration #{vcr}")
-	volume, err := client.Volume.Create(context.Background(), vcr)
+	volume, err := client.CloudServer.Volumes().Create(context.Background(), vcr)
 	if err != nil {
 		return fmt.Errorf("Error creating volume: %v", err)
 	}
@@ -110,7 +110,7 @@ func resourceBizflyCloudVolumeCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceBizflyCloudVolumeRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	volume, err := client.Volume.Get(context.Background(), d.Id())
+	volume, err := client.CloudServer.Volumes().Get(context.Background(), d.Id())
 	if err != nil {
 		if errors.Is(err, gobizfly.ErrNotFound) {
 			log.Printf("[WARN] VOlume (%s) is not found", d.Id())
@@ -136,7 +136,7 @@ func resourceBizflyCloudVolumeUpdate(d *schema.ResourceData, meta interface{}) e
 	if d.HasChange("size") {
 		// resize volume
 		// TODO check state of extending task
-		_, err := client.Volume.ExtendVolume(context.Background(), d.Id(), d.Get("size").(int))
+		_, err := client.CloudServer.Volumes().ExtendVolume(context.Background(), d.Id(), d.Get("size").(int))
 		if err != nil {
 			if errors.Is(err, gobizfly.ErrNotFound) {
 				log.Printf("[WARN] Volume is not found %s", d.Id())
@@ -150,7 +150,7 @@ func resourceBizflyCloudVolumeUpdate(d *schema.ResourceData, meta interface{}) e
 
 func resourceBizflyCloudVolumeDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	err := client.Volume.Delete(context.Background(), d.Id())
+	err := client.CloudServer.Volumes().Delete(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("Error delete volume: #{err}")
 	}

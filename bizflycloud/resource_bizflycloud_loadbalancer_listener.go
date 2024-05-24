@@ -113,7 +113,7 @@ func resourceBizflyCloudLoadBalancerListenerCreate(d *schema.ResourceData, meta 
 		TimeoutMemberData:      &serverTimeout,
 		TimeoutMemberConnect:   &serverConnectTimeout,
 	}
-	listener, err := client.Listener.Create(context.Background(), lbID, &lcr)
+	listener, err := client.CloudLoadBalancer.Listeners().Create(context.Background(), lbID, &lcr)
 	if err != nil {
 		return fmt.Errorf("Error when creating listener: %v", err)
 	}
@@ -123,7 +123,7 @@ func resourceBizflyCloudLoadBalancerListenerCreate(d *schema.ResourceData, meta 
 
 func resourceBizflyCloudLoadBalancerListenerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	listener, err := client.Listener.Get(context.Background(), d.Id())
+	listener, err := client.CloudLoadBalancer.Listeners().Get(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("Error when retrieving listener: %v", err)
 	}
@@ -170,7 +170,7 @@ func resourceBizflyCloudLoadBalancerListenerUpdate(d *schema.ResourceData, meta 
 		TimeoutMemberData:      &serverTimeout,
 		TimeoutMemberConnect:   &serverConnectTimeout,
 	}
-	_, err := client.Listener.Update(context.Background(), d.Id(), &lur)
+	_, err := client.CloudLoadBalancer.Listeners().Update(context.Background(), d.Id(), &lur)
 	if err != nil {
 		return fmt.Errorf("Error when updating listener: %v", err)
 	}
@@ -181,7 +181,7 @@ func resourceBizflyCloudLoadBalancerListenerDelete(d *schema.ResourceData, meta 
 	client := meta.(*CombinedConfig).gobizflyClient()
 	lbID := d.Get("load_balancer_id").(string)
 	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID, loadbalancerResource)
-	err := client.Listener.Delete(context.Background(), d.Id())
+	err := client.CloudLoadBalancer.Listeners().Delete(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("Error when deleting listener: %v", err)
 	}

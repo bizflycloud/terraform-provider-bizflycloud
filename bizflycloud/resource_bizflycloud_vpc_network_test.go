@@ -19,7 +19,7 @@ func init() {
 }
 
 func TestAccBizflyCloudVPC(t *testing.T) {
-	var vpc gobizfly.VPC
+	var vpc gobizfly.VPCNetwork
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -39,7 +39,7 @@ func TestAccBizflyCloudVPC(t *testing.T) {
 	})
 }
 
-func testAccCheckBizflyCloudVPCNetworkExists(n string, vpc *gobizfly.VPC) resource.TestCheckFunc {
+func testAccCheckBizflyCloudVPCNetworkExists(n string, vpc *gobizfly.VPCNetwork) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -50,7 +50,7 @@ func testAccCheckBizflyCloudVPCNetworkExists(n string, vpc *gobizfly.VPC) resour
 		}
 		client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
 
-		retrieveVPCNetwork, err := client.VPC.Get(context.Background(), rs.Primary.ID)
+		retrieveVPCNetwork, err := client.CloudServer.VPCNetworks().Get(context.Background(), rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -63,7 +63,7 @@ func testAccCheckBizflyCloudVPCNetworkExists(n string, vpc *gobizfly.VPC) resour
 	}
 }
 
-func testAccCheckBizflyCloudVPCNetworkAttributes(vpc *gobizfly.VPC) resource.TestCheckFunc {
+func testAccCheckBizflyCloudVPCNetworkAttributes(vpc *gobizfly.VPCNetwork) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if vpc.Description != "test vpc network" {
 			return fmt.Errorf("Bad vpc network description: %s", vpc.Description)
@@ -85,7 +85,7 @@ func testAccCheckBizflyCloudVPCNetworkDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, err := client.VPC.Get(context.Background(), rs.Primary.ID)
+		_, err := client.CloudServer.VPCNetworks().Get(context.Background(), rs.Primary.ID)
 		if err != nil {
 			if !errors.Is(err, gobizfly.ErrNotFound) {
 				return fmt.Errorf("Error: %v", err)

@@ -82,7 +82,7 @@ func resourceBizflyCloudCustomImageCreate(d *schema.ResourceData, meta interface
 		Description: d.Get("description").(string),
 	}
 
-	resp, err := client.Server.CreateCustomImage(context.Background(), &req)
+	resp, err := client.CloudServer.CustomImages().Create(context.Background(), &req)
 	if err != nil {
 		log.Printf("[ERROR] Error create custom image: %v", err)
 		return err
@@ -93,7 +93,7 @@ func resourceBizflyCloudCustomImageCreate(d *schema.ResourceData, meta interface
 
 func resourceBizflyCloudCustomImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	resp, err := client.Server.GetCustomImage(context.Background(), d.Id())
+	resp, err := client.CloudServer.CustomImages().Get(context.Background(), d.Id())
 	if err != nil {
 		log.Printf("[ERROR] Error read custom image %s: %v", d.Id(), err)
 		return err
@@ -141,7 +141,7 @@ func resourceBizflyCloudCustomImageRead(d *schema.ResourceData, meta interface{}
 
 func resourceBizflyCloudCustomImageDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	err := client.Server.DeleteCustomImage(context.Background(), d.Id())
+	err := client.CloudServer.CustomImages().Delete(context.Background(), d.Id())
 	if err != nil {
 		return err
 	}

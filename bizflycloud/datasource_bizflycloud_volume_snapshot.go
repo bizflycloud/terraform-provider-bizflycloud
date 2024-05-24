@@ -56,7 +56,7 @@ func dataSourceBizflyCloudVolumeSnapshot() *schema.Resource {
 func dataSourceBizflyCloudVolumeSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
-	snapshot, err := client.Snapshot.Get(context.Background(), d.Get("id").(string))
+	snapshot, err := client.CloudServer.Snapshots().Get(context.Background(), d.Get("id").(string))
 	if err != nil {
 		return err
 	}

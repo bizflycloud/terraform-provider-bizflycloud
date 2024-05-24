@@ -24,7 +24,7 @@ func dataSourceBizflyCloudNetworkInterfaceRead(d *schema.ResourceData, meta inte
 
 	err := resource.Retry(d.Timeout(schema.TimeoutRead), func() *resource.RetryError {
 		ipAddress := d.Get("ip_address").(string)
-		networkInterfaces, err := client.NetworkInterface.List(context.Background(), &gobizfly.ListNetworkInterfaceOptions{})
+		networkInterfaces, err := client.CloudServer.NetworkInterfaces().List(context.Background(), &gobizfly.ListNetworkInterfaceOptions{})
 		if d.IsNewResource() && errors.Is(err, gobizfly.ErrNotFound) {
 			return resource.RetryableError(err)
 		}

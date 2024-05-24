@@ -24,7 +24,7 @@ func resourceBizflyCloudVolumeAttachmentCreate(d *schema.ResourceData, meta inte
 	volumeID := d.Get("volume_id").(string)
 	serverID := d.Get("server_id").(string)
 	log.Printf("[INFO] Attaching volume %s to server %s", volumeID, serverID)
-	_, err := client.Volume.Attach(context.Background(), volumeID, serverID)
+	_, err := client.CloudServer.Volumes().Attach(context.Background(), volumeID, serverID)
 	if err != nil {
 		log.Printf("[ERROR] Error attaching volume %s to server %s: %v", volumeID, serverID, err)
 		return err
@@ -36,7 +36,7 @@ func resourceBizflyCloudVolumeAttachmentCreate(d *schema.ResourceData, meta inte
 func resourceBizflyCloudVolumeAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	volumeID := d.Id()
-	volume, err := client.Volume.Get(context.Background(), volumeID)
+	volume, err := client.CloudServer.Volumes().Get(context.Background(), volumeID)
 	if err != nil {
 		log.Printf("[ERROR] Error reading volume %s: %v", volumeID, err)
 		return err
@@ -55,7 +55,7 @@ func resourceBizflyCloudVolumeAttachmentDelete(d *schema.ResourceData, meta inte
 	client := meta.(*CombinedConfig).gobizflyClient()
 	volumeID := d.Id()
 	serverID := d.Get("server_id").(string)
-	_, err := client.Volume.Detach(context.Background(), serverID, volumeID)
+	_, err := client.CloudServer.Volumes().Detach(context.Background(), serverID, volumeID)
 	if err != nil {
 		log.Printf("[ERROR] Error detaching volume %s from server %s: %v", volumeID, serverID, err)
 		return err

@@ -75,7 +75,7 @@ func resourceBizflyCloudScheduledVolumeBackupCreate(d *schema.ResourceData, meta
 		Hour:       d.Get("scheduled_hour").(int),
 	}
 	log.Printf("[DEBUG] Create scheduled volume backup payload: %#v\n", brq)
-	backup, err := client.ScheduledVolumeBackup.Create(context.Background(), brq)
+	backup, err := client.CloudServer.ScheduledVolumeBackups().Create(context.Background(), brq)
 	if err != nil {
 		return fmt.Errorf("[DEBUG] Error creating scheduled volume backup: %s", err)
 	}
@@ -87,7 +87,7 @@ func resourceBizflyCloudScheduledVolumeBackupCreate(d *schema.ResourceData, meta
 func resourceBizflyCloudScheduledVolumeBackupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	log.Printf("[DEBUG] Reading scheduled volume backup %s", d.Id())
-	backup, err := client.ScheduledVolumeBackup.Get(context.Background(), d.Id())
+	backup, err := client.CloudServer.ScheduledVolumeBackups().Get(context.Background(), d.Id())
 	if err != nil {
 		if err == gobizfly.ErrNotFound {
 			d.SetId("")
@@ -111,7 +111,7 @@ func resourceBizflyCloudScheduledVolumeBackupRead(d *schema.ResourceData, meta i
 
 func resourceBizflyCloudScheduledVolumeBackupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	err := client.ScheduledVolumeBackup.Delete(context.Background(), d.Id())
+	err := client.CloudServer.ScheduledVolumeBackups().Delete(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("[DEBUG] Error deleting scheduled volume backup: %s", err)
 	}
@@ -131,7 +131,7 @@ func resourceBizflyCloudScheduledVolumeBackupUpdate(d *schema.ResourceData, meta
 	if d.HasChange("size") {
 		brq.Size = d.Get("size").(string)
 	}
-	_, err := client.ScheduledVolumeBackup.Update(context.Background(), d.Id(), brq)
+	_, err := client.CloudServer.ScheduledVolumeBackups().Update(context.Background(), d.Id(), brq)
 	if err != nil {
 		return fmt.Errorf("[DEBUG] Error updating scheduled volume backup: %s", err)
 	}

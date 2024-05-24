@@ -114,7 +114,7 @@ func resourceBizflyCloudFirewallCreate(d *schema.ResourceData, meta interface{})
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	firewallOpts := firewallRequestBuilder(d)
-	firewall, err := client.Firewall.Create(context.Background(), &firewallOpts)
+	firewall, err := client.CloudServer.Firewalls().Create(context.Background(), &firewallOpts)
 	if err != nil {
 		return fmt.Errorf("Error when creating firewall: %v", err)
 	}
@@ -124,7 +124,7 @@ func resourceBizflyCloudFirewallCreate(d *schema.ResourceData, meta interface{})
 
 func resourceBizflyCloudFirewallRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	firewall, err := client.Firewall.Get(context.Background(), d.Id())
+	firewall, err := client.CloudServer.Firewalls().Get(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("Error when retrieving fireall: %v", err)
 	}
@@ -144,7 +144,7 @@ func resourceBizflyCloudFirewallRead(d *schema.ResourceData, meta interface{}) e
 
 func resourceBizflyCloudFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	_, err := client.Firewall.Delete(context.Background(), d.Id())
+	_, err := client.CloudServer.Firewalls().Delete(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("Error when deleting firewall: %v", err)
 	}
@@ -155,7 +155,7 @@ func resourceBizflyCloudFirewallUpdate(d *schema.ResourceData, meta interface{})
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	firewallOpts := firewallRequestBuilder(d)
-	firewall, err := client.Firewall.Update(context.Background(), d.Id(), &firewallOpts)
+	firewall, err := client.CloudServer.Firewalls().Update(context.Background(), d.Id(), &firewallOpts)
 	if err != nil {
 		return fmt.Errorf("Error when creating firewall: %v", err)
 	}

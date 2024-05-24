@@ -18,11 +18,11 @@ func dataSourceBizflyCloudWanIP() *schema.Resource {
 }
 func dataSourceBizflyCloudWanIPRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	var matchWanIP *gobizfly.WanIP
+	var matchWanIP *gobizfly.CloudServerPublicNetworkInterface
 
 	err := resource.Retry(d.Timeout(schema.TimeoutRead), func() *resource.RetryError {
 		ipAddress := d.Get("ip_address").(string)
-		wanIPs, err := client.WanIP.List(context.Background())
+		wanIPs, err := client.CloudServer.PublicNetworkInterfaces().List(context.Background())
 		if d.IsNewResource() && errors.Is(err, gobizfly.ErrNotFound) {
 			return resource.RetryableError(err)
 		}

@@ -133,7 +133,7 @@ func resourceBizflycloudLoadbalancerL7PolicyCreate(d *schema.ResourceData, meta 
 		return err
 	}
 	log.Printf("[DEBUG] create l7 policy payload for listener %s: %#v", listenerId, *createReq)
-	l7Policy, createErr := client.L7Policy.Create(context.Background(), listenerId, createReq)
+	l7Policy, createErr := client.CloudLoadBalancer.L7Policies().Create(context.Background(), listenerId, createReq)
 	if createErr != nil {
 		return fmt.Errorf("Create l7 policy for listener %s error: %v", listenerId, createErr)
 	}
@@ -147,11 +147,11 @@ func resourceBizflycloudLoadbalancerL7PolicyRead(d *schema.ResourceData, meta in
 	client := meta.(*CombinedConfig).gobizflyClient()
 	policyId := d.Id()
 	log.Printf("[DEBUG] test read l7 policy %s", policyId)
-	l7Policy, err := client.L7Policy.Get(context.Background(), policyId)
+	l7Policy, err := client.CloudLoadBalancer.L7Policies().Get(context.Background(), policyId)
 	if err != nil {
 		return fmt.Errorf("Error when retrieving l7 policy %s: %v", policyId, err)
 	}
-	l7PolicyRules, err := client.L7Policy.ListL7PolicyRules(context.Background(), policyId)
+	l7PolicyRules, err := client.CloudLoadBalancer.L7Policies().ListL7PolicyRules(context.Background(), policyId)
 	if err != nil {
 		return fmt.Errorf("Error when listing l7 policy %s rules: %v", policyId, err)
 	}
@@ -191,7 +191,7 @@ func resourceBizflycloudLoadbalancerL7PolicyUpdate(d *schema.ResourceData, meta 
 		return err
 	}
 	log.Printf("[DEBUG] update l7 policy %s payload for listener %s: %#v", policyId, listenerId, *updateReq)
-	_, createErr := client.L7Policy.Update(context.Background(), policyId, updateReq)
+	_, createErr := client.CloudLoadBalancer.L7Policies().Update(context.Background(), policyId, updateReq)
 	if createErr != nil {
 		return fmt.Errorf("Update l7 policy %s for listener %s error: %v", policyId, listenerId, createErr)
 	}
@@ -208,7 +208,7 @@ func resourceBizflycloudLoadbalancerL7PolicyDelete(d *schema.ResourceData, meta 
 		log.Printf("[ERROR] wait listener active provisioning status failed: %v", err)
 		return err
 	}
-	err = client.L7Policy.Delete(context.Background(), policyId)
+	err = client.CloudLoadBalancer.L7Policies().Delete(context.Background(), policyId)
 	if err != nil {
 		return fmt.Errorf("Error when delete l7 policy: %v", err)
 	}
@@ -381,7 +381,7 @@ func getUpdateL7PolicyRulesFromConfig(d *schema.ResourceData, client *gobizfly.C
 			Value:       ruleReq.Value,
 		}
 		log.Printf("[DEBUG] Create l7 policy payload: policyId=%s - payload=%#v", policyId, newRulePayload)
-		newRule, err := client.L7Policy.CreateL7PolicyRule(context.Background(), policyId, newRulePayload)
+		newRule, err := client.CloudLoadBalancer.L7Policies().CreateL7PolicyRule(context.Background(), policyId, newRulePayload)
 		if err != nil {
 			log.Printf("[Error] create l7 policy %s rule: %v", policyId, err)
 			return nil, fmt.Errorf("Error create l7 policy %s rule: %v", policyId, err)
@@ -453,7 +453,7 @@ func waitListenerActiveProvisioningStatus(client *gobizfly.Client, listenerId st
 		Steps:    loadbalancerActiveSteps,
 	}
 	err := wait.ExponentialBackoff(backoff, func() (bool, error) {
-		listener, err := client.Listener.Get(context.Background(), listenerId)
+		listener, err := client.CloudLoadBalancer.Listeners().Get(context.Background(), listenerId)
 		if err != nil {
 			return true, err
 		}
@@ -485,7 +485,7 @@ func waitL7PolicyActiveProvisioningStatus(client *gobizfly.Client, policyId stri
 		Steps:    loadbalancerActiveSteps,
 	}
 	err := wait.ExponentialBackoff(backoff, func() (bool, error) {
-		policy, err := client.L7Policy.Get(context.Background(), policyId)
+		policy, err := client.CloudLoadBalancer.L7Policies().Get(context.Background(), policyId)
 		if err != nil {
 			return true, err
 		}

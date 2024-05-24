@@ -38,7 +38,7 @@ func resourceBizflyCloudNetworkInterfaceCreate(d *schema.ResourceData, meta inte
 		Name:    d.Get("name").(string),
 		FixedIP: d.Get("fixed_ip").(string),
 	}
-	networkInterface, err := client.NetworkInterface.Create(context.Background(), networkID, createPayload)
+	networkInterface, err := client.CloudServer.NetworkInterfaces().Create(context.Background(), networkID, createPayload)
 	if err != nil {
 		return fmt.Errorf("error when create network interface: %v", err)
 	}
@@ -53,7 +53,7 @@ func resourceBizflyCloudNetworkInterfaceCreate(d *schema.ResourceData, meta inte
 
 func resourceBizflyCloudNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	networkInterface, err := client.NetworkInterface.Get(context.Background(), d.Id())
+	networkInterface, err := client.CloudServer.NetworkInterfaces().Get(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("Error read network interface network %s: %w", d.Id(), err)
 	}
@@ -80,7 +80,7 @@ func resourceBizflyCloudNetworkInterfaceUpdate(d *schema.ResourceData, meta inte
 		updatePayload := &gobizfly.UpdateNetworkInterfacePayload{
 			Name: d.Get("name").(string),
 		}
-		_, err := client.NetworkInterface.Update(context.Background(), d.Id(), updatePayload)
+		_, err := client.CloudServer.NetworkInterfaces().Update(context.Background(), d.Id(), updatePayload)
 		if err != nil {
 			return fmt.Errorf("error when update network interface: %s, %v", d.Id(), err)
 		}
@@ -95,7 +95,7 @@ func resourceBizflyCloudNetworkInterfaceUpdate(d *schema.ResourceData, meta inte
 
 func resourceBizflyCloudNetworkInterfaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	err := client.NetworkInterface.Delete(context.Background(), d.Id())
+	err := client.CloudServer.NetworkInterfaces().Delete(context.Background(), d.Id())
 	if err != nil && strings.Contains(err.Error(), "Resource not found") {
 		return fmt.Errorf("error when delete network interface: %v", err)
 	}

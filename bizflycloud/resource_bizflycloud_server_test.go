@@ -77,7 +77,7 @@ func testAccCheckBizflyCloudServerExists(n string, server *gobizfly.Server) reso
 		}
 		client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
 
-		retrieveServer, err := client.Server.Get(context.Background(), rs.Primary.ID)
+		retrieveServer, err := client.CloudServer.Get(context.Background(), rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -117,7 +117,7 @@ func testAccCheckBizflyCloudServerDestroy(s *terraform.State) error {
 		}
 
 		// Try to find the server
-		_, err := client.Server.Get(context.Background(), rs.Primary.ID)
+		_, err := client.CloudServer.Get(context.Background(), rs.Primary.ID)
 
 		// Wait
 

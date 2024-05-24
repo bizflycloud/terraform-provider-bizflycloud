@@ -36,7 +36,7 @@ func resourceBizflyCloudNetworkInterfaceAttachmentCreate(d *schema.ResourceData,
 func resourceBizflyCloudNetworkInterfaceAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	networkInterfaceID := d.Id()
-	port, err := client.NetworkInterface.Get(context.Background(), networkInterfaceID)
+	port, err := client.CloudServer.NetworkInterfaces().Get(context.Background(), networkInterfaceID)
 	if err != nil {
 		log.Printf("[ERROR] Error reading network interface %s: %s", networkInterfaceID, err)
 		return err
@@ -51,7 +51,7 @@ func resourceBizflyCloudNetworkInterfaceAttachmentRead(d *schema.ResourceData, m
 func resourceBizflyCloudNetworkInterfaceAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	networkInterfaceID := d.Id()
-	firewalls, err := client.Firewall.List(context.Background(), &gobizfly.ListOptions{})
+	firewalls, err := client.CloudServer.Firewalls().List(context.Background(), &gobizfly.ListOptions{})
 	if err != nil {
 		return fmt.Errorf("error listing firewalls: %v", err)
 	}

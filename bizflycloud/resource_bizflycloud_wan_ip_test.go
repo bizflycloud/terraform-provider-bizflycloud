@@ -19,7 +19,7 @@ func init() {
 }
 
 func TestAccBizflyCloudWanIP(t *testing.T) {
-	var wanIP gobizfly.WanIP
+	var wanIP gobizfly.CloudServerPublicNetworkInterface
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -39,7 +39,7 @@ func TestAccBizflyCloudWanIP(t *testing.T) {
 	})
 }
 
-func testAccCheckBizflyCloudWanIPExists(n string, wanIP *gobizfly.WanIP) resource.TestCheckFunc {
+func testAccCheckBizflyCloudWanIPExists(n string, wanIP *gobizfly.CloudServerPublicNetworkInterface) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -50,7 +50,7 @@ func testAccCheckBizflyCloudWanIPExists(n string, wanIP *gobizfly.WanIP) resourc
 		}
 		client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
 
-		retrieveWanIP, err := client.WanIP.Get(context.Background(), rs.Primary.ID)
+		retrieveWanIP, err := client.CloudServer.PublicNetworkInterfaces().Get(context.Background(), rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -63,7 +63,7 @@ func testAccCheckBizflyCloudWanIPExists(n string, wanIP *gobizfly.WanIP) resourc
 	}
 }
 
-func testAccCheckBizflyCloudWanIPAttributes(wanIP *gobizfly.WanIP) resource.TestCheckFunc {
+func testAccCheckBizflyCloudWanIPAttributes(wanIP *gobizfly.CloudServerPublicNetworkInterface) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if wanIP.Name != "test_wan_ip" {
 			return fmt.Errorf("Bad network interface name: %s", wanIP.Name)
@@ -83,7 +83,7 @@ func testAccCheckBizflyCloudWanIPDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, err := client.WanIP.Get(context.Background(), rs.Primary.ID)
+		_, err := client.CloudServer.PublicNetworkInterfaces().Get(context.Background(), rs.Primary.ID)
 		if err != nil {
 			if !errors.Is(err, gobizfly.ErrNotFound) {
 				return fmt.Errorf("Error: %v", err)

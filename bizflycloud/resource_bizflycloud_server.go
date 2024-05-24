@@ -104,7 +104,7 @@ func resourceBizflyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 	scr.IPv6 = usingV6Wan
 	log.Printf("[DEBUG] Create Cloud Server configuration: %#v", scr)
 
-	tasks, err := client.Server.Create(context.Background(), scr)
+	tasks, err := client.CloudServer.Create(context.Background(), scr)
 	if err != nil {
 		return fmt.Errorf("Error creating server: %s", err)
 	}
@@ -117,7 +117,7 @@ func resourceBizflyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error creating cloud server with task id (%s): %s", d.Id(), err)
 	}
 
-	ports, err := client.NetworkInterface.List(context.Background(), &gobizfly.ListNetworkInterfaceOptions{
+	ports, err := client.CloudServer.NetworkInterfaces().List(context.Background(), &gobizfly.ListNetworkInterfaceOptions{
 		Type:   "LAN_WAN",
 		Status: "ACTIVE",
 	})
@@ -159,7 +159,7 @@ func resourceBizflyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	server, err := client.Server.Get(context.Background(), d.Id())
+	server, err := client.CloudServer.Get(context.Background(), d.Id())
 	if err != nil {
 		if errors.Is(err, gobizfly.ErrNotFound) {
 			log.Printf("[WARN] Bizfly Cloud Server (%s) is not found", d.Id())
@@ -173,10 +173,10 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 		log.Printf("[WARN] get rootdisk of server %s failed: %+v", server.ID, err)
 		return err
 	}
-	networkInterfaces, _ := client.NetworkInterface.List(context.Background(), &gobizfly.ListNetworkInterfaceOptions{
+	networkInterfaces, _ := client.CloudServer.NetworkInterfaces().List(context.Background(), &gobizfly.ListNetworkInterfaceOptions{
 		Type: "LAN_WAN",
 	})
-	firewalls, err := client.Firewall.List(context.Background(), &gobizfly.ListOptions{})
+	firewalls, err := client.CloudServer.Firewalls().List(context.Background(), &gobizfly.ListOptions{})
 	if err != nil {
 		return fmt.Errorf("error listing firewalls: %v", err)
 	}
@@ -253,13 +253,13 @@ func resourceBizflyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 	if d.HasChange("name") {
 		// Rename server
 		newName := d.Get("name").(string)
-		if err := client.Server.Rename(context.Background(), id, newName); err != nil {
+		if err := client.CloudServer.Rename(context.Background(), id, newName); err != nil {
 			return fmt.Errorf("Error when rename server [%s]: %v", id, err)
 		}
 	}
 	if d.HasChange("flavor_name") {
 		// Resize server to new flavor
-		task, err := client.Server.Resize(context.Background(), id, d.Get("flavor_name").(string))
+		task, err := client.CloudServer.Resize(context.Background(), id, d.Get("flavor_name").(string))
 		if err != nil {
 			return fmt.Errorf("Error when resize server [%s]: %v", id, err)
 		}
@@ -271,7 +271,7 @@ func resourceBizflyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 	if d.HasChange("category") {
 		// Change category of the server
-		task, err := client.Server.ChangeCategory(context.Background(), id, d.Get("category").(string))
+		task, err := client.CloudServer.ChangeCategory(context.Background(), id, d.Get("category").(string))
 		if err != nil {
 			return fmt.Errorf("error when change category of server [%s]: %v", id, err)
 		}
@@ -284,14 +284,14 @@ func resourceBizflyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if d.HasChanges("network_plan") {
 		_, newNetworkPlan := d.GetChange("network_plan")
-		err := client.Server.ChangeNetworkPlan(context.Background(), d.Id(), newNetworkPlan.(string))
+		err := client.CloudServer.ChangeNetworkPlan(context.Background(), d.Id(), newNetworkPlan.(string))
 		if err != nil {
 			return fmt.Errorf("error changing network plan of server [%s]: %v", d.Id(), err)
 		}
 	}
 	if d.HasChange("billing_plan") {
 		_, newBillingPlan := d.GetChange("billing_plan")
-		err := client.Server.SwitchBillingPlan(context.Background(), d.Id(), newBillingPlan.(string))
+		err := client.CloudServer.SwitchBillingPlan(context.Background(), d.Id(), newBillingPlan.(string))
 		if err != nil {
 			return fmt.Errorf("error changing billing plan of server [%s]: %v", d.Id(), err)
 		}
@@ -314,12 +314,12 @@ func resourceBizflyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("cannot change server state because server state is %s", oldState.(string))
 		}
 		if newState.(string) == "running" {
-			_, err := client.Server.Start(context.Background(), d.Id())
+			_, err := client.CloudServer.Start(context.Background(), d.Id())
 			if err != nil {
 				return fmt.Errorf("error changing state of server: %v", err)
 			}
 		} else if newState.(string) == "stopped" {
-			_, err := client.Server.Stop(context.Background(), d.Id())
+			_, err := client.CloudServer.Stop(context.Background(), d.Id())
 			if err != nil {
 				return fmt.Errorf("error changing state of server: %v", err)
 			}
@@ -332,7 +332,7 @@ func resourceBizflyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 		if oldRootDiskSizeInt >= newRootDiskSizeInt {
 			return fmt.Errorf("New rootdisk size must be greater than %d to extend rootdisk", oldRootDiskSizeInt)
 		}
-		task, err := client.Volume.ExtendVolume(context.Background(), rootDiskID, newRootDiskSizeInt)
+		task, err := client.CloudServer.Volumes().ExtendVolume(context.Background(), rootDiskID, newRootDiskSizeInt)
 		if err != nil {
 			return err
 		}
@@ -347,7 +347,7 @@ func resourceBizflyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 func resourceBizflyCloudServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	// destroy the cloud server
-	server, err := client.Server.Get(context.Background(), d.Id())
+	server, err := client.CloudServer.Get(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("Error retrieving cloud server: %v", err)
 	}
@@ -357,7 +357,7 @@ func resourceBizflyCloudServerDelete(d *schema.ResourceData, meta interface{}) e
 			rootDiskID = v.ID
 		}
 	}
-	task, err := client.Server.Delete(context.Background(), d.Id(), []string{rootDiskID})
+	task, err := client.CloudServer.Delete(context.Background(), d.Id(), []string{rootDiskID})
 	if err != nil {
 		return fmt.Errorf("Error delete cloud server %v", err)
 	}
@@ -413,7 +413,7 @@ func newServerStateRefreshFunc(d *schema.ResourceData, attribute string, meta in
 	client := meta.(*CombinedConfig).gobizflyClient()
 	return func() (interface{}, string, error) {
 		// Get task result from cloud server API
-		resp, err := client.Server.GetTask(context.Background(), d.Id())
+		resp, err := client.CloudServer.GetTask(context.Background(), d.Id())
 		if err != nil {
 			return nil, "", err
 		}
@@ -430,7 +430,7 @@ func newServerStateRefreshFunc(d *schema.ResourceData, attribute string, meta in
 		}
 
 		if attr, ok := d.GetOk(attribute); ok { // nolint
-			server, err := client.Server.Get(context.Background(), resp.Result.Server.ID)
+			server, err := client.CloudServer.Get(context.Background(), resp.Result.Server.ID)
 			if err != nil {
 				return nil, "", fmt.Errorf("Error retrieving cloud server: %v", err)
 			}
@@ -449,7 +449,7 @@ func updateServerStateRefreshFunc(d *schema.ResourceData, attribute string, meta
 	client := meta.(*CombinedConfig).gobizflyClient()
 	return func() (interface{}, string, error) {
 		// Get task result from cloud server API
-		resp, err := client.Server.GetTask(context.Background(), taskID)
+		resp, err := client.CloudServer.GetTask(context.Background(), taskID)
 		if err != nil {
 			return nil, "", err
 		}
@@ -463,7 +463,7 @@ func updateServerStateRefreshFunc(d *schema.ResourceData, attribute string, meta
 			return nil, "", err
 		}
 		if attr, ok := d.GetOk(attribute); ok { // nolint
-			server, err := client.Server.Get(context.Background(), d.Id())
+			server, err := client.CloudServer.Get(context.Background(), d.Id())
 			if err != nil {
 				return nil, "", fmt.Errorf("Error retrieving cloud server: %v", err)
 			}
@@ -482,11 +482,11 @@ func waitToDeleteServerRefreshFunc(d *schema.ResourceData, meta interface{}, tas
 	client := meta.(*CombinedConfig).gobizflyClient()
 	return func() (interface{}, string, error) {
 
-		resp, err := client.Server.GetTask(context.Background(), taskID)
+		resp, err := client.CloudServer.GetTask(context.Background(), taskID)
 		if err != nil {
 			return nil, "false", err
 		}
-		server, err := client.Server.Get(context.Background(), d.Id())
+		server, err := client.CloudServer.Get(context.Background(), d.Id())
 		if errors.Is(err, gobizfly.ErrNotFound) {
 			return server, "true", nil
 		} else if err != nil {
@@ -513,7 +513,7 @@ func extendVolumeRefreshFunc(meta interface{}, taskID string) resource.StateRefr
 	client := meta.(*CombinedConfig).gobizflyClient()
 	return func() (interface{}, string, error) {
 
-		resp, err := client.Server.GetTask(context.Background(), taskID)
+		resp, err := client.CloudServer.GetTask(context.Background(), taskID)
 		if err != nil {
 			return nil, "false", err
 		}
@@ -582,7 +582,7 @@ func attachFirewallsForPort(client *gobizfly.Client, portID string, firewallIDs 
 	if len(firewallIDs) == 0 {
 		return nil
 	}
-	_, err := client.NetworkInterface.Action(context.Background(), portID,
+	_, err := client.CloudServer.NetworkInterfaces().Action(context.Background(), portID,
 		&gobizfly.ActionNetworkInterfacePayload{
 			Action:         "add_firewall",
 			SecurityGroups: firewallIDs,
@@ -595,7 +595,7 @@ func detachFirewallsForPort(client *gobizfly.Client, portID string, firewallIDs 
 	if len(firewallIDs) == 0 {
 		return nil
 	}
-	_, err := client.NetworkInterface.Action(context.Background(), portID,
+	_, err := client.CloudServer.NetworkInterfaces().Action(context.Background(), portID,
 		&gobizfly.ActionNetworkInterfacePayload{
 			Action:         "remove_firewall",
 			SecurityGroups: firewallIDs,
@@ -604,7 +604,7 @@ func detachFirewallsForPort(client *gobizfly.Client, portID string, firewallIDs 
 }
 
 func attachServerForPort(client *gobizfly.Client, serverID, portID string) error {
-	_, err := client.NetworkInterface.Action(context.Background(), portID,
+	_, err := client.CloudServer.NetworkInterfaces().Action(context.Background(), portID,
 		&gobizfly.ActionNetworkInterfacePayload{
 			Action:   "attach_server",
 			ServerID: serverID,
@@ -613,7 +613,7 @@ func attachServerForPort(client *gobizfly.Client, serverID, portID string) error
 }
 
 func detachServerForPort(client *gobizfly.Client, portID string) error {
-	_, err := client.NetworkInterface.Action(context.Background(), portID,
+	_, err := client.CloudServer.NetworkInterfaces().Action(context.Background(), portID,
 		&gobizfly.ActionNetworkInterfacePayload{
 			Action: "detach_server",
 		})
@@ -629,13 +629,13 @@ func checkIDInList(id string, IDs []string) bool {
 	return false
 }
 
-func enableIpv6ForServer(client *gobizfly.Client, serverID string) (wanIpv6 *gobizfly.WanIP, err error) {
-	enableErr := client.Server.EnableIpv6(context.Background(), serverID)
+func enableIpv6ForServer(client *gobizfly.Client, serverID string) (wanIpv6 *gobizfly.CloudServerPublicNetworkInterface, err error) {
+	enableErr := client.CloudServer.EnableIPv6(context.Background(), serverID)
 	if enableErr != nil {
 		err = fmt.Errorf("Error enable ipv6 for server %s failed: %v", serverID, enableErr)
 		return
 	}
-	wanIps, wanIpsErr := client.WanIP.List(context.Background())
+	wanIps, wanIpsErr := client.CloudServer.PublicNetworkInterfaces().List(context.Background())
 	if wanIpsErr != nil {
 		err = fmt.Errorf("Error list wan ip failed: %v", wanIpsErr)
 		return
@@ -740,7 +740,7 @@ func updateFreeWantPort(d *schema.ResourceData, client *gobizfly.Client, field s
 		wg.Add(1)
 		go func(portID string) {
 			defer wg.Done()
-			if err := client.NetworkInterface.Delete(context.Background(), portID); err != nil {
+			if err := client.CloudServer.NetworkInterfaces().Delete(context.Background(), portID); err != nil {
 				errChan <- fmt.Errorf("error detaching server for port %s: %v", portID, err)
 			}
 		}(portID)
@@ -767,7 +767,7 @@ func updateFreeWantPort(d *schema.ResourceData, client *gobizfly.Client, field s
 		wg.Add(1)
 		go func(portID string) {
 			defer wg.Done()
-			if _, err := client.NetworkInterface.Action(context.Background(), portID,
+			if _, err := client.CloudServer.NetworkInterfaces().Action(context.Background(), portID,
 				&gobizfly.ActionNetworkInterfacePayload{
 					Action: "enable",
 				}); err != nil {
@@ -779,7 +779,7 @@ func updateFreeWantPort(d *schema.ResourceData, client *gobizfly.Client, field s
 		wg.Add(1)
 		go func(portID string) {
 			defer wg.Done()
-			if _, err := client.NetworkInterface.Action(context.Background(), portID,
+			if _, err := client.CloudServer.NetworkInterfaces().Action(context.Background(), portID,
 				&gobizfly.ActionNetworkInterfacePayload{
 					Action: "disable",
 				}); err != nil {
@@ -795,7 +795,7 @@ func updateFreeWantPort(d *schema.ResourceData, client *gobizfly.Client, field s
 }
 
 func getServerRootDisk(client *gobizfly.Client, serverId string) (*gobizfly.Volume, error) {
-	volumes, err := client.Volume.List(context.Background(), nil)
+	volumes, err := client.CloudServer.Volumes().List(context.Background(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("list volume failed: %+v", err)
 	}

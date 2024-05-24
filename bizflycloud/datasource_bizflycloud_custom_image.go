@@ -39,7 +39,7 @@ func dataSourceBizflyCloudCustomImage() *schema.Resource {
 
 func dataSourceBizflyCloudCustomImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	resp, err := client.Server.GetCustomImage(context.Background(), d.Get("id").(string))
+	resp, err := client.CloudServer.CustomImages().Get(context.Background(), d.Get("id").(string))
 	if err != nil {
 		return err
 	}

@@ -96,7 +96,7 @@ func testAccCheckBizflyCloudClusterDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, err := client.Volume.Get(context.Background(), rs.Primary.ID)
+		_, err := client.CloudServer.Volumes().Get(context.Background(), rs.Primary.ID)
 		if err != nil {
 			if !errors.Is(err, gobizfly.ErrNotFound) {
 				return fmt.Errorf("Error: %v", err)

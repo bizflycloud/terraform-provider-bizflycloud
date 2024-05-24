@@ -34,7 +34,7 @@ func datasourceBizflyCloudImages() *schema.Resource {
 
 func dataSourceBizflyCloudImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	osImages, err := client.Server.ListOSImages(context.Background())
+	osImages, err := client.CloudServer.OSImages().List(context.Background())
 	if err != nil {
 		return err
 	}

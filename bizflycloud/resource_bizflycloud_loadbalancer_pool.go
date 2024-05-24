@@ -231,7 +231,7 @@ func resourceBizflyCloudLoadBalancerPoolCreate(d *schema.ResourceData, meta inte
 	}
 	createReq := getCreatePoolPayloadFromConfig(d)
 	log.Printf("[DEBUG] Create pool payload: %+v", createReq)
-	pool, err := client.Pool.Create(context.Background(), lbID, &createReq)
+	pool, err := client.CloudLoadBalancer.Pools().Create(context.Background(), lbID, &createReq)
 	if err != nil {
 		return fmt.Errorf("Error when create pool for loadbalancer %s: %+v", lbID, err)
 	}
@@ -250,7 +250,7 @@ func resourceBizflyCloudLoadBalancerPoolCreate(d *schema.ResourceData, meta inte
 		}
 		persistent := getSessionPersistentPayloadFromConfig(d)
 		updateReq.SessionPersistence = persistent
-		_, err = client.Pool.Update(context.Background(), poolID, updateReq)
+		_, err = client.CloudLoadBalancer.Pools().Update(context.Background(), poolID, updateReq)
 		if err != nil {
 			log.Printf("[ERROR] Update pool %s failed: %v", poolID, err)
 			return err
@@ -265,7 +265,7 @@ func resourceBizflyCloudLoadBalancerPoolCreate(d *schema.ResourceData, meta inte
 	// Create health monitor
 	healthMonitorPayload := getCreateHealthMonitorPayloadFromConfig(d)
 	if healthMonitorPayload != nil {
-		_, err = client.HealthMonitor.Create(context.Background(), poolID, healthMonitorPayload)
+		_, err = client.CloudLoadBalancer.HealthMonitors().Create(context.Background(), poolID, healthMonitorPayload)
 		if err != nil {
 			log.Printf("[ERROR] Create health monitor for pool %s failed: %+v", poolID, err)
 			return err
@@ -281,7 +281,7 @@ func resourceBizflyCloudLoadBalancerPoolCreate(d *schema.ResourceData, meta inte
 // Read pool resource
 func resourceBizflyCloudLoadBalancerPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	pool, err := client.Pool.Get(context.Background(), d.Id())
+	pool, err := client.CloudLoadBalancer.Pools().Get(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("Error when retrieving load balancer pool %s: %v", d.Id(), err)
 	}
@@ -314,7 +314,7 @@ func resourceBizflyCloudLoadBalancerPoolUpdate(d *schema.ResourceData, meta inte
 	}
 	// Update pool
 	updateReq := getUpdatePoolPayloadFromConfig(d)
-	_, err = client.Pool.Update(context.Background(), poolID, &updateReq)
+	_, err = client.CloudLoadBalancer.Pools().Update(context.Background(), poolID, &updateReq)
 	if err != nil {
 		log.Printf("[ERROR] Update pool %s failed: %+v", poolID, err)
 		return err
@@ -331,14 +331,14 @@ func resourceBizflyCloudLoadBalancerPoolUpdate(d *schema.ResourceData, meta inte
 			if healthMonitorID == "" {
 				// Create health monitor for pool
 				createHealthMonitorReq := getCreateHealthMonitorPayloadFromConfig(d)
-				_, err = client.HealthMonitor.Create(context.Background(), poolID, createHealthMonitorReq)
+				_, err = client.CloudLoadBalancer.HealthMonitors().Create(context.Background(), poolID, createHealthMonitorReq)
 				if err != nil {
 					log.Printf("[ERROR] Create health monitor %s failed: %v", healthMonitorID, err)
 					return err
 				}
 			} else {
 				// Update health monitor for pool
-				_, err = client.HealthMonitor.Update(context.Background(), healthMonitorID, healthMonitorReq)
+				_, err = client.CloudLoadBalancer.HealthMonitors().Update(context.Background(), healthMonitorID, healthMonitorReq)
 				if err != nil {
 					log.Printf("[ERROR] Update health monitor %s failed: %v", healthMonitorID, err)
 					return err
@@ -363,7 +363,7 @@ func resourceBizflyCloudLoadBalancerPoolUpdate(d *schema.ResourceData, meta inte
 				log.Printf("[ERROR] check pool active status before delete member")
 				return err
 			}
-			err = client.Member.Delete(context.Background(), poolID, memberID)
+			err = client.CloudLoadBalancer.Members().Delete(context.Background(), poolID, memberID)
 			if err != nil {
 				return fmt.Errorf("Error when delete old member %s: %v", memberID, err)
 			}
@@ -383,7 +383,7 @@ func resourceBizflyCloudLoadBalancerPoolUpdate(d *schema.ResourceData, meta inte
 				ProtocolPort: castedMember["protocol_port"].(int),
 				Backup:       castedMember["backup"].(bool),
 			}
-			_, err = client.Member.Create(context.Background(), poolID, updateMemberReq)
+			_, err = client.CloudLoadBalancer.Members().Create(context.Background(), poolID, updateMemberReq)
 			if err != nil {
 				return fmt.Errorf("Error when create new member: %v", err)
 			}
@@ -402,7 +402,7 @@ func resourceBizflyCloudLoadBalancerPoolDelete(d *schema.ResourceData, meta inte
 	client := meta.(*CombinedConfig).gobizflyClient()
 	lbID := d.Get("load_balancer_id").(string)
 	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID, loadbalancerResource)
-	err := client.Pool.Delete(context.Background(), d.Id())
+	err := client.CloudLoadBalancer.Pools().Delete(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("Error when deleting load balancer pool: %v", err)
 	}
@@ -637,7 +637,7 @@ func waitPoolActiveProvisioningStatus(client *gobizfly.Client, poolID string) (*
 		Steps:    loadbalancerActiveSteps,
 	}
 	err := wait.ExponentialBackoff(backoff, func() (bool, error) {
-		pool, err := client.Pool.Get(context.Background(), poolID)
+		pool, err := client.CloudLoadBalancer.Pools().Get(context.Background(), poolID)
 		if err != nil {
 			return true, err
 		}

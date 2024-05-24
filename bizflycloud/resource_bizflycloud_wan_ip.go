@@ -31,11 +31,11 @@ func resourceBizflyCloudWanIP() *schema.Resource {
 
 func resourceBizflyCloudWanIPCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	createPayload := &gobizfly.CreateWanIpPayload{
+	createPayload := &gobizfly.CreatePublicNetworkInterfacePayload{
 		Name:             d.Get("name").(string),
 		AvailabilityZone: d.Get("availability_zone").(string),
 	}
-	wanIP, err := client.WanIP.Create(context.Background(), createPayload)
+	wanIP, err := client.CloudServer.PublicNetworkInterfaces().Create(context.Background(), createPayload)
 	if err != nil {
 		return fmt.Errorf("error when creating wan ip: %s", err)
 	}
@@ -49,12 +49,12 @@ func resourceBizflyCloudWanIPCreate(d *schema.ResourceData, meta interface{}) er
 
 func resourceBizflyCloudWanIPRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	var wanIP *gobizfly.WanIP
+	var wanIP *gobizfly.CloudServerPublicNetworkInterface
 
 	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		var err error
 		log.Printf("[DEBUG] Reading WAN IP : %s", d.Id())
-		wanIP, err = client.WanIP.Get(context.Background(), d.Id())
+		wanIP, err = client.CloudServer.PublicNetworkInterfaces().Get(context.Background(), d.Id())
 
 		// Retry on any API "not found" errors, but only on new resources.
 		if d.IsNewResource() && errors.Is(err, gobizfly.ErrNotFound) {
@@ -98,7 +98,7 @@ func resourceBizflyCloudWanIPRead(d *schema.ResourceData, meta interface{}) erro
 
 func resourceBizflyCloudWanIPDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	err := client.WanIP.Delete(context.Background(), d.Id())
+	err := client.CloudServer.PublicNetworkInterfaces().Delete(context.Background(), d.Id())
 	if err != nil && !strings.Contains(err.Error(), "Resource not found") {
 		return fmt.Errorf("error when deleting WAN IP: %s", err)
 	}
@@ -110,19 +110,19 @@ func resourceBizflyCloudWanIPUpdate(d *schema.ResourceData, meta interface{}) er
 	if d.HasChange("attached_server") {
 		serverId := d.Get("attached_server").(string)
 		if serverId == "" {
-			updatePayload := &gobizfly.ActionWanIpPayload{
+			updatePayload := &gobizfly.ActionPublicNetworkInterfacePayload{
 				Action: "detach_server",
 			}
-			err := client.WanIP.Action(context.Background(), d.Id(), updatePayload)
+			err := client.CloudServer.PublicNetworkInterfaces().Action(context.Background(), d.Id(), updatePayload)
 			if err != nil {
 				return fmt.Errorf("error when detaching server: %s", err)
 			}
 		} else {
-			updatePayload := &gobizfly.ActionWanIpPayload{
+			updatePayload := &gobizfly.ActionPublicNetworkInterfacePayload{
 				Action:   "attach_server",
 				ServerId: serverId,
 			}
-			err := client.WanIP.Action(context.Background(), d.Id(), updatePayload)
+			err := client.CloudServer.PublicNetworkInterfaces().Action(context.Background(), d.Id(), updatePayload)
 			if err != nil {
 				return fmt.Errorf("error when attaching server: %s", err)
 			}
@@ -131,10 +131,10 @@ func resourceBizflyCloudWanIPUpdate(d *schema.ResourceData, meta interface{}) er
 	if d.HasChange("billing_type") {
 		billingType := d.Get("billing_type").(string)
 		if billingType == "paid" {
-			updatePayload := &gobizfly.ActionWanIpPayload{
+			updatePayload := &gobizfly.ActionPublicNetworkInterfacePayload{
 				Action: "convert_to_paid",
 			}
-			err := client.WanIP.Action(context.Background(), d.Id(), updatePayload)
+			err := client.CloudServer.PublicNetworkInterfaces().Action(context.Background(), d.Id(), updatePayload)
 			if err != nil {
 				return fmt.Errorf("error when converting to paid: %s", err)
 			}
