@@ -69,7 +69,7 @@ func resourceNetworkInterfaceSchema() map[string]*schema.Schema {
 		},
 		"fixed_ip": {
 			Type:     schema.TypeString,
-			Computed: true,
+			Optional: true,
 		},
 		"mac_address": {
 			Type:     schema.TypeString,
