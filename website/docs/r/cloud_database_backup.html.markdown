@@ -1,12 +1,11 @@
 ---
-layout: "bizflycloud"
 subcategory: Cloud Database
+layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_cloud_database_backup"
-sidebar_current: "docs-bizflycloud-resource-cloud-database"
 description: - Provide a Bizfly Cloud Database Backup resource. This can be used to create, modify, and delete.
 ---
 
-# bizflycloud\_cloud\_database\_backup
+# Resource: bizflycloud_cloud_database_backup
 
 Provides a Bizfly Cloud Database Backup resource. This can be used to create, modify, and delete.
 

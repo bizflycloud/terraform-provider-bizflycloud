@@ -1,12 +1,12 @@
 ---
+subcategory: AutoScaling
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_autoscaling_group"
-sidebar_current: "docs-bizflycloud-datasource-autoscaling-group"
 description: |-
   Provides a Bizfly Cloud AutoScaling Group
 ---
 
-# bizflycloud\_autoscaling\_group
+# Data Source: bizflycloud_autoscaling_group
 
 Get information about Bizfly Cloud AutoScaling Group.
 

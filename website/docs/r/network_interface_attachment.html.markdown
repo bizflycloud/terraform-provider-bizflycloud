@@ -1,13 +1,13 @@
 ---
+subcategory: Cloud Server
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_network_interface_attachment"
-sidebar_current: "docs-bizflycloud_network_interface_attachment"
 description: |-
 Provides a Bizfly Cloud Network Interface Attachment resource. This can be used to create, modify, and delete the 
   attachment of network interface to server.
 ---
 
-# bizflycloud\_network\_interface\_attachment
+# Resource: bizflycloud_network_interface_attachment
 
 Provides a Bizfly Cloud Network Interface Attachment resource. This can be used to create, modify, and delete the 
   attachment of network interface to server.

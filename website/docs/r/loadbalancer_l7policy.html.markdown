@@ -1,12 +1,12 @@
 ---
+subcategory: Cloud Load Balancer
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_loadbalancer_l7policy"
-sidebar_current: "docs-bizflycloud-resource-loadbalancer-l7policy"
 description: |-
   Provides a Bizfly Cloud L7 policy of Load Balancer resource. This can be used to create, modify, and delete l7 policy of Load Balancer.
 ---
 
-# bizflycloud\_loadbalancer_l7policy
+# Resource: bizflycloud_loadbalancer_l7policy
 
 Provides a Bizfly Cloud L7 policy of Load Balancer resource. This can be used to create,
 modify, and delete l7 policy of Load Balancer.

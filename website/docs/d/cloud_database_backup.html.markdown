@@ -1,13 +1,12 @@
 ---
-layout: "bizflycloud"
 subcategory: Cloud Database
+layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_cloud_database_backup"
-sidebar_current: "docs-bizflycloud-datasource-cloud-database"
 description: |-
   Provides a Bizfly Cloud Database Backup. This can be used to get backup detail from backup id.
 ---
 
-# bizflycloud\_cloud\_database\_backup
+# Data Source: bizflycloud_cloud_database_backup
 
 Get ìnformation about Bizfly Cloud Database Backups
 

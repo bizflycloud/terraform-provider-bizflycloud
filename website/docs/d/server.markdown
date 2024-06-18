@@ -1,12 +1,12 @@
 ---
+subcategory: Cloud Server
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_server"
-sidebar_current: "docs-bizflycloud-datasource-server"
 description: |-
   Provides a Bizfly Cloud Server resource. This can be used to create, modify, and delete Servers. Servers also support provisioning.
 ---
 
-# bizflycloud\_server
+# Data Source: bizflycloud_server
 
 Get ìnformation about Bizfly Cloud OS Server. The server can be use to boot a cloud server or create a rootdisk volume from an OS server. 
 

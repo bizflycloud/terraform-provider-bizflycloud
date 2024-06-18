@@ -1,12 +1,12 @@
 ---
+subcategory: Cloud Server
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_custom_image"
-sidebar_current: "docs-bizflycloud-resource-custom_image"
 description: |-
   Provides a Bizfly Cloud Custom Image resource. This can be used to create, and delete custom image.
 ---
 
-# bizflycloud\_custom\_image
+# Resource: bizflycloud_custom_image
 
 Provides a Bizfly Cloud Custom Image resource. This can be used to create,
 and delete custom image.

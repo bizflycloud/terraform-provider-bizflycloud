@@ -1,13 +1,12 @@
 ---
-layout: "bizflycloud"
 subcategory: Cloud Database
+layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_cloud_database_node"
-sidebar_current: "docs-bizflycloud-datasource-cloud-database"
 description: |-
   Provides a Bizfly Cloud Database Nodes. This can be used to get database node detail from database node id.
 ---
 
-# bizflycloud\_cloud\_database\_node
+# Data Source: bizflycloud_cloud_database_node
 
 Get ìnformation about Bizfly Cloud Database Node
 

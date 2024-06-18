@@ -1,12 +1,12 @@
 ---
+subcategory: Cloud Server
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_vpc_network"
-sidebar_current: "docs-bizflycloud-datasource-vpc-network"
 description: |-
   Provides a Bizfly Cloud VPC Network resource. This can be used to create, modify, and delete VPC Networks.
 ---
 
-# bizflycloud\_vpc\_network
+# Data Source: bizflycloud_vpc_network
 
 Get information about Bizfly Cloud VPC Network resource.
 

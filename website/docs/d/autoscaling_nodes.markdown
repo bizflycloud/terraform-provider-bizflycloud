@@ -1,12 +1,12 @@
 ---
+subcategory: AutoScaling
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_autoscaling_nodes"
-sidebar_current: "docs-bizflycloud-datasource-node"
 description: |-
   Provides a Bizfly Cloud AutoScaling Nodes. This can be used to get server detail from physical id.
 ---
 
-# bizflycloud\_node
+# Data Source: bizflycloud_node
 
 Get ìnformation about Bizfly Cloud AutoScaling Nodes 
 

@@ -1,12 +1,12 @@
 ---
+subcategory: Cloud Server
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_volume_snapshot"
-sidebar_current: "docs-bizflycloud-datasource-volume_snapshot"
 description: |-
   Provides a Bizfly Cloud Volume Snapshot
 ---
 
-# bizflycloud\_volume\_snapshot
+# Data Source: bizflycloud_volume_snapshot
 
 Get information about Bizfly Cloud Volume Snapshot.
 

@@ -1,12 +1,12 @@
 ---
+subcategory: Cloud Server
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_server"
-sidebar_current: "docs-bizflycloud-resource-server"
 description: |-
   Provides a Bizfly Cloud Server resource. This can be used to create, modify, and delete Servers. Servers also support provisioning.
 ---
 
-# bizflycloud\_server
+# Resource: bizflycloud_server
 
 Provides a Bizfly Cloud Server resource. This can be used to create,
 modify, and delete Server. Servers also support

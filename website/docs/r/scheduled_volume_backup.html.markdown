@@ -1,14 +1,14 @@
 ---
+subcategory: Cloud Server
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_scheduled_volume_backup"
-sidebar_current: "docs-bizflycloud-resource-scheduled_volume_backup"
 description: |-
 Provides a Bizfly Cloud Scheduled Volume Backup resource. This can be used to create and delete, update scheduled volume backup
 ---
 
-# bizflycloud\_ssh_key
+# Resource: bizflycloud_scheduled_volume_backup
 
-Provides a Bizfly Cloud SSH key resource. This can be used to create,
+Provides a Bizfly Cloud schedule volume backup resource. This can be used to create,
 and delete ssh key.
 ## Example Usage
 

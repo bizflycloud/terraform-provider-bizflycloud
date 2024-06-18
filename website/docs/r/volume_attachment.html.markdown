@@ -1,12 +1,12 @@
 ---
+subcategory: Cloud Server
 layout: "bizflycloud"
-page_title: "Bizfly Cloud: bizflycloud_volume_attachment
-sidebar_current: "docs-bizflycloud-resource-volume-attachment"
+page_title: "Bizfly Cloud: bizflycloud_volume_attachment"
 description: |-
   Provides a Bizfly Cloud Volume Attachment resource. This can be used to create and delete volume attachment to server.
 ---
 
-# bizflycloud\_volume\_attachment
+# Resource: bizflycloud_volume_attachment
 
 Provides a Bizfly Cloud Volume Attachment resource. This can be used to create and delete volume attachment to server.
 

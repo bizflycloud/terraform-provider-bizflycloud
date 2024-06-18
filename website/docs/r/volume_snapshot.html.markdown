@@ -1,12 +1,12 @@
 ---
+subcategory: Cloud Server
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_volume_snapshot"
-sidebar_current: "docs-bizflycloud-resource-volume-snapshot"
 description: |-
   Provides a Bizfly Cloud Volume Snapshot resource. This can be used to create and delete volume snapshot.
 ---
 
-# bizflycloud\_volume_snapshot
+# Resource: bizflycloud_volume_snapshot
 
 Provides a Bizfly Cloud Volume Snapshot resource. This can be used to create,
 and delete volume snapshot.

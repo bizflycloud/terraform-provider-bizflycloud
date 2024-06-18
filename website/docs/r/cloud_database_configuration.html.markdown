@@ -1,12 +1,11 @@
 ---
-layout: "bizflycloud"
 subcategory: Cloud Database
+layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_cloud_database_configuration"
-sidebar_current: "docs-bizflycloud-resource-cloud-database"
 description: - Provide a Bizfly Cloud Configuration Group resource. This can be used to create, modify, and delete.
 ---
 
-# bizflycloud\_cloud\_database\_configuration
+# Resource: bizflycloud_cloud_database_configuration
 
 Provides a Bizfly Cloud Database Instances resource. This can be used to create, modify, and delete.
 

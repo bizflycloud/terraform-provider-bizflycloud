@@ -1,12 +1,12 @@
 ---
+subcategory: Cloud Server
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_custom_image"
-sidebar_current: "docs-bizflycloud-datasource-custom_image"
 description: |-
   Provides a Bizfly Cloud Custom Image
 ---
 
-# bizflycloud\_custom\_image
+# Data Source: bizflycloud_custom_image
 
 Get information about Bizfly Cloud Custom Image.
 

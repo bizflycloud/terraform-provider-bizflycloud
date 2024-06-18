@@ -1,12 +1,12 @@
 ---
+subcategory: Cloud Kubernetes Engine
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_kubernetes_version"
-sidebar_current: "docs-bizflycloud-datasource-kubernetes_version"
 description: |-
 Provides a Bizfly Cloud Kubernetes Version
 ---
 
-# bizflycloud\_kubernetes\_version
+# Data Source: bizflycloud_kubernetes_version
 
 Get ìnformation about Bizfly Cloud Kubernetes Version
 

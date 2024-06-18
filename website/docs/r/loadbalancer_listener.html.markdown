@@ -1,12 +1,12 @@
 ---
+subcategory: Cloud Load Balancer
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_loadbalancer_listener"
-sidebar_current: "docs-bizflycloud-resource-loadbalancer-listener"
 description: |-
   Provides a Bizfly Cloud Listener of Load Balancer resource. This can be used to create, modify, and delete listeners of Load Balancer.
 ---
 
-# bizflycloud\_loadbalancer_listener
+# Resource: bizflycloud_loadbalancer_listener
 
 Provides a Bizfly Cloud Listener of Load Balancer resource. This can be used to create,
 modify, and delete listeners of Load Balancer.

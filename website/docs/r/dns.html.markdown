@@ -1,12 +1,12 @@
 ---
+subcategory: Cloud DNS
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_dns"
-sidebar_current: "docs-bizflycloud-resource-dns"
 description: |-
   Provides a Bizfly Cloud DNS resource. This can be used to create, modify, and delete DNS.
 ---
 
-# bizflycloud\_dns
+# Resource: bizflycloud_dns
 
 Provides a Bizfly Cloud DNS resource. This can be used to create,
 modify, and delete DNS.
