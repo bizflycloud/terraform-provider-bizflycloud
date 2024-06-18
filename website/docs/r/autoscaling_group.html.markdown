@@ -1,11 +1,11 @@
 ---
+subcategory: AutoScaling
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_autoscaling_group"
-sidebar_current: "docs-bizflycloud-resource-autoscaling-group"
 description: - Provide a Bizfly Cloud AutoScaling Group resource. This can be used to create, modify, and delete.
 ---
 
-# bizflycloud\_autoscaling\_group
+# Resource: bizflycloud_autoscaling_group
 
 Provides a Bizfly Cloud AutoScaling Group resource. This can be used to create, modify, and delete.
 

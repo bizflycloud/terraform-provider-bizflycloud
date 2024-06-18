@@ -1,12 +1,12 @@
 ---
+subcategory: Cloud Server
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_wan_ip"
-sidebar_current: "docs-bizflycloud-resource-wan-ip"
 description: |-
     Provides a Bizfly Cloud WAN IP resource. This can be used to create, modify, and delete WAN IP.
 ---
 
-# bizflycloud\_wan_ip
+# Resource: bizflycloud_wan_ip
 
 Provides a Bizfly Cloud WAN IP resource. This can be used to create,
 modify, and delete WAN IP.

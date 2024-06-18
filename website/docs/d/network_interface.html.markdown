@@ -1,12 +1,12 @@
 ---
+subcategory: Cloud Server
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_network_interface"
-sidebar_current: "docs-bizflycloud-datasource-network-interface"
 description: |-
   Provides a Bizfly Cloud Network Interface datasource. This can be used to create, modify, and delete Network Interface.
 ---
 
-# bizflycloud\_network\_interface
+# Data Source: bizflycloud_network_interface
 
 Get ìnformation about Bizfly Cloud Network Interface resource.
 

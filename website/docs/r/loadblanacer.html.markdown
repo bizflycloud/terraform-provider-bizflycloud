@@ -1,12 +1,12 @@
 ---
+subcategory: Cloud Load Balancer
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_loadbalancer"
-sidebar_current: "docs-bizflycloud-resource-loadbalancer"
 description: |-
   Provides a Bizfly Cloud Load Balancer resource. This can be used to create, modify, and delete Load balancers.
 ---
 
-# bizflycloud\_loadbalancer
+# Resource: bizflycloud_loadbalancer
 
 Provides a Bizfly Cloud Load Balancer resource. This can be used to create,
 modify, and delete Load Balancer.

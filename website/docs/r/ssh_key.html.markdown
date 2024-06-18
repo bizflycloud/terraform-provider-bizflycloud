@@ -1,12 +1,12 @@
 ---
+subcategory: AutoScaling
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_ssh_key"
-sidebar_current: "docs-bizflycloud-resource-ssh-key"
 description: |-
   Provides a Bizfly Cloud SSH Key resource. This can be used to create and delete ssh key.
 ---
 
-# bizflycloud\_ssh_key
+# Resource: bizflycloud_ssh_key
 
 Provides a Bizfly Cloud SSH key resource. This can be used to create,
 and delete ssh key.

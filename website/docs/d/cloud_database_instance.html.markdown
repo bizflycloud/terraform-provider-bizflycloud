@@ -1,13 +1,12 @@
 ---
-layout: "bizflycloud"
 subcategory: Cloud Database
+layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_cloud_database_instance"
-sidebar_current: "docs-bizflycloud-datasource-cloud-database"
 description: |-
   Provides a Bizfly Cloud Database Instances. This can be used to get database instance detail from database instance id.
 ---
 
-# bizflycloud\_cloud\_database\_instance
+# Data Source: bizflycloud_cloud_database_instance
 
 Get ìnformation about Bizfly Cloud Database Instance
 

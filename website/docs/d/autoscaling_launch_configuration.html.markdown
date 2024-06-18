@@ -1,12 +1,12 @@
 ---
+subcategory: AutoScaling
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_launch_configuration"
-sidebar_current: "docs-bizflycloud-datasource-launch-configuration"
 description: |-
   Provides a Bizfly Cloud AutoScaling Launch Configuration. This can be used to create, modify, AutoScaling group
 ---
 
-# bizflycloud\_launch\_configuration
+# Data Source: bizflycloud_launch_configuration
 
 Get ìnformation about Bizfly Cloud AutoScaling Launch Configuration. The launch configuration include about information can be use to boot a cloud server in AutoScaling Group
 

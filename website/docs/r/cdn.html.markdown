@@ -1,12 +1,12 @@
 ---
+subcategory: Cloud CDN
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_cdn"
-sidebar_current: "docs-bizflycloud-resource-cdn"
 description: |-
   Provides a Bizfly Cloud CDN resource. This can be used to create, modify, and delete CDN.
 ---
 
-# bizflycloud\_cdn
+# Resource: bizflycloud_cdn
 
 Provides a Bizfly Cloud CDN resource. This can be used to create,
 modify, and delete CDN.

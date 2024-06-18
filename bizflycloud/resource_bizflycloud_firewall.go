@@ -83,11 +83,11 @@ func firewallRuleSchema() map[string]*schema.Schema {
 		},
 		"protocol": {
 			Type:     schema.TypeString,
-			Required: true,
+			Optional: true,
 		},
 		"port_range": {
 			Type:     schema.TypeString,
-			Required: true,
+			Optional: true,
 		},
 	}
 }

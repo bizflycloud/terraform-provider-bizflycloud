@@ -1,12 +1,12 @@
 ---
+subcategory: Cloud Server
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_firewall"
-sidebar_current: "docs-bizflycloud-resource-firewall"
 description: |-
   Provides a Bizfly Cloud Firewall resource. This can be used to create, modify, and delete firewall.
 ---
 
-# bizflycloud\_firewall
+# Resource: bizflycloud_firewall
 
 Provides a Bizfly Cloud Firewal resource. This can be used to create,
 modify, and delete firewall.
@@ -50,9 +50,9 @@ The following arguments are supported:
 
 The `ingress` and `egress` block supports:
 
-* `cidr` - (Required) CIDR Block: IPv4 or IPv6 CIDR
-* `port_range` - (Required) Port range. Example: `80` or `8000-9000`
-* `protocol` - (Required) Layer 4 protocol.  Available: tcp or udp
+* `cidr` - (Required) CIDR Block: IPv4 or IPv6 CIDR. Example: 0.0.0.0/24, ::/0
+* `port_range` - (Optional) Port range. Example: `80` or `8000-9000`
+* `protocol` - (Optional) Layer 4 protocol.  Available: tcp or udp
 
 ## Attributes Reference
 

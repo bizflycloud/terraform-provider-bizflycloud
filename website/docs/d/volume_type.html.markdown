@@ -1,12 +1,12 @@
 ---
+subcategory: Cloud Server
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_volume_type"
-sidebar_current: "docs-bizflycloud-datasource-volume-type"
 description: |-
 Provides a Bizfly Cloud volume type datasource. This can be used to read volume type.
 ---
 
-# bizflycloud\_volume\_type
+# Data Source: bizflycloud_volume_type
 
 Get information about Bizfly Cloud volume type resource.
 

@@ -1,11 +1,11 @@
 ---
+subcategory: AutoScaling
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_autoscaling_launch_configuration"
-sidebar_current: "docs-bizflycloud-resource-autoscaling-launch-configuration"
 description: - Provides a Bizfly Cloud AutoScaling Launch Configuration. This can be used to create, modify, AutoScaling Group
 ---
 
-# bizflycloud\_autoscaling\_launch\_configuration
+# Resource: bizflycloud_autoscaling_launch_configuration
 
 Provides a Bizfly Cloud AutoScaling Group resource. This can be used to create, modify, and delete.
 

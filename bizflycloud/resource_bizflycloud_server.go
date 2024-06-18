@@ -231,10 +231,17 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error setting `volume_ids`: %+v", err)
 	}
 	_ = d.Set("root_disk_id", rootDisk.ID)
-	_ = d.Set("os_type", rootDisk.ImageMetadata.ImageType)
+	// Hardcode in here
+	_ = d.Set("os_type", "image")
 	_ = d.Set("os_id", rootDisk.ImageMetadata.ImageID)
+	log.Println("rootDisk.ImageType: " + rootDisk.ImageMetadata.ImageType + "rootDisk.SnapshotID " + rootDisk.SnapshotID)
+	if rootDisk.SnapshotID != "" {
+		_ = d.Set("os_type", "snapshot")
+		_ = d.Set("os_id", rootDisk.SnapshotID)
+	}
 	_ = d.Set("root_disk_volume_type", rootDisk.VolumeType)
 	_ = d.Set("root_disk_size", rootDisk.Size)
+
 	var state string
 	if server.Status == "ACTIVE" {
 		state = "running"
@@ -801,15 +808,14 @@ func getServerRootDisk(client *gobizfly.Client, serverId string) (*gobizfly.Volu
 	}
 
 	for _, vol := range volumes {
-		attachments := vol.Attachments
-		if len(attachments) == 0 {
-			continue
-		}
-		attachedServerId := attachments[0].ServerID
-		isRootDisk := vol.AttachedType == "rootdisk"
-		isServerRootDisk := (attachedServerId == serverId) && isRootDisk
-		if isServerRootDisk {
-			return vol, nil
+		if len(vol.Attachments) > 0 && vol.AttachedType == "rootdisk" {
+			for _, attachment := range vol.Attachments {
+				if attachment.ServerID != serverId {
+					continue
+				}
+
+				return vol, nil
+			}
 		}
 	}
 	return nil, fmt.Errorf("rootdisk of server %s not found.", serverId)
