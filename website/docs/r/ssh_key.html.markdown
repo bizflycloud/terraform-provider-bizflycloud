@@ -1,5 +1,5 @@
 ---
-subcategory: AutoScaling
+subcategory: Cloud Server
 layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_ssh_key"
 description: |-
