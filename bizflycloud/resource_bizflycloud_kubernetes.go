@@ -294,8 +294,8 @@ func resourceBizflyCloudClusterDelete(d *schema.ResourceData, meta interface{}) 
 
 func resourceBizflyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	clusterId := d.Id()
-	cluster, err := client.KubernetesEngine.Get(context.Background(), clusterId)
+	clusterID := d.Id()
+	cluster, err := client.KubernetesEngine.Get(context.Background(), clusterID)
 	if err != nil {
 		return fmt.Errorf("Error update cluster: %v", err)
 	}
@@ -306,7 +306,7 @@ func resourceBizflyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 			AutoUpgrade: &update_auto_upgrade,
 		}
 		log.Printf("[DEBUG] Update cluster payload: %+v", updateClusterPayload)
-		_, err = client.KubernetesEngine.UpdateCluster(context.Background(), clusterId, &updateClusterPayload)
+		_, err = client.KubernetesEngine.UpdateCluster(context.Background(), clusterID, &updateClusterPayload)
 		if err != nil {
 			return fmt.Errorf("Error update auto_upgrade: %+v", err)
 		}
@@ -316,7 +316,7 @@ func resourceBizflyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 			log.Printf("[DEBUG] Cluster version is latest.")
 		} else {
 			payload := gobizfly.UpgradeClusterVersionRequest{}
-			err := client.KubernetesEngine.UpgradeClusterVersion(context.Background(), clusterId, &payload)
+			err := client.KubernetesEngine.UpgradeClusterVersion(context.Background(), clusterID, &payload)
 			if err != nil {
 				return fmt.Errorf("Upragde cluster version error: %+v", err)
 			}

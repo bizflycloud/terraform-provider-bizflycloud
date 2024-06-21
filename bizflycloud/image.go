@@ -25,7 +25,7 @@ func imageSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"id": {
 			Type:        schema.TypeString,
-			Description: "Id of the image",
+			Description: "ID of the image",
 			Computed:    true,
 		},
 		"distribution": {

@@ -112,25 +112,25 @@ func updateFirewallForNetworkInterface(d *schema.ResourceData, client *gobizfly.
 	oldFirewalls, newFirewalls := d.GetChange("firewall_ids")
 	oldFirewallIDs := newSet(oldFirewalls.(*schema.Set).List())
 	newFirewallIDs := newSet(newFirewalls.(*schema.Set).List())
-	addFirewallIds := leftDiff(newFirewallIDs, oldFirewallIDs)
-	removeFirewallIds := leftDiff(oldFirewallIDs, newFirewallIDs)
-	addFirewallIdsArray := make([]string, 0, len(addFirewallIds))
-	removeFirewallIdsArray := make([]string, 0, len(removeFirewallIds))
-	for id := range addFirewallIds {
-		addFirewallIdsArray = append(addFirewallIdsArray, id)
+	addFirewallIDs := leftDiff(newFirewallIDs, oldFirewallIDs)
+	removeFirewallIDs := leftDiff(oldFirewallIDs, newFirewallIDs)
+	addFirewallIDsArray := make([]string, 0, len(addFirewallIDs))
+	removeFirewallIDsArray := make([]string, 0, len(removeFirewallIDs))
+	for id := range addFirewallIDs {
+		addFirewallIDsArray = append(addFirewallIDsArray, id)
 	}
-	for id := range removeFirewallIds {
-		removeFirewallIdsArray = append(removeFirewallIdsArray, id)
+	for id := range removeFirewallIDs {
+		removeFirewallIDsArray = append(removeFirewallIDsArray, id)
 	}
 
-	log.Printf("[DEBUG] Add firewalls %s to network interface %s", addFirewallIdsArray, networkInterfaceID)
-	if err := attachFirewallsForPort(client, networkInterfaceID, addFirewallIdsArray); err != nil {
-		log.Printf("[ERROR] Error attaching firewalls %s to network interface %s: %s", addFirewallIds, networkInterfaceID, err)
+	log.Printf("[DEBUG] Add firewalls %s to network interface %s", addFirewallIDsArray, networkInterfaceID)
+	if err := attachFirewallsForPort(client, networkInterfaceID, addFirewallIDsArray); err != nil {
+		log.Printf("[ERROR] Error attaching firewalls %s to network interface %s: %s", addFirewallIDs, networkInterfaceID, err)
 		return err
 	}
-	log.Printf("[DEBUG] Remove firewalls %s from network interface %s", removeFirewallIdsArray, networkInterfaceID)
-	if err := detachFirewallsForPort(client, networkInterfaceID, removeFirewallIdsArray); err != nil {
-		log.Printf("[ERROR] Error detaching firewalls %s from network interface %s: %s", removeFirewallIds, networkInterfaceID, err)
+	log.Printf("[DEBUG] Remove firewalls %s from network interface %s", removeFirewallIDsArray, networkInterfaceID)
+	if err := detachFirewallsForPort(client, networkInterfaceID, removeFirewallIDsArray); err != nil {
+		log.Printf("[ERROR] Error detaching firewalls %s from network interface %s: %s", removeFirewallIDs, networkInterfaceID, err)
 		return err
 	}
 	return nil

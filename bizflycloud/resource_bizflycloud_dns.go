@@ -53,7 +53,7 @@ func resourceBizflyCloudDNSRead(d *schema.ResourceData, meta interface{}) error 
 	_ = d.Set("update_at", zone.UpdatedAt)
 	_ = d.Set("deleted", zone.Deleted)
 	_ = d.Set("ttl", zone.TTL)
-	_ = d.Set("tenant_id", zone.TenantId)
+	_ = d.Set("tenant_id", zone.TenantID)
 
 	if err := d.Set("nameserver", readNameServer(zone.NameServer)); err != nil {
 		return fmt.Errorf("error setting nameserver: %w", err)

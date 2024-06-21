@@ -185,7 +185,7 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 		userFirewallIDs[i] = firewall.ID
 	}
 	vpcNetworkIDs := make([]string, 0)
-	networkInterfaceIds := make([]string, 0)
+	networkInterfaceIDs := make([]string, 0)
 	_ = d.Set("default_public_ipv6", make([]map[string]interface{}, 0))
 	_ = d.Set("default_public_ipv4", make([]map[string]interface{}, 0))
 	for _, networkInterface := range networkInterfaces {
@@ -204,7 +204,7 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 				_ = d.Set("default_public_ipv4", []map[string]interface{}{serverNetworkInterface})
 			}
 		} else {
-			networkInterfaceIds = append(networkInterfaceIds, networkInterface.ID)
+			networkInterfaceIDs = append(networkInterfaceIDs, networkInterface.ID)
 			if networkInterface.Type == "LAN" {
 				vpcNetworkIDs = append(vpcNetworkIDs, networkInterface.NetworkID)
 			}
@@ -226,7 +226,7 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	_ = d.Set("network_plan", server.NetworkPlan)
 	_ = d.Set("ssh_key", server.KeyName)
 	_ = d.Set("vpc_network_ids", vpcNetworkIDs)
-	_ = d.Set("network_interface_ids", networkInterfaceIds)
+	_ = d.Set("network_interface_ids", networkInterfaceIDs)
 	if err = d.Set("volume_ids", flatternBizflyCloudVolumeIDs(server.AttachedVolumes)); err != nil {
 		return fmt.Errorf("Error setting `volume_ids`: %+v", err)
 	}
@@ -801,7 +801,7 @@ func updateFreeWantPort(d *schema.ResourceData, client *gobizfly.Client, field s
 	return nil
 }
 
-func getServerRootDisk(client *gobizfly.Client, serverId string) (*gobizfly.Volume, error) {
+func getServerRootDisk(client *gobizfly.Client, serverID string) (*gobizfly.Volume, error) {
 	volumes, err := client.CloudServer.Volumes().List(context.Background(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("list volume failed: %+v", err)
@@ -810,7 +810,7 @@ func getServerRootDisk(client *gobizfly.Client, serverId string) (*gobizfly.Volu
 	for _, vol := range volumes {
 		if len(vol.Attachments) > 0 && vol.AttachedType == "rootdisk" {
 			for _, attachment := range vol.Attachments {
-				if attachment.ServerID != serverId {
+				if attachment.ServerID != serverID {
 					continue
 				}
 
@@ -818,5 +818,5 @@ func getServerRootDisk(client *gobizfly.Client, serverId string) (*gobizfly.Volu
 			}
 		}
 	}
-	return nil, fmt.Errorf("rootdisk of server %s not found.", serverId)
+	return nil, fmt.Errorf("rootdisk of server %s not found.", serverID)
 }

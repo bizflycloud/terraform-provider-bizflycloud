@@ -180,7 +180,7 @@ func getHealthMonitorSchema() map[string]*schema.Schema {
 		"url_path": {
 			Type:         schema.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringMatch(constants.ValidUrlPathRegex, "url_path must start with '/'"),
+			ValidateFunc: validation.StringMatch(constants.ValidURLPathRegex, "url_path must start with '/'"),
 		},
 		"expected_code": {
 			Type:         schema.TypeString,
@@ -245,7 +245,7 @@ func resourceBizflyCloudLoadBalancerPoolCreate(d *schema.ResourceData, meta inte
 	// Update description if could not create pool with description
 	description := d.Get("description").(string)
 	if description != pool.Description {
-		updateReq := &gobizfly.PoolUpdateRequest{
+		updateReq := &gobizfly.CloudLoadBalancerPoolUpdateRequest{
 			Description: &description,
 		}
 		persistent := getSessionPersistentPayloadFromConfig(d)
@@ -376,7 +376,7 @@ func resourceBizflyCloudLoadBalancerPoolUpdate(d *schema.ResourceData, meta inte
 		// Create new members for pool
 		for _, member := range newMembers.([]interface{}) {
 			castedMember := member.(map[string]interface{})
-			updateMemberReq := &gobizfly.MemberCreateRequest{
+			updateMemberReq := &gobizfly.CloudLoadBalancerMemberCreateRequest{
 				Name:         castedMember["name"].(string),
 				Weight:       castedMember["weight"].(int),
 				Address:      castedMember["address"].(string),
@@ -410,11 +410,11 @@ func resourceBizflyCloudLoadBalancerPoolDelete(d *schema.ResourceData, meta inte
 }
 
 // Get create pool payload from config
-func getCreatePoolPayloadFromConfig(d *schema.ResourceData) gobizfly.PoolCreateRequest {
+func getCreatePoolPayloadFromConfig(d *schema.ResourceData) gobizfly.CloudLoadBalancerPoolCreateRequest {
 	poolName := d.Get("name").(string)
 	poolMembersReq := getMembersPayloadFromConfig(d)
 	stickySessionReq := getSessionPersistentPayloadFromConfig(d)
-	poolReq := gobizfly.PoolCreateRequest{
+	poolReq := gobizfly.CloudLoadBalancerPoolCreateRequest{
 		Name:               &poolName,
 		LBAlgorithm:        d.Get("algorithm").(string),
 		Protocol:           d.Get("protocol").(string),
@@ -425,8 +425,8 @@ func getCreatePoolPayloadFromConfig(d *schema.ResourceData) gobizfly.PoolCreateR
 }
 
 // Get update pool payload from config
-func getUpdatePoolPayloadFromConfig(d *schema.ResourceData) gobizfly.PoolUpdateRequest {
-	poolReq := gobizfly.PoolUpdateRequest{}
+func getUpdatePoolPayloadFromConfig(d *schema.ResourceData) gobizfly.CloudLoadBalancerPoolUpdateRequest {
+	poolReq := gobizfly.CloudLoadBalancerPoolUpdateRequest{}
 	if d.HasChange("name") {
 		_, newName := d.GetChange("name")
 		castedNewName := newName.(string)
@@ -448,14 +448,14 @@ func getUpdatePoolPayloadFromConfig(d *schema.ResourceData) gobizfly.PoolUpdateR
 }
 
 // Get create health monitor payload from config
-func getCreateHealthMonitorPayloadFromConfig(d *schema.ResourceData) *gobizfly.HealthMonitorCreateRequest {
+func getCreateHealthMonitorPayloadFromConfig(d *schema.ResourceData) *gobizfly.CloudLoadBalancerHealthMonitorCreateRequest {
 	healthMonitors := d.Get("health_monitor").([]interface{})
 	if len(healthMonitors) == 0 {
 		return nil
 	}
 	healthMonitor := healthMonitors[0].(map[string]interface{})
 	healthMonitorType := healthMonitor["type"].(string)
-	healthMonitorReq := gobizfly.HealthMonitorCreateRequest{
+	healthMonitorReq := gobizfly.CloudLoadBalancerHealthMonitorCreateRequest{
 		Name:           healthMonitor["name"].(string),
 		Type:           healthMonitorType,
 		TimeOut:        healthMonitor["timeout"].(int),
@@ -475,7 +475,7 @@ func getCreateHealthMonitorPayloadFromConfig(d *schema.ResourceData) *gobizfly.H
 }
 
 // Get update health monitor payload from config
-func getUpdateHealthMonitorFromConfig(d *schema.ResourceData) (string, *gobizfly.HealthMonitorUpdateRequest) {
+func getUpdateHealthMonitorFromConfig(d *schema.ResourceData) (string, *gobizfly.CloudLoadBalancerHealthMonitorUpdateRequest) {
 	healthMonitor := d.Get("health_monitor").([]interface{})
 	healthMonitorLen := len(healthMonitor)
 	if healthMonitorLen == 0 {
@@ -483,7 +483,7 @@ func getUpdateHealthMonitorFromConfig(d *schema.ResourceData) (string, *gobizfly
 	}
 
 	healthMonitorMap := healthMonitor[0].(map[string]interface{})
-	updateReq := gobizfly.HealthMonitorUpdateRequest{
+	updateReq := gobizfly.CloudLoadBalancerHealthMonitorUpdateRequest{
 		Name: healthMonitorMap["name"].(string),
 	}
 	timeoutInt := healthMonitorMap["timeout"].(int)
@@ -521,9 +521,9 @@ func getUpdateHealthMonitorFromConfig(d *schema.ResourceData) (string, *gobizfly
 		}
 	}
 
-	poolHealthMonitorId := healthMonitorMap["id"].(string)
-	log.Printf("[DEBUG] Update health monitor %s payload: %+v", poolHealthMonitorId, updateReq)
-	return poolHealthMonitorId, &updateReq
+	poolHealthMonitorID := healthMonitorMap["id"].(string)
+	log.Printf("[DEBUG] Update health monitor %s payload: %+v", poolHealthMonitorID, updateReq)
+	return poolHealthMonitorID, &updateReq
 }
 
 // Get session persistent payload from config
@@ -545,16 +545,16 @@ func getSessionPersistentPayloadFromConfig(d *schema.ResourceData) *gobizfly.Ses
 }
 
 // Get members payload from config
-func getMembersPayloadFromConfig(d *schema.ResourceData) []gobizfly.PoolMemberRequest {
+func getMembersPayloadFromConfig(d *schema.ResourceData) []gobizfly.CloudLoadBalancerPoolMemberRequest {
 	poolMembers := d.Get("members").([]interface{})
 	if len(poolMembers) == 0 {
 		return nil
 	}
 
-	poolMembersReq := make([]gobizfly.PoolMemberRequest, 0)
+	poolMembersReq := make([]gobizfly.CloudLoadBalancerPoolMemberRequest, 0)
 	for idx, member := range poolMembers {
 		castedMember := member.(map[string]interface{})
-		memberReq := gobizfly.PoolMemberRequest{
+		memberReq := gobizfly.CloudLoadBalancerPoolMemberRequest{
 			ID:      idx,
 			Name:    castedMember["name"].(string),
 			Address: castedMember["address"].(string),
@@ -567,7 +567,7 @@ func getMembersPayloadFromConfig(d *schema.ResourceData) []gobizfly.PoolMemberRe
 }
 
 // Convert members to update state
-func convertMember(members []gobizfly.Member) []map[string]interface{} {
+func convertMember(members []gobizfly.CloudLoadBalancerMember) []map[string]interface{} {
 	result := make([]map[string]interface{}, len(members))
 	for i, v := range members {
 		result[i] = map[string]interface{}{
@@ -589,7 +589,7 @@ func convertMember(members []gobizfly.Member) []map[string]interface{} {
 }
 
 // Convert health monitor to update state
-func convertHealthMonitor(healthMonitor *gobizfly.HealthMonitor) []map[string]interface{} {
+func convertHealthMonitor(healthMonitor *gobizfly.CloudLoadBalancerHealthMonitor) []map[string]interface{} {
 	results := make([]map[string]interface{}, 0, 1)
 	if healthMonitor == nil {
 		return nil
@@ -603,7 +603,7 @@ func convertHealthMonitor(healthMonitor *gobizfly.HealthMonitor) []map[string]in
 		"max_retries_down":    healthMonitor.MaxRetriesDown,
 		"delay":               healthMonitor.Delay,
 		"http_method":         healthMonitor.HTTPMethod,
-		"url_path":            healthMonitor.UrlPath,
+		"url_path":            healthMonitor.URLPath,
 		"expected_code":       healthMonitor.ExpectedCodes,
 		"operating_status":    healthMonitor.OperatingStatus,
 		"provisioning_status": healthMonitor.ProvisioningStatus,
@@ -629,8 +629,8 @@ func convertSessionPersistent(sessionPersistent *gobizfly.SessionPersistence) []
 }
 
 // Wait loadbalancer pool active status
-func waitPoolActiveProvisioningStatus(client *gobizfly.Client, poolID string) (*gobizfly.Pool, error) {
-	var pool *gobizfly.Pool
+func waitPoolActiveProvisioningStatus(client *gobizfly.Client, poolID string) (*gobizfly.CloudLoadBalancerPool, error) {
+	var pool *gobizfly.CloudLoadBalancerPool
 	backoff := wait.Backoff{
 		Duration: loadbalancerActiveInitDelay,
 		Factor:   loadbalancerActiveFactor,

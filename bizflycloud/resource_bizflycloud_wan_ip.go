@@ -83,7 +83,7 @@ func resourceBizflyCloudWanIPRead(d *schema.ResourceData, meta interface{}) erro
 	d.SetId(wanIP.ID)
 	_ = d.Set("name", wanIP.Name)
 	_ = d.Set("network_id", wanIP.NetworkID)
-	_ = d.Set("ip_address", wanIP.IpAddress)
+	_ = d.Set("ip_address", wanIP.IPAddress)
 	_ = d.Set("ip_version", wanIP.IpVersion)
 	_ = d.Set("status", wanIP.Status)
 	_ = d.Set("created_at", wanIP.CreatedAt)
@@ -108,8 +108,8 @@ func resourceBizflyCloudWanIPDelete(d *schema.ResourceData, meta interface{}) er
 func resourceBizflyCloudWanIPUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	if d.HasChange("attached_server") {
-		serverId := d.Get("attached_server").(string)
-		if serverId == "" {
+		serverID := d.Get("attached_server").(string)
+		if serverID == "" {
 			updatePayload := &gobizfly.ActionPublicNetworkInterfacePayload{
 				Action: "detach_server",
 			}
@@ -120,7 +120,7 @@ func resourceBizflyCloudWanIPUpdate(d *schema.ResourceData, meta interface{}) er
 		} else {
 			updatePayload := &gobizfly.ActionPublicNetworkInterfacePayload{
 				Action:   "attach_server",
-				ServerId: serverId,
+				ServerID: serverID,
 			}
 			err := client.CloudServer.PublicNetworkInterfaces().Action(context.Background(), d.Id(), updatePayload)
 			if err != nil {
