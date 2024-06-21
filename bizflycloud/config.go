@@ -47,9 +47,9 @@ func (c *CombinedConfig) gobizflyClient() *gobizfly.Client { return c.client }
 
 // Client is interface to connect plugin provider
 func (c *Config) Client() (*CombinedConfig, error) {
-	client, err := gobizfly.NewClient(gobizfly.WithProjectId(c.ProjectID),
+	client, err := gobizfly.NewClient(gobizfly.WithProjectID(c.ProjectID),
 		gobizfly.WithRegionName(c.RegionName),
-		gobizfly.WithAPIUrl(c.APIEndpoint)) // nolint
+		gobizfly.WithAPIURL(c.APIEndpoint)) // nolint
 
 	if err != nil {
 		log.Fatal(err)

@@ -26,7 +26,7 @@ var (
 const (
 	RedirectToPoolAction = "REDIRECT_TO_POOL"
 	RejectAction         = "REJECT"
-	RedirectToUrlAction  = "REDIRECT_TO_URL"
+	RedirectToURLAction  = "REDIRECT_TO_URL"
 	RedirectPrefixAction = "REDIRECT_PREFIX"
 
 	ACLsTypeHostName = "HOST_NAME"
@@ -45,7 +45,7 @@ var (
 	ValidL7PolicyActions = []string{
 		RedirectToPoolAction,
 		RejectAction,
-		RedirectToUrlAction,
+		RedirectToURLAction,
 		RedirectPrefixAction,
 	}
 	ValidACLsTypes = []string{
@@ -157,7 +157,7 @@ var (
 		HttpCookie,
 		SourceIp,
 	}
-	ValidUrlPathRegex, _ = regexp.Compile(`^/.*`)
+	ValidURLPathRegex, _ = regexp.Compile(`^/.*`)
 	ValidLbNetworkTypes  = []string{ExternalNetworkType, InternalNetworkType}
 	ValidLbTypes         = []string{LbSmallType, LbMediumType, LbLargeType}
 )

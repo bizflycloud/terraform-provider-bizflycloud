@@ -81,15 +81,15 @@ func resourceBizflyCloudVolumeSnapshotCreate(d *schema.ResourceData, meta interf
 	client := meta.(*CombinedConfig).gobizflyClient()
 	scr := gobizfly.SnapshotCreateRequest{
 		Name:     d.Get("name").(string),
-		VolumeId: d.Get("volume_id").(string),
+		VolumeID: d.Get("volume_id").(string),
 		Force:    true,
 	}
 	snapshot, err := client.CloudServer.Snapshots().Create(context.Background(), &scr)
 	if err != nil {
 		return fmt.Errorf("Error creating snapshot: %v", err)
 	}
-	d.SetId(snapshot.Id)
-	_ = d.Set("volume_id", snapshot.VolumeId)
+	d.SetId(snapshot.ID)
+	_ = d.Set("volume_id", snapshot.VolumeID)
 	return resourceBizflyCloudVolumeSnapshotRead(d, meta)
 }
 
@@ -102,7 +102,7 @@ func resourceBizflyCloudVolumeSnapshotRead(d *schema.ResourceData, meta interfac
 	_ = d.Set("name", snapshot.Name)
 	_ = d.Set("size", snapshot.Size)
 	_ = d.Set("status", snapshot.Status)
-	_ = d.Set("volume_id", snapshot.VolumeId)
+	_ = d.Set("volume_id", snapshot.VolumeID)
 	_ = d.Set("snapshot_type", snapshot.SnapshotType)
 	_ = d.Set("type", snapshot.Type)
 	_ = d.Set("availability_zone", snapshot.ZoneName)

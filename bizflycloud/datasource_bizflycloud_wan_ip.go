@@ -30,7 +30,7 @@ func dataSourceBizflyCloudWanIPRead(d *schema.ResourceData, meta interface{}) er
 			return resource.NonRetryableError(err)
 		}
 		for _, wanIP := range wanIPs {
-			if wanIP.IpAddress == ipAddress {
+			if wanIP.IPAddress == ipAddress {
 				matchWanIP = wanIP
 			}
 		}
@@ -52,7 +52,7 @@ func dataSourceBizflyCloudWanIPRead(d *schema.ResourceData, meta interface{}) er
 	d.SetId(matchWanIP.ID)
 	_ = d.Set("name", matchWanIP.Name)
 	_ = d.Set("network_id", matchWanIP.NetworkID)
-	_ = d.Set("ip_address", matchWanIP.IpAddress)
+	_ = d.Set("ip_address", matchWanIP.IPAddress)
 	_ = d.Set("ip_version", matchWanIP.IpVersion)
 	_ = d.Set("status", matchWanIP.Status)
 	_ = d.Set("created_at", matchWanIP.CreatedAt)

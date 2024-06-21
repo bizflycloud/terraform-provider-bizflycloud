@@ -93,6 +93,10 @@ github.com/bizflycloud/gobizfly v1.1.0 h1:gb5J6yGqhoqafXD5N2geZtY/Vh2Yoj+nbjG6zQ
 github.com/bizflycloud/gobizfly v1.1.0/go.mod h1:Zav85BLm6aSbfM6NRFUmmWzkVfXlQ1YoRTl+dFQJmho=
 github.com/bizflycloud/gobizfly v1.1.1 h1:jfLCgSdcyJhkSDJT3whwqKC9JVGuNmnuJ7Th7MLI2wM=
 github.com/bizflycloud/gobizfly v1.1.1/go.mod h1:Zav85BLm6aSbfM6NRFUmmWzkVfXlQ1YoRTl+dFQJmho=
+github.com/bizflycloud/gobizfly v1.1.2 h1:uLjJNFFikRy84CJ5g7vw8Hhr01STHgGwS0RwAab0RCw=
+github.com/bizflycloud/gobizfly v1.1.2/go.mod h1:Zav85BLm6aSbfM6NRFUmmWzkVfXlQ1YoRTl+dFQJmho=
+github.com/bizflycloud/gobizfly v1.1.3 h1:4lqGLSJmdLi93uAAS5BZcUpR1lyNmWPj12rWu+GkvqQ=
+github.com/bizflycloud/gobizfly v1.1.3/go.mod h1:Zav85BLm6aSbfM6NRFUmmWzkVfXlQ1YoRTl+dFQJmho=
 github.com/bufbuild/protocompile v0.4.0 h1:LbFKd2XowZvQ/kajzguUp2DC9UEIQhIq77fZZlaQsNA=
 github.com/bufbuild/protocompile v0.4.0/go.mod h1:3v93+mbWn/v3xzN+31nwkJfrEpAUwp+BagBSZWx+TP8=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=

@@ -122,8 +122,8 @@ func getL7PolicyRuleSchema() map[string]*schema.Schema {
 // Create L7 policy
 func resourceBizflycloudLoadbalancerL7PolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	listenerId := d.Get("listener_id").(string)
-	_, err := waitListenerActiveProvisioningStatus(client, listenerId)
+	listenerID := d.Get("listener_id").(string)
+	_, err := waitListenerActiveProvisioningStatus(client, listenerID)
 	if err != nil {
 		log.Printf("[ERROR] wait listener active provisioning status failed: %v", err)
 		return err
@@ -132,12 +132,12 @@ func resourceBizflycloudLoadbalancerL7PolicyCreate(d *schema.ResourceData, meta 
 	if err != nil {
 		return err
 	}
-	log.Printf("[DEBUG] create l7 policy payload for listener %s: %#v", listenerId, *createReq)
-	l7Policy, createErr := client.CloudLoadBalancer.L7Policies().Create(context.Background(), listenerId, createReq)
+	log.Printf("[DEBUG] create l7 policy payload for listener %s: %#v", listenerID, *createReq)
+	l7Policy, createErr := client.CloudLoadBalancer.L7Policies().Create(context.Background(), listenerID, createReq)
 	if createErr != nil {
-		return fmt.Errorf("Create l7 policy for listener %s error: %v", listenerId, createErr)
+		return fmt.Errorf("Create l7 policy for listener %s error: %v", listenerID, createErr)
 	}
-	d.SetId(l7Policy.Id)
+	d.SetId(l7Policy.ID)
 	return resourceBizflycloudLoadbalancerL7PolicyRead(d, meta)
 }
 
@@ -145,23 +145,23 @@ func resourceBizflycloudLoadbalancerL7PolicyCreate(d *schema.ResourceData, meta 
 func resourceBizflycloudLoadbalancerL7PolicyRead(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*CombinedConfig).gobizflyClient()
-	policyId := d.Id()
-	log.Printf("[DEBUG] test read l7 policy %s", policyId)
-	l7Policy, err := client.CloudLoadBalancer.L7Policies().Get(context.Background(), policyId)
+	policyID := d.Id()
+	log.Printf("[DEBUG] test read l7 policy %s", policyID)
+	l7Policy, err := client.CloudLoadBalancer.L7Policies().Get(context.Background(), policyID)
 	if err != nil {
-		return fmt.Errorf("Error when retrieving l7 policy %s: %v", policyId, err)
+		return fmt.Errorf("Error when retrieving l7 policy %s: %v", policyID, err)
 	}
-	l7PolicyRules, err := client.CloudLoadBalancer.L7Policies().ListL7PolicyRules(context.Background(), policyId)
+	l7PolicyRules, err := client.CloudLoadBalancer.L7Policies().ListL7PolicyRules(context.Background(), policyID)
 	if err != nil {
-		return fmt.Errorf("Error when listing l7 policy %s rules: %v", policyId, err)
+		return fmt.Errorf("Error when listing l7 policy %s rules: %v", policyID, err)
 	}
 	rules := parseL7PolicyRules(l7PolicyRules)
 	_ = d.Set("name", l7Policy.Name)
 	_ = d.Set("action", l7Policy.Action)
-	_ = d.Set("redirect_pool_id", l7Policy.RedirectPoolId)
+	_ = d.Set("redirect_pool_id", l7Policy.RedirectPoolID)
 	_ = d.Set("redirect_prefix", l7Policy.RedirectPrefix)
-	_ = d.Set("redirect_url", l7Policy.RedirectUrl)
-	_ = d.Set("listener_id", l7Policy.ListenerId)
+	_ = d.Set("redirect_url", l7Policy.RedirectURL)
+	_ = d.Set("listener_id", l7Policy.ListenerID)
 	_ = d.Set("position", l7Policy.Position)
 	_ = d.Set("rules", rules)
 	return nil
@@ -170,8 +170,8 @@ func resourceBizflycloudLoadbalancerL7PolicyRead(d *schema.ResourceData, meta in
 // Update L7 policy
 func resourceBizflycloudLoadbalancerL7PolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	listenerId := d.Get("listener_id").(string)
-	_, err := waitListenerActiveProvisioningStatus(client, listenerId)
+	listenerID := d.Get("listener_id").(string)
+	_, err := waitListenerActiveProvisioningStatus(client, listenerID)
 	if err != nil {
 		log.Printf("[ERROR] wait listener active provisioning status failed: %v", err)
 		return err
@@ -185,30 +185,30 @@ func resourceBizflycloudLoadbalancerL7PolicyUpdate(d *schema.ResourceData, meta 
 		return err
 	}
 	updateReq.Rules = rules
-	policyId := d.Id()
-	_, err = waitL7PolicyActiveProvisioningStatus(client, policyId)
+	policyID := d.Id()
+	_, err = waitL7PolicyActiveProvisioningStatus(client, policyID)
 	if err != nil {
 		return err
 	}
-	log.Printf("[DEBUG] update l7 policy %s payload for listener %s: %#v", policyId, listenerId, *updateReq)
-	_, createErr := client.CloudLoadBalancer.L7Policies().Update(context.Background(), policyId, updateReq)
+	log.Printf("[DEBUG] update l7 policy %s payload for listener %s: %#v", policyID, listenerID, *updateReq)
+	_, createErr := client.CloudLoadBalancer.L7Policies().Update(context.Background(), policyID, updateReq)
 	if createErr != nil {
-		return fmt.Errorf("Update l7 policy %s for listener %s error: %v", policyId, listenerId, createErr)
+		return fmt.Errorf("Update l7 policy %s for listener %s error: %v", policyID, listenerID, createErr)
 	}
 	return resourceBizflycloudLoadbalancerL7PolicyRead(d, meta)
 }
 
 // Destroy L7 policy
 func resourceBizflycloudLoadbalancerL7PolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	policyId := d.Id()
-	listenerId := d.Get("listener_id").(string)
+	policyID := d.Id()
+	listenerID := d.Get("listener_id").(string)
 	client := meta.(*CombinedConfig).gobizflyClient()
-	_, err := waitListenerActiveProvisioningStatus(client, listenerId)
+	_, err := waitListenerActiveProvisioningStatus(client, listenerID)
 	if err != nil {
 		log.Printf("[ERROR] wait listener active provisioning status failed: %v", err)
 		return err
 	}
-	err = client.CloudLoadBalancer.L7Policies().Delete(context.Background(), policyId)
+	err = client.CloudLoadBalancer.L7Policies().Delete(context.Background(), policyID)
 	if err != nil {
 		return fmt.Errorf("Error when delete l7 policy: %v", err)
 	}
@@ -231,18 +231,18 @@ func getCreateL7PolicyFromConfig(d *schema.ResourceData) (*gobizfly.CreateL7Poli
 	}
 	action := d.Get("action").(string)
 	switch action {
-	case constants.RedirectToUrlAction:
-		redirectUrl := d.Get("redirect_url").(string)
-		if redirectUrl == "" {
+	case constants.RedirectToURLAction:
+		redirectURL := d.Get("redirect_url").(string)
+		if redirectURL == "" {
 			return nil, fmt.Errorf("Action %s with 'redirect_url' must be not empty string", action)
 		}
-		createReq.RedirectUrl = redirectUrl
+		createReq.RedirectURL = redirectURL
 	case constants.RedirectToPoolAction:
-		redirectPoolId := d.Get("redirect_pool_id").(string)
-		if redirectPoolId == "" {
+		redirectPoolID := d.Get("redirect_pool_id").(string)
+		if redirectPoolID == "" {
 			return nil, fmt.Errorf("Action %s with 'redirect_pool_id' must be not empty string", action)
 		}
-		createReq.RedirectPoolId = redirectPoolId
+		createReq.RedirectPoolID = redirectPoolID
 	case constants.RedirectPrefixAction:
 		redirectPrefix := d.Get("redirect_prefix").(string)
 		if redirectPrefix == "" {
@@ -330,18 +330,18 @@ func getUpdateL7PolicyFromConfig(d *schema.ResourceData) (*gobizfly.UpdateL7Poli
 	}
 	action := d.Get("action").(string)
 	switch action {
-	case constants.RedirectToUrlAction:
-		redirectUrl := d.Get("redirect_url").(string)
-		if redirectUrl == "" {
+	case constants.RedirectToURLAction:
+		redirectURL := d.Get("redirect_url").(string)
+		if redirectURL == "" {
 			return nil, fmt.Errorf("Action %s with 'redirect_url' must be not empty string", action)
 		}
-		updateReq.RedirectUrl = &redirectUrl
+		updateReq.RedirectURL = &redirectURL
 	case constants.RedirectToPoolAction:
-		redirectPoolId := d.Get("redirect_pool_id").(string)
-		if redirectPoolId == "" {
+		redirectPoolID := d.Get("redirect_pool_id").(string)
+		if redirectPoolID == "" {
 			return nil, fmt.Errorf("Action %s with 'redirect_pool_id' must be not empty string", action)
 		}
-		updateReq.RedirectPoolId = &redirectPoolId
+		updateReq.RedirectPoolID = &redirectPoolID
 	case constants.RedirectPrefixAction:
 		redirectPrefix := d.Get("redirect_prefix").(string)
 		if redirectPrefix == "" {
@@ -366,7 +366,7 @@ func getUpdateL7PolicyRulesFromConfig(d *schema.ResourceData, client *gobizfly.C
 	if err != nil {
 		return nil, err
 	}
-	policyId := d.Id()
+	policyID := d.Id()
 	updateRulesReq := make([]gobizfly.UpdateL7PolicyRuleRequest, 0)
 	for _, ruleReq := range rulesReq {
 		if ruleReq.ID != "" {
@@ -380,14 +380,14 @@ func getUpdateL7PolicyRulesFromConfig(d *schema.ResourceData, client *gobizfly.C
 			Key:         ruleReq.Key,
 			Value:       ruleReq.Value,
 		}
-		log.Printf("[DEBUG] Create l7 policy payload: policyId=%s - payload=%#v", policyId, newRulePayload)
-		newRule, err := client.CloudLoadBalancer.L7Policies().CreateL7PolicyRule(context.Background(), policyId, newRulePayload)
+		log.Printf("[DEBUG] Create l7 policy payload: policyID=%s - payload=%#v", policyID, newRulePayload)
+		newRule, err := client.CloudLoadBalancer.L7Policies().CreateL7PolicyRule(context.Background(), policyID, newRulePayload)
 		if err != nil {
-			log.Printf("[Error] create l7 policy %s rule: %v", policyId, err)
-			return nil, fmt.Errorf("Error create l7 policy %s rule: %v", policyId, err)
+			log.Printf("[Error] create l7 policy %s rule: %v", policyID, err)
+			return nil, fmt.Errorf("Error create l7 policy %s rule: %v", policyID, err)
 		}
 		updateRuleReq := gobizfly.UpdateL7PolicyRuleRequest{
-			ID:                  newRule.Id,
+			ID:                  newRule.ID,
 			L7PolicyRuleRequest: newRulePayload,
 		}
 		updateRulesReq = append(updateRulesReq, updateRuleReq)
@@ -427,7 +427,7 @@ func parseL7PolicyRules(rules []gobizfly.DetailL7PolicyRule) []map[string]interf
 	results := make([]map[string]interface{}, 0)
 	for _, rule := range rules {
 		result := map[string]interface{}{
-			"id":                  rule.Id,
+			"id":                  rule.ID,
 			"invert":              rule.Invert,
 			"type":                rule.Type,
 			"compare_type":        rule.CompareType,
@@ -435,7 +435,7 @@ func parseL7PolicyRules(rules []gobizfly.DetailL7PolicyRule) []map[string]interf
 			"value":               rule.Value,
 			"operating_status":    rule.OperatingStatus,
 			"provisioning_status": rule.ProvisioningStatus,
-			"project_id":          rule.ProjectId,
+			"project_id":          rule.ProjectID,
 			"created_at":          rule.CreatedAt,
 			"updated_at":          rule.UpdatedAt,
 		}
@@ -445,22 +445,22 @@ func parseL7PolicyRules(rules []gobizfly.DetailL7PolicyRule) []map[string]interf
 }
 
 // Check listener active status
-func waitListenerActiveProvisioningStatus(client *gobizfly.Client, listenerId string) (*gobizfly.Listener, error) {
-	var lb *gobizfly.Listener
+func waitListenerActiveProvisioningStatus(client *gobizfly.Client, listenerID string) (*gobizfly.CloudLoadBalancerListener, error) {
+	var lb *gobizfly.CloudLoadBalancerListener
 	backoff := wait.Backoff{
 		Duration: loadbalancerActiveInitDelay,
 		Factor:   loadbalancerActiveFactor,
 		Steps:    loadbalancerActiveSteps,
 	}
 	err := wait.ExponentialBackoff(backoff, func() (bool, error) {
-		listener, err := client.CloudLoadBalancer.Listeners().Get(context.Background(), listenerId)
+		listener, err := client.CloudLoadBalancer.Listeners().Get(context.Background(), listenerID)
 		if err != nil {
 			return true, err
 		}
 		if listener.ProvisoningStatus == activeStatus {
 			return true, nil
 		} else if listener.ProvisoningStatus == errorStatus {
-			return true, fmt.Errorf("Listener %s has gone into ERROR state", listenerId)
+			return true, fmt.Errorf("Listener %s has gone into ERROR state", listenerID)
 		} else {
 			return false, nil
 		}
@@ -477,7 +477,7 @@ func waitListenerActiveProvisioningStatus(client *gobizfly.Client, listenerId st
 }
 
 // Check L7 policy active status
-func waitL7PolicyActiveProvisioningStatus(client *gobizfly.Client, policyId string) (*gobizfly.DetailL7Policy, error) {
+func waitL7PolicyActiveProvisioningStatus(client *gobizfly.Client, policyID string) (*gobizfly.DetailL7Policy, error) {
 	var policy *gobizfly.DetailL7Policy
 	backoff := wait.Backoff{
 		Duration: loadbalancerActiveInitDelay,
@@ -485,14 +485,14 @@ func waitL7PolicyActiveProvisioningStatus(client *gobizfly.Client, policyId stri
 		Steps:    loadbalancerActiveSteps,
 	}
 	err := wait.ExponentialBackoff(backoff, func() (bool, error) {
-		policy, err := client.CloudLoadBalancer.L7Policies().Get(context.Background(), policyId)
+		policy, err := client.CloudLoadBalancer.L7Policies().Get(context.Background(), policyID)
 		if err != nil {
 			return true, err
 		}
 		if policy.ProvisioningStatus == activeStatus {
 			return true, nil
 		} else if policy.ProvisioningStatus == errorStatus {
-			return true, fmt.Errorf("L7 policy %s has gone into ERROR state", policyId)
+			return true, fmt.Errorf("L7 policy %s has gone into ERROR state", policyID)
 		} else {
 			return false, nil
 		}

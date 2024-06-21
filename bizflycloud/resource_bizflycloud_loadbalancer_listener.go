@@ -103,7 +103,7 @@ func resourceBizflyCloudLoadBalancerListenerCreate(d *schema.ResourceData, meta 
 	listenerTimeout := d.Get("listener_timeout").(int)
 	serverTimeout := d.Get("server_timeout").(int)
 	serverConnectTimeout := d.Get("server_connect_timeout").(int)
-	lcr := gobizfly.ListenerCreateRequest{
+	lcr := gobizfly.CloudLoadBalancerListenerCreateRequest{
 		Name:                   &lName,
 		Protocol:               d.Get("protocol").(string),
 		ProtocolPort:           d.Get("port").(int),
@@ -127,9 +127,9 @@ func resourceBizflyCloudLoadBalancerListenerRead(d *schema.ResourceData, meta in
 	if err != nil {
 		return fmt.Errorf("Error when retrieving listener: %v", err)
 	}
-	l7policyIds := make([]string, 0)
+	l7policyIDs := make([]string, 0)
 	for _, policy := range listener.L7Policies {
-		l7policyIds = append(l7policyIds, policy.ID)
+		l7policyIDs = append(l7policyIDs, policy.ID)
 	}
 	_ = d.Set("name", listener.Name)
 	_ = d.Set("protocol", listener.Protocol)
@@ -143,7 +143,7 @@ func resourceBizflyCloudLoadBalancerListenerRead(d *schema.ResourceData, meta in
 	_ = d.Set("server_connect_timeout", listener.TimeoutMemberConnect)
 	_ = d.Set("operating_status", listener.OperatingStatus)
 	_ = d.Set("provisioning_status", listener.ProvisoningStatus)
-	_ = d.Set("l7policy_ids", l7policyIds)
+	_ = d.Set("l7policy_ids", l7policyIDs)
 	_ = d.Set("created_at", listener.CreatedAt)
 	_ = d.Set("updated_at", listener.UpdatedAt)
 
@@ -157,15 +157,15 @@ func resourceBizflyCloudLoadBalancerListenerUpdate(d *schema.ResourceData, meta 
 	name := d.Get("name").(string)
 	description := d.Get("description").(string)
 	tlsRef := d.Get("default_tls_ref").(string)
-	poolId := d.Get("default_pool_id").(string)
+	poolID := d.Get("default_pool_id").(string)
 	listenerTimeout := d.Get("listener_timeout").(int)
 	serverTimeout := d.Get("server_timeout").(int)
 	serverConnectTimeout := d.Get("server_connect_timeout").(int)
-	lur := gobizfly.ListenerUpdateRequest{
+	lur := gobizfly.CloudLoadBalancerListenerUpdateRequest{
 		Name:                   &name,
 		Description:            &description,
 		DefaultTLSContainerRef: &tlsRef,
-		DefaultPoolID:          &poolId,
+		DefaultPoolID:          &poolID,
 		TimeoutClientData:      &listenerTimeout,
 		TimeoutMemberData:      &serverTimeout,
 		TimeoutMemberConnect:   &serverConnectTimeout,

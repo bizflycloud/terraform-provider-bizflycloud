@@ -129,8 +129,8 @@ func dataSourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
-	id, okId := d.GetOk("id")
-	if okId {
+	id, okID := d.GetOk("id")
+	if okID {
 		for _, server := range osServers {
 			if !strings.EqualFold(strings.ToLower(server.ID), strings.ToLower(id.(string))) {
 				continue

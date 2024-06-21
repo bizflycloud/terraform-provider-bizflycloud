@@ -84,10 +84,12 @@ func firewallRuleSchema() map[string]*schema.Schema {
 		"protocol": {
 			Type:     schema.TypeString,
 			Optional: true,
+			Computed: true,
 		},
 		"port_range": {
 			Type:     schema.TypeString,
 			Optional: true,
+			Computed: true,
 		},
 	}
 }
@@ -168,10 +170,15 @@ func flatternFirewallRules(rules *schema.Set) []gobizfly.FirewallRuleCreateReque
 	for _, rawRule := range rules.List() {
 		r := rawRule.(map[string]interface{})
 		rule := gobizfly.FirewallRuleCreateRequest{
-			Type:      "CUSTOM",
-			CIDR:      r["cidr"].(string),
-			PortRange: r["port_range"].(string),
-			Protocol:  r["protocol"].(string),
+			Type: "CUSTOM",
+			CIDR: r["cidr"].(string),
+		}
+
+		if r["port_range"] != "" || r["port_range"] != nil {
+			rule.PortRange = r["port_range"].(string)
+		}
+		if r["protocol"] != "" || r["protocol"] != nil {
+			rule.Protocol = r["protocol"].(string)
 		}
 		fwrules = append(fwrules, rule)
 	}
@@ -181,11 +188,15 @@ func flatternFirewallRules(rules *schema.Set) []gobizfly.FirewallRuleCreateReque
 func convertFWRule(rules []gobizfly.FirewallRule) []map[string]interface{} {
 	result := make([]map[string]interface{}, len(rules))
 	for i, v := range rules {
-		result[i] = map[string]interface{}{
-			"cidr":       v.CIDR,
-			"port_range": v.PortRange,
-			"protocol":   v.Protocol,
+		ruleDefined := map[string]interface{}{"cidr": v.CIDR}
+		if v.PortRange != "" {
+			ruleDefined["port_range"] = v.PortRange
 		}
+		if v.Protocol != "" {
+			ruleDefined["protocol"] = v.Protocol
+		}
+
+		result[i] = ruleDefined
 	}
 	return result
 }

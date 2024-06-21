@@ -61,12 +61,12 @@ func dataSourceBizflyCloudVolumeSnapshotRead(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	d.SetId(snapshot.Id)
+	d.SetId(snapshot.ID)
 	err = d.Set("name", snapshot.Name)
 	if err != nil {
 		return err
 	}
-	err = d.Set("volume_id", snapshot.VolumeId)
+	err = d.Set("volume_id", snapshot.VolumeID)
 	if err != nil {
 		return err
 	}
