@@ -37,24 +37,6 @@ archives:
 checksum:
   name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
   algorithm: sha256
-  extra_files:
-    - glob: 'terraform-registry-manifest.json'
-      name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
-publishers:
-  - checksum: true
-    # Terraform CLI 0.10 - 0.11 perform discovery via HTTP headers on releases.hashicorp.com
-    # For providers which have existed since those CLI versions, exclude
-    # discovery by setting the protocol version headers to 5.
-    env:
-      - HC_RELEASES_HOST={{ .Env.HC_RELEASES_HOST }}
-      - HC_RELEASES_KEY={{ .Env.HC_RELEASES_KEY }}
-    cmd: |
-      hc-releases upload -product {{ .ProjectName }} -version {{ .Version }} -file={{ .ArtifactPath }}={{ .ArtifactName }} -header=x-terraform-protocol-version=5 -header=x-terraform-protocol-versions=5.0
-    extra_files:
-      - glob: 'terraform-registry-manifest.json'
-        name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
-    name: upload
-    signature: true
 signs:
   - artifacts: checksum
     args:
@@ -67,10 +49,5 @@ signs:
       - "${artifact}"
 release:
   draft: true
-  extra_files:
-    - glob: 'terraform-registry-manifest.json'
-      name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
-  ids:
-    - none
 changelog:
   skip: true
