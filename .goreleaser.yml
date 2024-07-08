@@ -55,12 +55,6 @@ publishers:
         name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
     name: upload
     signature: true
-release:
-  extra_files:
-    - glob: 'terraform-registry-manifest.json'
-      name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
-  ids:
-    - none
 signs:
   - artifacts: checksum
     args:
@@ -73,5 +67,10 @@ signs:
       - "${artifact}"
 release:
   draft: true
+  extra_files:
+    - glob: 'terraform-registry-manifest.json'
+      name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
+  ids:
+    - none
 changelog:
   skip: true
