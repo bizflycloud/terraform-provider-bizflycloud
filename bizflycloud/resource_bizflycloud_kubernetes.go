@@ -51,6 +51,10 @@ func resourceBizflyCloudKubernetes() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"package_id": {
+				Type: schema.TypeString,
+				Required: true,
+			},
 			"create_at": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -107,6 +111,10 @@ func resourceBizflyCloudKubernetes() *schema.Resource {
 				Computed: true,
 			},
 			"next_version": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"package_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -229,6 +237,7 @@ func resourceBizflyClusterCreate(d *schema.ResourceData, meta interface{}) error
 	ccrq := &gobizfly.ClusterCreateRequest{
 		Name:         d.Get("name").(string),
 		Version:      d.Get("version").(string),
+		Package:      d.Get("package_id").(string),
 		VPCNetworkID: d.Get("vpc_network_id").(string),
 		AutoUpgrade:  d.Get("auto_upgrade").(bool),
 		LocalDNS:     d.Get("local_dns").(bool),
@@ -266,6 +275,7 @@ func resourceBizflyCloudClusterRead(d *schema.ResourceData, meta interface{}) er
 	}
 	_ = d.Set("name", cluster.Name)
 	_ = d.Set("version", cluster.Version.ID)
+	_ = d.Set("package_name", cluster.ClusterPackage.Name)
 	_ = d.Set("vpc_network_id", cluster.VPCNetworkID)
 	_ = d.Set("worker_pools_count", cluster.WorkerPoolsCount)
 	_ = d.Set("create_at", cluster.CreatedAt)

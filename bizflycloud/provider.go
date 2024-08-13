@@ -111,6 +111,7 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_autoscaling_launch_configuration": datasourceBizflyCloudLaunchConfiguration(),
 			"bizflycloud_vpc_network":                      dataSourceBizflyCloudVPCNetwork(),
 			"bizflycloud_kubernetes_version":               datasourceBizflyCloudKubernetesControllerVersions(),
+			"bizflycloud_kubernetes_package":               datasourceBizflyCloudKubernetesControllerPackage(),
 			"bizflycloud_network_interface":                dataSourceBizflyCloudNetworkInterface(),
 			"bizflycloud_server":                           datasourceBizflyCloudServers(),
 			"bizflycloud_autoscaling_nodes":                datasourceBizflyCloudAutoscalingNodes(),
