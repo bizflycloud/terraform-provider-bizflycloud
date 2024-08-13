@@ -35,6 +35,14 @@ import (
 const (
 	attachTypeDataDisk = "datadisk"
 	attachTypeRootDisk = "rootdisk"
+	wanType            = "WAN"
+	lanType            = "LAN"
+	lanWanType         = "LAN_WAN"
+	freeWan            = "free"
+)
+
+var (
+	portTypes = []string{wanType, lanType}
 )
 
 func resourceBizflyCloudServer() *schema.Resource {
@@ -81,7 +89,9 @@ func resourceBizflyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 		usingV6Wan           bool
 		freeWanV4FirewallIDs []string
 		freeWanV6FirewallIDs []string
+		networkInterfaceIDs  []string
 	)
+	// handle server ports
 	defaultPublicIPv4List := d.Get("default_public_ipv4").([]interface{})
 	defaultPublicIPv6List := d.Get("default_public_ipv6").([]interface{})
 	if len(defaultPublicIPv4List) > 1 {
@@ -100,6 +110,16 @@ func resourceBizflyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 		usingV6Wan = true
 		freeWanV6FirewallIDs = readStringArray(freeWan["firewall_ids"].(*schema.Set).List())
 	}
+	if v, ok := d.GetOk("network_interfaces"); ok {
+		for _, network_interface := range v.(*schema.Set).List() {
+			log.Printf("[DEBUG] network interface: %+v", network_interface)
+			casted_network_interface := network_interface.(map[string]interface{})
+			log.Printf("[DEBUG] casted network interface: %+v", network_interface)
+			network_interface_id := casted_network_interface["id"].(string)
+			networkInterfaceIDs = append(networkInterfaceIDs, network_interface_id)
+		}
+	}
+	scr.NetworkInterfaces = networkInterfaceIDs
 	scr.IsCreatedWan = &isCreatedWan
 	scr.IPv6 = usingV6Wan
 	log.Printf("[DEBUG] Create Cloud Server configuration: %#v", scr)
@@ -118,7 +138,7 @@ func resourceBizflyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	ports, err := client.CloudServer.NetworkInterfaces().List(context.Background(), &gobizfly.ListNetworkInterfaceOptions{
-		Type:   "LAN_WAN",
+		Type:   lanWanType,
 		Status: "ACTIVE",
 	})
 	if err != nil {
@@ -130,7 +150,7 @@ func resourceBizflyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 		if port.DeviceID != d.Id() {
 			continue
 		}
-		if port.BillingType == "free" && port.Type == "WAN" {
+		if port.BillingType == freeWan && port.Type == wanType {
 			if port.IPVersion == 6 {
 				wg.Add(1)
 				go func(portID string) {
@@ -174,7 +194,7 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 	networkInterfaces, _ := client.CloudServer.NetworkInterfaces().List(context.Background(), &gobizfly.ListNetworkInterfaceOptions{
-		Type: "LAN_WAN",
+		Type: lanWanType,
 	})
 	firewalls, err := client.CloudServer.Firewalls().List(context.Background(), &gobizfly.ListOptions{})
 	if err != nil {
@@ -185,27 +205,36 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 		userFirewallIDs[i] = firewall.ID
 	}
 	vpcNetworkIDs := make([]string, 0)
-	networkInterfaceIDs := make([]string, 0)
+	serverNetworkInterfaces := make([]map[string]interface{}, 0)
 	_ = d.Set("default_public_ipv6", make([]map[string]interface{}, 0))
 	_ = d.Set("default_public_ipv4", make([]map[string]interface{}, 0))
 	for _, networkInterface := range networkInterfaces {
 		if networkInterface.DeviceID != d.Id() {
 			continue
 		}
-		serverNetworkInterface := make(map[string]interface{})
-		serverNetworkInterface["id"] = networkInterface.ID
-		serverNetworkInterface["firewall_ids"] = networkInterface.SecurityGroups
-		serverNetworkInterface["enabled"] = networkInterface.Status == "ACTIVE"
-		serverNetworkInterface["ip_address"] = networkInterface.IPAddress
-		if networkInterface.Type == "WAN" && networkInterface.BillingType == "free" {
+		// free wan ips
+		default_public_ip := map[string]interface{}{
+			"id":           networkInterface.ID,
+			"firewall_ids": networkInterface.SecurityGroups,
+			"enabled":      networkInterface.Status == "ACTIVE",
+			"ip_address":   networkInterface.IPAddress,
+		}
+		if networkInterface.Type == wanType && networkInterface.BillingType == freeWan {
 			if networkInterface.IPVersion == 6 {
-				_ = d.Set("default_public_ipv6", []map[string]interface{}{serverNetworkInterface})
+				_ = d.Set("default_public_ipv6", []map[string]interface{}{default_public_ip})
 			} else {
-				_ = d.Set("default_public_ipv4", []map[string]interface{}{serverNetworkInterface})
+				_ = d.Set("default_public_ipv4", []map[string]interface{}{default_public_ip})
 			}
 		} else {
-			networkInterfaceIDs = append(networkInterfaceIDs, networkInterface.ID)
-			if networkInterface.Type == "LAN" {
+			// server network interfaces (not free wan ip)
+			serverNetworkInterface := map[string]interface{}{
+				"id":         networkInterface.ID,
+				"ip_address": networkInterface.IPAddress,
+				"ip_version": networkInterface.IPVersion,
+				"type":       networkInterface.Type,
+			}
+			serverNetworkInterfaces = append(serverNetworkInterfaces, serverNetworkInterface)
+			if networkInterface.Type == lanType {
 				vpcNetworkIDs = append(vpcNetworkIDs, networkInterface.NetworkID)
 			}
 		}
@@ -226,7 +255,7 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	_ = d.Set("network_plan", server.NetworkPlan)
 	_ = d.Set("ssh_key", server.KeyName)
 	_ = d.Set("vpc_network_ids", vpcNetworkIDs)
-	_ = d.Set("network_interface_ids", networkInterfaceIDs)
+	_ = d.Set("network_interfaces", serverNetworkInterfaces)
 	if err = d.Set("volume_ids", flatternBizflyCloudVolumeIDs(server.AttachedVolumes)); err != nil {
 		return fmt.Errorf("Error setting `volume_ids`: %+v", err)
 	}
@@ -346,6 +375,11 @@ func resourceBizflyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 		_, err = waitToExtendVolume(d, meta, task.TaskID)
 		if err != nil {
 			return fmt.Errorf("wait to check extend rootdisk error: %v", err)
+		}
+	}
+	if d.HasChange("network_interfaces") {
+		if err := changeServerNetworkInterfaces(d, client); err != nil {
+			return err
 		}
 	}
 	return resourceBizflyCloudServerRead(d, meta)
@@ -819,4 +853,55 @@ func getServerRootDisk(client *gobizfly.Client, serverID string) (*gobizfly.Volu
 		}
 	}
 	return nil, fmt.Errorf("rootdisk of server %s not found.", serverID)
+}
+
+func changeServerNetworkInterfaces(d *schema.ResourceData, client *gobizfly.Client) error {
+	serverID := d.Id()
+	oldNetworkInterfaces, newNetworkInterfaces := d.GetChange("network_interfaces")
+	oldNetworkInterfaceMap := parseNetworkInterfaces(oldNetworkInterfaces)
+	newNetworkInterfaceMap := parseNetworkInterfaces(newNetworkInterfaces)
+	fmt.Printf("Old network interfaces: %+v", oldNetworkInterfaceMap)
+	fmt.Printf("New network interfaces: %+v", newNetworkInterfaceMap)
+	// handle change network interfaces
+	return changeAttachedPort(client, serverID, oldNetworkInterfaceMap, newNetworkInterfaceMap)
+}
+
+func parseNetworkInterfaces(networkInterfaces interface{}) (networkInterfaceMap map[string]string) {
+	networkInterfaceMap = make(map[string]string)
+	for _, old_value := range networkInterfaces.(*schema.Set).List() {
+		network_interface := old_value.(map[string]interface{})
+		network_interface_id := network_interface["id"].(string)
+		networkInterfaceMap[network_interface_id] = network_interface_id
+	}
+	return
+}
+
+func changeAttachedPort(client *gobizfly.Client, serverID string, oldNetworkInterfaceMap, newNetworkInterfaceMap map[string]string) (err error) {
+	// Handle attach wan ips to the server
+	for _, newNetworkInterface := range newNetworkInterfaceMap {
+		_, ok := oldNetworkInterfaceMap[newNetworkInterface]
+		if ok {
+			// Attached port
+			continue
+		}
+		err = attachServerForPort(client, serverID, newNetworkInterface)
+		if err != nil {
+			log.Printf("[ERROR] changeWanPorts attach network interface %s error: %v", newNetworkInterface, err)
+			return
+		}
+	}
+	// Handle detach wan ips to the server
+	for _, oldNetworkInterface := range oldNetworkInterfaceMap {
+		_, ok := newNetworkInterfaceMap[oldNetworkInterface]
+		if ok {
+			// Attached port
+			continue
+		}
+		err = detachServerForPort(client, oldNetworkInterface)
+		if err != nil {
+			log.Printf("[ERROR] changeWanPorts detach network interface %s error: %v", oldNetworkInterface, err)
+			return
+		}
+	}
+	return
 }
