@@ -13,12 +13,18 @@ Provides a Bizfly Cloud Kubernetes Engine resource. This can be used to create, 
 ## Example Usage
 
 ```hcl
+data "bizflycloud_kubernetes_package" "standard_1" {
+  provision_type = "standard"
+  name = "STANDARD - 1"
+}
+
 resource "bizflycloud_kubernetes" "tf_create_k8s" {
   name            = "create-ducnv"
   auto_upgrade    = false
   cni_plugin      = "kube-router"
   local_dns       = false
   version         = "64c8709c3f881935b73b43f0"
+  package_id     = data.bizflycloud_kubernetes_package.standard_1.id
   vpc_network_id  = "e15c7244-7f16-4af6-8a67-2a31f7af38f9"
   enabled_upgrade_version = false
   worker_pools {

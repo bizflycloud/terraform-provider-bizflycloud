@@ -22,7 +22,12 @@ provider "bizflycloud" {
 }
 
 data "bizflycloud_kubernetes_version" "test_k8s_version" {
-  version = "v1.27.4"
+  version = "v1.27.13"
+}
+
+data "bizflycloud_kubernetes_package" "standard_1" {
+  provision_type = "standard"
+  name = "STANDARD - 1"
 }
 
 resource "bizflycloud_kubernetes" "test_k8s_cluster" {
@@ -30,6 +35,7 @@ resource "bizflycloud_kubernetes" "test_k8s_cluster" {
   version        = data.bizflycloud_kubernetes_version.test_k8s_version.id
   vpc_network_id = "0f05d672-6e25-439b-a27f-e7ffb44a07b2"
   tags           = ["tags", "123"]
+  package_id     = data.bizflycloud_kubernetes_package.standard_1.id
   worker_pools {
     name               = "pool-69646"
     flavor             = "nix.2c_2g"
