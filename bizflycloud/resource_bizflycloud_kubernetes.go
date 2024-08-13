@@ -52,7 +52,7 @@ func resourceBizflyCloudKubernetes() *schema.Resource {
 				Required: true,
 			},
 			"package_id": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 			},
 			"create_at": {

@@ -29,7 +29,7 @@ func datasourceBizflyCloudKubernetesControllerPackage() *schema.Resource {
 		Read: dataSourceBizflyCloudKubernetesPackage,
 		Schema: map[string]*schema.Schema{
 			"provision_type": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 			},
 			"name": {
