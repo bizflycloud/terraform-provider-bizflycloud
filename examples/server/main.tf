@@ -80,6 +80,17 @@ resource "bizflycloud_volume_attachment" "volume_attachment" {
   count     = 2
 }
 
+resource "bizflycloud_wan_ip" "test_wan_1" {
+  name              = "sapd-wan-ip-tf5-${count.index}"
+  availability_zone = "HN1"
+  firewall_ids      = [
+    "9ff7fbdc-1461-4713-b4f8-ba8a22699bb4",
+    "0b1d6a90-24a0-4f86-b75f-fb07290e44dd"
+
+  ]
+  count = 2
+}
+
 resource "bizflycloud_server" "tf_server1" {
   count                 = 2
   name                  = "tf_server_5_${count.index}"
@@ -104,6 +115,18 @@ resource "bizflycloud_server" "tf_server1" {
     ]
   }
   user_data = "!/bin/bash"
+  network_interfaces {
+    id = bizflycloud_wan_ip.test_wan_1.*.id[count.index]
+    enabled = true
+  }
+  network_interfaces {
+    id = bizflycloud_network_interface.test_lan1.*.id[count.index]
+    enabled = true
+  }
+  network_interfaces {
+    id = bizflycloud_network_interface.test_lan2.*.id[count.index]
+    enabled = true
+  }
 }
 
 data "bizflycloud_volume_snapshot" "volume_snapshot" {
@@ -114,36 +137,11 @@ data "bizflycloud_custom_image" "custom_image" {
   id = "d646476d-850c-423e-b02c-6b86aeda3717"
 }
 
-resource "bizflycloud_network_interface_attachment" "test_attachment" {
-  network_interface_id = bizflycloud_network_interface.test_lan1.*.id[count.index]
-  server_id            = bizflycloud_server.tf_server1.*.id[count.index]
-  count                = 2
-}
-
 resource "bizflycloud_custom_image" "new_custom_image1" {
   name        = "new_custom_image_10"
   disk_format = "qcow2"
   image_url   = "https://releases.ubuntu.com/22.04.3/ubuntu-22.04.3-desktop-amd64.iso"
 }
-
-
-resource "bizflycloud_wan_ip" "test_wan_1" {
-  name              = "sapd-wan-ip-tf5-${count.index}"
-  availability_zone = "HN1"
-  firewall_ids      = [
-    "9ff7fbdc-1461-4713-b4f8-ba8a22699bb4",
-    "0b1d6a90-24a0-4f86-b75f-fb07290e44dd"
-
-  ]
-  count = 2
-}
-
-resource "bizflycloud_network_interface_attachment" "test_wan" {
-  network_interface_id = bizflycloud_wan_ip.test_wan_1.*.id[count.index]
-  server_id            = bizflycloud_server.tf_server1.*.id[count.index]
-  count                = 2
-}
-
 
  data "bizflycloud_wan_ip" "wan_ip" {
    ip_address = "103.107.183.114"
