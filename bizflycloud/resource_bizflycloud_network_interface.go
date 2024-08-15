@@ -2,6 +2,7 @@ package bizflycloud
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -54,6 +55,11 @@ func resourceBizflyCloudNetworkInterfaceCreate(d *schema.ResourceData, meta inte
 func resourceBizflyCloudNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	networkInterface, err := client.CloudServer.NetworkInterfaces().Get(context.Background(), d.Id())
+	if !d.IsNewResource() && errors.Is(err, gobizfly.ErrNotFound) {
+		log.Printf("[WARN] Network interface %s is not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
 	if err != nil {
 		return fmt.Errorf("Error read network interface network %s: %w", d.Id(), err)
 	}

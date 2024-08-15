@@ -108,11 +108,14 @@ func resourceServerSchema() map[string]*schema.Schema {
 			},
 			Optional: true,
 		},
-		"network_interface_ids": {
-			Type:     schema.TypeSet,
-			Elem:     &schema.Schema{Type: schema.TypeString},
-			Computed: true,
+		"network_interfaces": {
+			Type: schema.TypeSet,
+			Elem: &schema.Resource{
+				Schema: resourceServerNetworkInterfaceSchema(),
+			},
+			Optional: true,
 		},
+
 		"vpc_network_ids": {
 			Type:     schema.TypeSet,
 			Elem:     &schema.Schema{Type: schema.TypeString},
@@ -151,6 +154,39 @@ func resourceServerFreeWANNetworkInterfaceSchema() map[string]*schema.Schema {
 		"ip_address": {
 			Type:     schema.TypeString,
 			Computed: true,
+		},
+	}
+}
+
+func resourceServerNetworkInterfaceSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"id": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"ip_address": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"ip_version": {
+			Type:     schema.TypeInt,
+			Computed: true,
+		},
+		"type": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"firewall_ids": {
+			Type:     schema.TypeList,
+			Computed: true,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"enabled": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  true,
 		},
 	}
 }

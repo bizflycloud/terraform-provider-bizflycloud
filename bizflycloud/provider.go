@@ -101,7 +101,6 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_cloud_database_configuration":     resourceBizflyCloudDatabaseConfiguration(),
 			"bizflycloud_cloud_database_instance":          resourceBizflyCloudDatabaseInstance(),
 			"bizflycloud_custom_image":                     resourceBizflyCloudCustomImage(),
-			"bizflycloud_network_interface_attachment":     resourceBizflyCloudNetworkInterfaceAttachment(),
 			"bizflycloud_volume_attachment":                resourceBizflyCloudVolumeAttachment(),
 			"bizflycloud_cdn":                              resourceBizflyCloudCDN(),
 		},

@@ -41,6 +41,14 @@ resource "bizflycloud_server" "tf_server1" {
       "56cf1f22-d8cb-41c3-948a-cc03582f0adc"
     ]
   }
+  network_interfaces {
+    id = bizflycloud_wan_ip.tf_wanip.id
+    enabled = true
+  }
+  network_interfaces {
+    id = bizflycloud_network_interface.tf_network_interface.id
+    enabled = true
+  }
 }
 ```
 
@@ -65,13 +73,15 @@ The following arguments are supported:
   saving_plan
 * `user_data` - (Optional) The user data to provide when launching the server.
 * `state` - (Optional) The state of server (running/stopped). Default value is running
-* `default_public_ipv4` - (Optional) The default public IPv4 WAN network interface of the server.
+* `default_public_ipv4` - (Optional) The default public IPv4 WAN network interface (free WAN ipv4) of the server.
   - `firewall_ids` - (Optional) A list of the firewall IDs of the network interface.
   - `enabled` - (Optional) The enabled public IPv4 WAN (true/false). Default value is true.
-* `default_private_ipv6` - (Optional) The default private IPv6 LAN network interface of the server.
+* `default_private_ipv6` - (Optional) The default private IPv6 LAN network interface (free WAN ipv6) of the server.
   - `firewall_ids` - (Optional) A list of the firewall IDs of the network interface.
   - `enabled` - (Optional) The enabled private IPv6 WAN (true/false). Default value is true.
-
+* `network_interfaces` - (Optional) The network interface (*paid wan ip* or *network interface*) for attach to the server. Replace for resource **bizflycloud_network_interface_attachment**.
+  - `id` - (Required) The network interface id.
+  - `enabled` - (Optional) The enabled network interface (true/false). Default value is true.
 ## Attributes Reference
 
 The following attributes are exported:
@@ -103,7 +113,14 @@ The following attributes are exported:
 * `is_available` - The state that the server is available (not in a VM action)
 * `locked` - Is the server locked state
 * `state` - The state of server.
-
+* `network_interfaces` - The network interface (*paid wan ip* or *network interface*) for attach to the server.
+  - `id` - The network interface id.
+  - `enabled` - The enabled network interface (true/false). Default value is true.
+  - `ip_address` - The network interface IPv4 address.
+  - `ip_version` - The network interface ip version.
+  - `type` - The network interface type (LAN/WAN). *WAN* type define wan ip - *LAN* type define network interface. 
+  - `firewall_ids` - The attached firewalls of network interface.
+  
 ## Import
 
 Bizfly Cloud Server resource can be imported using the server id in the Bizfly manage dashboard
