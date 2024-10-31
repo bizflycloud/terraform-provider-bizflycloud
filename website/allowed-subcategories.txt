@@ -1,7 +1,0 @@
-AutoScaling
-Cloud CDN
-Cloud Database
-Cloud DNS
-Cloud Kubernetes Engine
-Cloud Load Balancer
-Cloud Server
