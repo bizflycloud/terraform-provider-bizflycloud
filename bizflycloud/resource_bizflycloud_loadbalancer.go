@@ -43,6 +43,10 @@ func resourceBizflyCloudLoadBalancer() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"vpc_network_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"network_type": {
 				Type:         schema.TypeString,
 				Default:      constants.ExternalNetworkType,
@@ -89,10 +93,11 @@ func resourceBizflyCloudLoadBalancer() *schema.Resource {
 func resourceBizflyCloudLoadBalancerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	lbcr := gobizfly.LoadBalancerCreateRequest{
-		Name:        d.Get("name").(string),
-		Type:        d.Get("type").(string),
-		NetworkType: d.Get("network_type").(string),
-		Description: d.Get("description").(string),
+		Name:         d.Get("name").(string),
+		Type:         d.Get("type").(string),
+		NetworkType:  d.Get("network_type").(string),
+		Description:  d.Get("description").(string),
+		VPCNetworkID: d.Get("vpc_network_id").(string),
 	}
 	lb, err := client.CloudLoadBalancer.Create(context.Background(), &lbcr)
 	if err != nil {
@@ -115,6 +120,7 @@ func resourceBizflyCloudLoadBalancerRead(d *schema.ResourceData, meta interface{
 	_ = d.Set("vip_address", lb.VipAddress)
 	_ = d.Set("provisioning_status", lb.ProvisioningStatus)
 	_ = d.Set("operating_status", lb.OperatingStatus)
+	_ = d.Set("vpc_network_id", lb.VipNetworkID)
 
 	pools := schema.NewSet(schema.HashString, []interface{}{})
 	for _, v := range lb.Pools {
