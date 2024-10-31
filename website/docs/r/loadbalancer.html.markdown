@@ -43,6 +43,7 @@ The following arguments are supported:
 -   `description` - (Optional) The description of load balancer
 -   `network_type` - (Optional) - The type of network: `external` or `internal`. Default value is `external`
 -   `type` - (Optional) The type of load balancer: `small`, `medium` or `large`. Default is `medium`
+-   `vpc_network_id` - (Optional) - The ID of VPC network for internal load balancer
 
 ## Attributes Reference
 
