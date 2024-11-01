@@ -1,9 +1,8 @@
 ---
 subcategory: Cloud Server
-layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_server"
 description: |-
-  Provides a Bizfly Cloud Server resource. This can be used to create, modify, and delete Servers. Servers also support provisioning.
+    Provides a Bizfly Cloud Server resource. This can be used to create, modify, and delete Servers. Servers also support provisioning.
 ---
 
 # Resource: bizflycloud_server
@@ -56,71 +55,72 @@ resource "bizflycloud_server" "tf_server1" {
 
 The following arguments are supported:
 
-* `os_type` - (Required) The type for create server root disk: image, snapshot, rootdisk
-* `os_id` - (Required) The ID of OS - image ID, snapshot ID or volume rootdisk ID
-* `name` - (Required) The Server name.
-* `flavor_name` - (Required) The flavor of your server. The format for flavor is xc_yg, x is number of CPU, and y is GB
-  of RAM.
-* `category` - (Required) The category of a server: basic, premium, enterprise
-* `ssh_key` - (Optional) The name of SSH Key for the server
-* `availability_zone` - (Required) The availability zone of the server. Example: HN1, HN2, HCM1
-* `root_disk_type` - (Deprecated) The type of Root disk volume: SSD or HDD
-* `root_disk_volume_type` - (Required) The type of root disk volume. Get from data source volume type
-* `root_disk_size` - (Required) The size of Root disk volume.
-* `volume_ids` - (Optional) A list of the attached block storage volumes
-* `network_plan` - (Optional) The network plan for the server. The default value is free_datatransfer.
-* `billing_plan` - (Optional) The billing plan applied for the server (saving_plan/on_demand). Default value is
-  saving_plan
-* `user_data` - (Optional) The user data to provide when launching the server.
-* `state` - (Optional) The state of server (running/stopped). Default value is running
-* `default_public_ipv4` - (Optional) The default public IPv4 WAN network interface (free WAN ipv4) of the server.
-  - `firewall_ids` - (Optional) A list of the firewall IDs of the network interface.
-  - `enabled` - (Optional) The enabled public IPv4 WAN (true/false). Default value is true.
-* `default_private_ipv6` - (Optional) The default private IPv6 LAN network interface (free WAN ipv6) of the server.
-  - `firewall_ids` - (Optional) A list of the firewall IDs of the network interface.
-  - `enabled` - (Optional) The enabled private IPv6 WAN (true/false). Default value is true.
-* `network_interfaces` - (Optional) The network interface (*paid wan ip* or *network interface*) for attach to the server. Replace for resource **bizflycloud_network_interface_attachment**.
-  - `id` - (Required) The network interface id.
-  - `enabled` - (Optional) The enabled network interface (true/false). Default value is true.
+-   `os_type` - (Required) The type for create server root disk: image, snapshot, rootdisk
+-   `os_id` - (Required) The ID of OS - image ID, snapshot ID or volume rootdisk ID
+-   `name` - (Required) The Server name.
+-   `flavor_name` - (Required) The flavor of your server. The format for flavor is xc_yg, x is number of CPU, and y is GB
+    of RAM.
+-   `category` - (Required) The category of a server: basic, premium, enterprise
+-   `ssh_key` - (Optional) The name of SSH Key for the server
+-   `availability_zone` - (Required) The availability zone of the server. Example: HN1, HN2, HCM1
+-   `root_disk_type` - (Deprecated) The type of Root disk volume: SSD or HDD
+-   `root_disk_volume_type` - (Required) The type of root disk volume. Get from data source volume type
+-   `root_disk_size` - (Required) The size of Root disk volume.
+-   `volume_ids` - (Optional) A list of the attached block storage volumes
+-   `network_plan` - (Optional) The network plan for the server. The default value is free_datatransfer.
+-   `billing_plan` - (Optional) The billing plan applied for the server (saving_plan/on_demand). Default value is
+    saving_plan
+-   `user_data` - (Optional) The user data to provide when launching the server.
+-   `state` - (Optional) The state of server (running/stopped). Default value is running
+-   `default_public_ipv4` - (Optional) The default public IPv4 WAN network interface (free WAN ipv4) of the server.
+    -   `firewall_ids` - (Optional) A list of the firewall IDs of the network interface.
+    -   `enabled` - (Optional) The enabled public IPv4 WAN (true/false). Default value is true.
+-   `default_private_ipv6` - (Optional) The default private IPv6 LAN network interface (free WAN ipv6) of the server.
+    -   `firewall_ids` - (Optional) A list of the firewall IDs of the network interface.
+    -   `enabled` - (Optional) The enabled private IPv6 WAN (true/false). Default value is true.
+-   `network_interfaces` - (Optional) The network interface (_paid wan ip_ or _network interface_) for attach to the server. Replace for resource **bizflycloud_network_interface_attachment**.
+    -   `id` - (Required) The network interface id.
+    -   `enabled` - (Optional) The enabled network interface (true/false). Default value is true.
+
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the Server
-* `name`- The name of the Server
-* `flavor_name` - The flavor of the server
-* `category` - The category of the server
-* `status` - The status of the Server
-* `root_disk_id` - The ID of Server root disk
-* `root_disk_type` - The type of Server root disk
-* `root_disk_size` - The size of Server root disk
-* `availability_zone` - The availability zone of server
-* `volume_ids` - A list of the attached block storage volumes
-* `default_public_ipv4` - The default public IPv4 WAN network interface of the server.
-  - `id` - The ID of the IPv4 WAN.
-  - `firewall_ids` - A list of the firewall IDs of the network interface.
-  - `enabled` - The enabled public IPv4 WAN.
-  - `ip_address` - The IPv4 WAN address.
-* `default_private_ipv6` - The default private IPv6 LAN network interface of the server.
-  - `id` - The ID of the IPv6 WAN.
-  - `firewall_ids` - A list of the firewall IDs of the network interface.
-  - `enabled` - The enable private IPv6 WAN.
-  - `ip_address` - The IPv6 WAN address.
-* `network_interface_ids` - A list of the network interfaces
-* `network_plan` - The network plan for the server. The default value is free_datatransfer.
-* `vpc_network_ids` - A list of the VPC network IDs.
-* `billing_plan` - The billing plan applied for the server
-* `is_available` - The state that the server is available (not in a VM action)
-* `locked` - Is the server locked state
-* `state` - The state of server.
-* `network_interfaces` - The network interface (*paid wan ip* or *network interface*) for attach to the server.
-  - `id` - The network interface id.
-  - `enabled` - The enabled network interface (true/false). Default value is true.
-  - `ip_address` - The network interface IPv4 address.
-  - `ip_version` - The network interface ip version.
-  - `type` - The network interface type (LAN/WAN). *WAN* type define wan ip - *LAN* type define network interface. 
-  - `firewall_ids` - The attached firewalls of network interface.
-  
+-   `id` - The ID of the Server
+-   `name`- The name of the Server
+-   `flavor_name` - The flavor of the server
+-   `category` - The category of the server
+-   `status` - The status of the Server
+-   `root_disk_id` - The ID of Server root disk
+-   `root_disk_type` - The type of Server root disk
+-   `root_disk_size` - The size of Server root disk
+-   `availability_zone` - The availability zone of server
+-   `volume_ids` - A list of the attached block storage volumes
+-   `default_public_ipv4` - The default public IPv4 WAN network interface of the server.
+    -   `id` - The ID of the IPv4 WAN.
+    -   `firewall_ids` - A list of the firewall IDs of the network interface.
+    -   `enabled` - The enabled public IPv4 WAN.
+    -   `ip_address` - The IPv4 WAN address.
+-   `default_private_ipv6` - The default private IPv6 LAN network interface of the server.
+    -   `id` - The ID of the IPv6 WAN.
+    -   `firewall_ids` - A list of the firewall IDs of the network interface.
+    -   `enabled` - The enable private IPv6 WAN.
+    -   `ip_address` - The IPv6 WAN address.
+-   `network_interface_ids` - A list of the network interfaces
+-   `network_plan` - The network plan for the server. The default value is free_datatransfer.
+-   `vpc_network_ids` - A list of the VPC network IDs.
+-   `billing_plan` - The billing plan applied for the server
+-   `is_available` - The state that the server is available (not in a VM action)
+-   `locked` - Is the server locked state
+-   `state` - The state of server.
+-   `network_interfaces` - The network interface (_paid wan ip_ or _network interface_) for attach to the server.
+    -   `id` - The network interface id.
+    -   `enabled` - The enabled network interface (true/false). Default value is true.
+    -   `ip_address` - The network interface IPv4 address.
+    -   `ip_version` - The network interface ip version.
+    -   `type` - The network interface type (LAN/WAN). _WAN_ type define wan ip - _LAN_ type define network interface.
+    -   `firewall_ids` - The attached firewalls of network interface.
+
 ## Import
 
 Bizfly Cloud Server resource can be imported using the server id in the Bizfly manage dashboard

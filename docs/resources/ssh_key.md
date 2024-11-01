@@ -1,15 +1,15 @@
 ---
 subcategory: Cloud Server
-layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_ssh_key"
 description: |-
-  Provides a Bizfly Cloud SSH Key resource. This can be used to create and delete ssh key.
+    Provides a Bizfly Cloud SSH Key resource. This can be used to create and delete ssh key.
 ---
 
 # Resource: bizflycloud_ssh_key
 
 Provides a Bizfly Cloud SSH key resource. This can be used to create,
 and delete ssh key.
+
 ## Example Usage
 
 ```hcl
@@ -24,17 +24,16 @@ resource "bizflycloud_ssh_key" "sshkey" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the ssh key.
-* `public_key` - (Required) The public key of the ssh key.
-
+-   `name` - (Required) The name of the ssh key.
+-   `public_key` - (Required) The public key of the ssh key.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `name`- The name of the ssh key
-* `public_key` - The public key of the ssh key
-* `fingerprint` - The finger print of the ssh key
+-   `name`- The name of the ssh key
+-   `public_key` - The public key of the ssh key
+-   `fingerprint` - The finger print of the ssh key
 
 ## Import
 

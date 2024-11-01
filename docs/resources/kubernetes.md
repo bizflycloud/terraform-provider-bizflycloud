@@ -1,6 +1,5 @@
 ---
 subcategory: Cloud Kubernetes Engine
-layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_kubernetes"
 description: |-
     Provide a Bizfly Cloud Kubernetes Engine resource. This can be used to create, modify, and delete Clusters.

@@ -1,9 +1,8 @@
 ---
 subcategory: Cloud Kubernetes Engine
-layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_kubernetes_version"
 description: |-
-Provides a Bizfly Cloud Kubernetes Version
+    Provides a Bizfly Cloud Kubernetes Version
 ---
 
 # Data Source: bizflycloud_kubernetes_version
@@ -23,11 +22,11 @@ data "bizflycloud_kubernetes_version" "test_k8s_version" {
 
 The following arguments are supported:
 
-* `version` - (Required) The Kubernetes version
+-   `version` - (Required) The Kubernetes version
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of Kubernetes version
-* `version` - The Kubernetes version
+-   `id` - The ID of Kubernetes version
+-   `version` - The Kubernetes version
