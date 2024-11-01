@@ -1,9 +1,8 @@
 ---
 subcategory: Cloud Server
-layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_server_type"
 description: |-
-Provides a Bizfly Cloud Server type datasource. This can be used to read server type.
+    Provides a Bizfly Cloud Server type datasource. This can be used to read server type.
 ---
 
 # Data Source: bizflycloud_server_type
@@ -23,14 +22,14 @@ data "bizflycloud_server_type" "example_server_type" {
 
 The following arguments are supported:
 
-* `name` - The name of server type
+-   `name` - The name of server type
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id`- The ID of server types
-* `name`- The name of server type
-* `enabled` - The state of server type
-* `compute_class` - The compute class of server type
-* `priority` - The priority of server type
+-   `id`- The ID of server types
+-   `name`- The name of server type
+-   `enabled` - The state of server type
+-   `compute_class` - The compute class of server type
+-   `priority` - The priority of server type

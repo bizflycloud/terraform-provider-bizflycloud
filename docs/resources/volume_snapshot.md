@@ -1,15 +1,15 @@
 ---
 subcategory: Cloud Server
-layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_volume_snapshot"
 description: |-
-  Provides a Bizfly Cloud Volume Snapshot resource. This can be used to create and delete volume snapshot.
+    Provides a Bizfly Cloud Volume Snapshot resource. This can be used to create and delete volume snapshot.
 ---
 
 # Resource: bizflycloud_volume_snapshot
 
 Provides a Bizfly Cloud Volume Snapshot resource. This can be used to create,
 and delete volume snapshot.
+
 ## Example Usage
 
 ```hcl
@@ -24,18 +24,16 @@ resource "bizflycloud_volume_snapshot" "snapshot1" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the volume snapshot.
-* `volume_id` - (Required) The ID of volume will be take snapshot.
-
+-   `name` - (Required) The name of the volume snapshot.
+-   `volume_id` - (Required) The ID of volume will be take snapshot.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the volume snapshot
-* `name`- The name of the volume snapshot
-* `size` - The size of volume volume
-
+-   `id` - The ID of the volume snapshot
+-   `name`- The name of the volume snapshot
+-   `size` - The size of volume volume
 
 ## Import
 

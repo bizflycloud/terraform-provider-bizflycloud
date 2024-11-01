@@ -1,9 +1,8 @@
 ---
 subcategory: Cloud Server
-layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_custom_image"
 description: |-
-  Provides a Bizfly Cloud Custom Image resource. This can be used to create, and delete custom image.
+    Provides a Bizfly Cloud Custom Image resource. This can be used to create, and delete custom image.
 ---
 
 # Resource: bizflycloud_custom_image
@@ -26,25 +25,24 @@ resource "bizflycloud_custom_image" "new_custom_image1" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of Custom Image
-* `disk_format` - (Required) The disk format of Custom Image
-* `image_url` - (Required) The URL of image
+-   `name` - (Required) The name of Custom Image
+-   `disk_format` - (Required) The disk format of Custom Image
+-   `image_url` - (Required) The URL of image
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of Custom Image
-* `name` - The name of Custom Image
-* `size` - The size of Custom Image
-* `disk_format` - The disk format of Custom Image
-* `container_format` - The container format of Custom Image
-* `billing_plan` - The billing plan of Custom Image
-* `visibility` - The visibility of Custom Image
-* `created_at` - The time when Custom Image was created
-* `updated_at` - The time when Custom Image was updated
-* `description` - The description of Custom Image
-
+-   `id` - The ID of Custom Image
+-   `name` - The name of Custom Image
+-   `size` - The size of Custom Image
+-   `disk_format` - The disk format of Custom Image
+-   `container_format` - The container format of Custom Image
+-   `billing_plan` - The billing plan of Custom Image
+-   `visibility` - The visibility of Custom Image
+-   `created_at` - The time when Custom Image was created
+-   `updated_at` - The time when Custom Image was updated
+-   `description` - The description of Custom Image
 
 ## Import
 

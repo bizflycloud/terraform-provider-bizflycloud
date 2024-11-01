@@ -1,9 +1,8 @@
 ---
 subcategory: Cloud Kubernetes Engine
-layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_kubernetes_package"
 description: |-
-Provides a Bizfly Cloud Kubernetes Package
+    Provides a Bizfly Cloud Kubernetes Package
 ---
 
 # Data Source: bizflycloud_kubernetes_package
