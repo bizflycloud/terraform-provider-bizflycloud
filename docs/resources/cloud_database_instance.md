@@ -1,8 +1,8 @@
 ---
 subcategory: Cloud Database
-layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_cloud_database_instance"
-description: - Provide a Bizfly Cloud Database Instances resource. This can be used to create, modify, and delete.
+description: |-
+    Provide a Bizfly Cloud Database Instances resource. This can be used to create, modify, and delete.
 ---
 
 # Resource: bizflycloud_cloud_database_instance
@@ -141,35 +141,34 @@ resource "bizflycloud_cloud_database_instance" "terraform_patroni_mongo" {
 
 The following arguments are supported:
 
-* `autoscaling` - Information about autoscaling volume, ... for this database instance
-* `availability_zone` - (Required) The data center - that will allocate database instance primary node
-* `backup_id` - The backup id that want restore to new database instance
-* `datastore` - (Required) The datastore of database instance
-* `flavor_name` - (Required) The setting CPU/ RAM of this database node. This being applied for all database nodes
-* `init_databases` - The list databases name - that want create when master database node start
-* `instance_type` - (Required) The instance type of this database instance
-* `name` - (Required) Name of this database instance
-* `network_ids` - (Required)
-* `public_access` - Whether database instance can be connect from public internet
-* `secondaries` - Whether database instance with secondaries?
-  - `availability_zone` - The data center - that will allocate database instance members
-* `users` - The list users - that want create when master database node start
-  - `name` - The username of this user
-  - `password` - The password of this user
-  - `host` - (Optional) The source host a valid to this user access to database. This is valid with MariaDB/ MySQL
-  - `databases` - The list databases name that user can be access. If not define this value, user can access to all databases.
-* `volume_size` - (Required) The size of storage provision for this database instance, unit is `Gigabytes`
-* `configuration_group` - Define custom config for database nodes of this instance
-  - `id` - The ID of configuration group include custom configs that attach to all members of this database instance
-  - `apply_immediately` - Default: `true`. The node being restart after when attach configuration group if required
+-   `autoscaling` - Information about autoscaling volume, ... for this database instance
+-   `availability_zone` - (Required) The data center - that will allocate database instance primary node
+-   `backup_id` - The backup id that want restore to new database instance
+-   `datastore` - (Required) The datastore of database instance
+-   `flavor_name` - (Required) The setting CPU/ RAM of this database node. This being applied for all database nodes
+-   `init_databases` - The list databases name - that want create when master database node start
+-   `instance_type` - (Required) The instance type of this database instance
+-   `name` - (Required) Name of this database instance
+-   `network_ids` - (Required)
+-   `public_access` - Whether database instance can be connect from public internet
+-   `secondaries` - Whether database instance with secondaries?
+    -   `availability_zone` - The data center - that will allocate database instance members
+-   `users` - The list users - that want create when master database node start
+    -   `name` - The username of this user
+    -   `password` - The password of this user
+    -   `host` - (Optional) The source host a valid to this user access to database. This is valid with MariaDB/ MySQL
+    -   `databases` - The list databases name that user can be access. If not define this value, user can access to all databases.
+-   `volume_size` - (Required) The size of storage provision for this database instance, unit is `Gigabytes`
+-   `configuration_group` - Define custom config for database nodes of this instance
+    -   `id` - The ID of configuration group include custom configs that attach to all members of this database instance
+    -   `apply_immediately` - Default: `true`. The node being restart after when attach configuration group if required
 
 ### Atrributes Reference
 
 The following attributes are exported:
 
-* `created_at` - The time that init this database instance
-* `dns` - The DNS of this database instance (This current just have with MongoDB)
-* `id` - ID of this database instance
-* `nodes` - The list nodes - that are member of this database instance
-* `status` - The status of this database instance. Have some status like: `ACTIVE`, `RESIZE`, `ERROR`, `BUILD`
-
+-   `created_at` - The time that init this database instance
+-   `dns` - The DNS of this database instance (This current just have with MongoDB)
+-   `id` - ID of this database instance
+-   `nodes` - The list nodes - that are member of this database instance
+-   `status` - The status of this database instance. Have some status like: `ACTIVE`, `RESIZE`, `ERROR`, `BUILD`

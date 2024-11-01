@@ -1,6 +1,5 @@
 ---
 subcategory: Cloud Load Balancer
-layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_loadbalancer"
 description: |-
     Provides a Bizfly Cloud Load Balancer resource. This can be used to create, modify, and delete Load balancers.

@@ -1,9 +1,8 @@
 ---
 subcategory: Cloud Server
-layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_volume_attachment"
 description: |-
-  Provides a Bizfly Cloud Volume Attachment resource. This can be used to create and delete volume attachment to server.
+    Provides a Bizfly Cloud Volume Attachment resource. This can be used to create and delete volume attachment to server.
 ---
 
 # Resource: bizflycloud_volume_attachment
@@ -24,17 +23,16 @@ resource "bizflycloud_volume_attachment" "volume_attachment1" {
 
 The following arguments are supported:
 
-* `server_id` - (Required) The ID of the server.
-* `volume_id` - (Required) The ID of the volume.
+-   `server_id` - (Required) The ID of the server.
+-   `volume_id` - (Required) The ID of the volume.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the Volume ID
-* `server_id` - The ID of the server
-* `volume_id` - The ID of the volume
-
+-   `id` - The ID of the Volume ID
+-   `server_id` - The ID of the server
+-   `volume_id` - The ID of the volume
 
 ## Import
 

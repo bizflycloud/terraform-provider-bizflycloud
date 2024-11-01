@@ -1,9 +1,8 @@
 ---
 subcategory: Cloud Server
-layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_volume_type"
 description: |-
-Provides a Bizfly Cloud volume type datasource. This can be used to read volume type.
+    Provides a Bizfly Cloud volume type datasource. This can be used to read volume type.
 ---
 
 # Data Source: bizflycloud_volume_type
@@ -24,14 +23,14 @@ data "bizflycloud_volume_type" "example_volume_type" {
 
 The following arguments are supported:
 
-* `name` - The name of server type
-* `category` - The category of volume type
+-   `name` - The name of server type
+-   `category` - The category of volume type
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `name`- The name of server type
-* `category`- The category of volume type
-* `type`- The type of volume type
-* `availability_zones`- The availability zones of volume type
+-   `name`- The name of server type
+-   `category`- The category of volume type
+-   `type`- The type of volume type
+-   `availability_zones`- The availability zones of volume type

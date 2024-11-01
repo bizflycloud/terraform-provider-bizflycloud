@@ -1,9 +1,8 @@
 ---
 subcategory: Cloud Server
-layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_network_interface"
 description: |-
-  Provides a Bizfly Cloud Network Interface resource. This can be used to create, modify, and delete Network Interface.
+    Provides a Bizfly Cloud Network Interface resource. This can be used to create, modify, and delete Network Interface.
 ---
 
 # Resource: bizflycloud_network_interface
@@ -27,31 +26,30 @@ resource "bizflycloud_network_interface" "network_interface" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of network interface.
-* `network_id` - (Required) The Network ID of network interface.
-* `fixed_ip` - (Optional) The fixed IP of network interface.
-* `firewall_ids` - (Optional) The list ID of security groups.
+-   `name` - (Required) The name of network interface.
+-   `network_id` - (Required) The Network ID of network interface.
+-   `fixed_ip` - (Optional) The fixed IP of network interface.
+-   `firewall_ids` - (Optional) The list ID of security groups.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of network interface.
-* `name`- The name of network interface.
-* `network_id` - The Network ID of network interface.
-* `fixed_ip` - The fixed IP of network interface.
-* `mac_address` - The media access control address of network interface.
-* `admin_state_up` - The admin state up the network interface: true or false.
-* `status` - The status of network interface.
-* `server_id` - The server ID of network interface.
-* `port_security_enabled` - The port security enabled of network interface.
-* `fixed_ips` - The fixed ips of network interface.
-  * `subnet_id` - The subnet ID of network interface.
-  * `ip_address` - The IP address of network interface.
-* `firewall_ids` - List ID of security groups.
-* `created_at` - The created time of network interface.
-* `updated_at` - The updated time of network interface.
-
+-   `id` - The ID of network interface.
+-   `name`- The name of network interface.
+-   `network_id` - The Network ID of network interface.
+-   `fixed_ip` - The fixed IP of network interface.
+-   `mac_address` - The media access control address of network interface.
+-   `admin_state_up` - The admin state up the network interface: true or false.
+-   `status` - The status of network interface.
+-   `server_id` - The server ID of network interface.
+-   `port_security_enabled` - The port security enabled of network interface.
+-   `fixed_ips` - The fixed ips of network interface.
+    -   `subnet_id` - The subnet ID of network interface.
+    -   `ip_address` - The IP address of network interface.
+-   `firewall_ids` - List ID of security groups.
+-   `created_at` - The created time of network interface.
+-   `updated_at` - The updated time of network interface.
 
 ## Import
 

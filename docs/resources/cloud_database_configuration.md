@@ -1,8 +1,8 @@
 ---
 subcategory: Cloud Database
-layout: "bizflycloud"
 page_title: "Bizfly Cloud: bizflycloud_cloud_database_configuration"
-description: - Provide a Bizfly Cloud Configuration Group resource. This can be used to create, modify, and delete.
+description: |-
+    Provide a Bizfly Cloud Configuration Group resource. This can be used to create, modify, and delete.
 ---
 
 # Resource: bizflycloud_cloud_database_configuration
@@ -40,16 +40,14 @@ resource "bizflycloud_cloud_database_configuration" "terraform_appendOnly" {
 
 The following arguments are supported:
 
-* `name` - (Required) Name of this database instance
-* `datastore` - (Required) The datastore of database instance
-* `parameter` - (Required) The define for an option
-  - `name` - the option's name
-  - `value` - the option's value
-
+-   `name` - (Required) Name of this database instance
+-   `datastore` - (Required) The datastore of database instance
+-   `parameter` - (Required) The define for an option
+    -   `name` - the option's name
+    -   `value` - the option's value
 
 ### Atrributes Reference
 
 The following attributes are exported:
 
-* `nodes` - The list nodes - that being apply this configuration group
-
+-   `nodes` - The list nodes - that being apply this configuration group
