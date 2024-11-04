@@ -84,14 +84,14 @@ func resourceBizflyCloudCloudDatabaseInstanceCreate(d *schema.ResourceData, meta
 
 	if _, ok := d.GetOk("secondaries"); ok {
 		secondaries := readResourceCloudDatabaseInstanceSecondary(d.Get("secondaries").(*schema.Set))
-		// MariaDB/ MySQL has replica known as secondary nodes
-		if datastore["type"] == "MariaDB" || datastore["type"] == "MySQL" {
-			insc.Replicas = &gobizfly.CloudDatabaseReplicaNodeCreate{
+		// Other has replica known as secondary nodes
+		if datastore["type"] == "MariaDB" || datastore["type"] == "MySQL" || datastore["type"] == "MongoDB" || datastore["type"] == "Postgres" || datastore["type"] == "Redis" {
+			insc.Secondaries = &gobizfly.CloudDatabaseReplicaNodeCreate{
 				Quantity:       secondaries["quantity"].(int),
 				Configurations: gobizfly.CloudDatabaseReplicasConfiguration{AvailabilityZone: secondaries["availability_zone"].(string)},
 			}
 		} else {
-			insc.Secondaries = &gobizfly.CloudDatabaseReplicaNodeCreate{
+			insc.Replicas = &gobizfly.CloudDatabaseReplicaNodeCreate{
 				Quantity:       secondaries["quantity"].(int),
 				Configurations: gobizfly.CloudDatabaseReplicasConfiguration{AvailabilityZone: secondaries["availability_zone"].(string)},
 			}
