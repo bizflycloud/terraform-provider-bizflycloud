@@ -154,7 +154,8 @@ func resourceBizflyCloudCloudDatabaseInstanceCreate(d *schema.ResourceData, meta
 		}
 
 		for _, node := range ins.Nodes {
-			_, _ = client.CloudDatabase.Configurations().Attach(context.Background(), node.ID, cfg["id"], true)
+			res, err := client.CloudDatabase.Configurations().Attach(context.Background(), node.ID, cfg["id"], true)
+			log.Printf("[DEBUG] attach config group: res %s, err: %s", fmt.Sprint(res), fmt.Sprint(err))
 		}
 
 		if cfg["apply_immediately"] == "true" {
@@ -406,7 +407,7 @@ func waitForCloudDatabaseInstanceDelete(d *schema.ResourceData, meta interface{}
 		Target:         []string{"true"},
 		Refresh:        deleteCloudDatabaseInstanceStateRefreshFunc(d, meta),
 		Timeout:        d.Timeout(schema.TimeoutDelete),
-		Delay:          30 * time.Second,
+		Delay:          60 * time.Second,
 		MinTimeout:     10 * time.Second,
 		NotFoundChecks: 30,
 	}
@@ -467,8 +468,18 @@ func deleteCloudDatabaseInstanceStateRefreshFunc(d *schema.ResourceData, meta in
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	return func() (interface{}, string, error) {
-		ins, err := client.CloudDatabase.Instances().Get(context.Background(), d.Id())
+		// Check stask status
+		taskID := d.Get("task_id").(string)
+		task, err := client.CloudDatabase.Tasks().Get(context.Background(), taskID)
+		if err != nil {
+			return nil, "false", err
+		}
 
+		if task.Result.Progress < 100 {
+			return nil, "false", fmt.Errorf("instance is deleting")
+		}
+
+		ins, err := client.CloudDatabase.Instances().Get(context.Background(), d.Id())
 		if errors.Is(err, gobizfly.ErrNotFound) {
 			return ins, "true", nil
 		} else if err != nil {
