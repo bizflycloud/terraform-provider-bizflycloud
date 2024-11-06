@@ -154,8 +154,7 @@ func resourceBizflyCloudCloudDatabaseInstanceCreate(d *schema.ResourceData, meta
 		}
 
 		for _, node := range ins.Nodes {
-			res, err := client.CloudDatabase.Configurations().Attach(context.Background(), node.ID, cfg["id"], true)
-			log.Printf("[DEBUG] attach config group: res %s, err: %s", fmt.Sprint(res), fmt.Sprint(err))
+			_, _ = client.CloudDatabase.Configurations().Attach(context.Background(), node.ID, cfg["id"], true)
 		}
 
 		if cfg["apply_immediately"] == "true" {
