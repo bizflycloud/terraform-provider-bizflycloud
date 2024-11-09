@@ -406,7 +406,7 @@ func waitForCloudDatabaseInstanceDelete(d *schema.ResourceData, meta interface{}
 		Target:         []string{"true"},
 		Refresh:        deleteCloudDatabaseInstanceStateRefreshFunc(d, meta),
 		Timeout:        d.Timeout(schema.TimeoutDelete),
-		Delay:          60 * time.Second,
+		Delay:          30 * time.Second,
 		MinTimeout:     10 * time.Second,
 		NotFoundChecks: 30,
 	}
@@ -474,7 +474,7 @@ func deleteCloudDatabaseInstanceStateRefreshFunc(d *schema.ResourceData, meta in
 			return nil, "false", err
 		}
 
-		if task.Result.Progress < 100 {
+		if task.Ready {
 			return nil, "false", fmt.Errorf("instance is deleting")
 		}
 
