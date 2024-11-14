@@ -467,8 +467,18 @@ func deleteCloudDatabaseInstanceStateRefreshFunc(d *schema.ResourceData, meta in
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	return func() (interface{}, string, error) {
-		ins, err := client.CloudDatabase.Instances().Get(context.Background(), d.Id())
+		// Check stask status
+		taskID := d.Get("task_id").(string)
+		task, err := client.CloudDatabase.Tasks().Get(context.Background(), taskID)
+		if err != nil {
+			return nil, "false", err
+		}
 
+		if !task.Ready {
+			return nil, "false", fmt.Errorf("instance is deleting")
+		}
+
+		ins, err := client.CloudDatabase.Instances().Get(context.Background(), d.Id())
 		if errors.Is(err, gobizfly.ErrNotFound) {
 			return ins, "true", nil
 		} else if err != nil {
