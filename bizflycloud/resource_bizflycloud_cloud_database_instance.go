@@ -475,7 +475,7 @@ func deleteCloudDatabaseInstanceStateRefreshFunc(d *schema.ResourceData, meta in
 		}
 
 		if !task.Ready {
-			return nil, "false", fmt.Errorf("instance is deleting")
+			return nil, "false", nil
 		}
 
 		ins, err := client.CloudDatabase.Instances().Get(context.Background(), d.Id())
