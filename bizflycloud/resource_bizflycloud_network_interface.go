@@ -102,7 +102,7 @@ func resourceBizflyCloudNetworkInterfaceUpdate(d *schema.ResourceData, meta inte
 func resourceBizflyCloudNetworkInterfaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	err := client.CloudServer.NetworkInterfaces().Delete(context.Background(), d.Id())
-	if err != nil && strings.Contains(err.Error(), "Resource not found") {
+	if err != nil && !strings.Contains(err.Error(), "Resource not found") {
 		return fmt.Errorf("error when delete network interface: %v", err)
 	}
 	return nil
