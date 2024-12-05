@@ -161,7 +161,7 @@ The following arguments are supported:
 -   `volume_size` - (Required) The size of storage provision for this database instance, unit is `Gigabytes`
 -   `configuration_group` - Define custom config for database nodes of this instance
     -   `id` - The ID of configuration group include custom configs that attach to all members of this database instance
-    -   `apply_immediately` - Default: `true`. The node being restart after when attach configuration group if required
+    -   `apply_immediately` - Default: `false`. The node being restart after when attach configuration group if required
 
 ### Atrributes Reference
 
