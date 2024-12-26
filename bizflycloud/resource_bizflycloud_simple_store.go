@@ -53,7 +53,7 @@ func resourceBizflyCloudSimpleStoreCreate(d *schema.ResourceData, meta interface
 		Acl:                 d.Get("acl").(string),
 		DefaultStorageClass: d.Get("default_storage_class").(string),
 	}
-	ss, err := client.CloudSimpleStoreBucket.Create(context.Background(), &sscr)
+	ss, err := client.CloudSimpleStorage.Create(context.Background(), &sscr)
 	if err != nil {
 		return fmt.Errorf("Error when creating simple store bucket: %v", err)
 	}
@@ -63,7 +63,7 @@ func resourceBizflyCloudSimpleStoreCreate(d *schema.ResourceData, meta interface
 
 func resourceBizflyCloudSimpleStoreRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	simpleStores, err := client.CloudSimpleStoreBucket.List(context.Background(), &gobizfly.ListOptions{})
+	simpleStores, err := client.CloudSimpleStorage.List(context.Background(), &gobizfly.ListOptions{})
 	if err != nil {
 		return fmt.Errorf("Error retrieving simple store bucket: %v", err)
 	}
@@ -79,7 +79,7 @@ func resourceBizflyCloudSimpleStoreRead(d *schema.ResourceData, meta interface{}
 
 func resourceBizflySimpleStoreDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	err := client.CloudSimpleStoreBucket.Delete(context.Background(), d.Id())
+	err := client.CloudSimpleStorage.Delete(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("Error deleting simple store bucket: %v", err)
 	}

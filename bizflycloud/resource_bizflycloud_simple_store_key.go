@@ -47,7 +47,7 @@ func resourceBizflyCloudSimpleStoreKeyCreate(d *schema.ResourceData, meta interf
 		AccessKey: d.Get("access_key").(string),
 		SecretKey: d.Get("secret_key").(string),
 	}
-	_, err := client.CloudSimpleStoreBucket.SimpleStoreKey().Create(context.Background(), &cr)
+	_, err := client.CloudSimpleStorage.SimpleStoreKey().Create(context.Background(), &cr)
 	if err != nil {
 		return fmt.Errorf("Error when creating simple store key: %v", err)
 	}
@@ -57,7 +57,7 @@ func resourceBizflyCloudSimpleStoreKeyCreate(d *schema.ResourceData, meta interf
 
 func resourceBizflyCloudSimpleStoreKeyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	keys, err := client.CloudSimpleStoreBucket.SimpleStoreKey().List(context.Background(), &gobizfly.ListOptions{})
+	keys, err := client.CloudSimpleStorage.SimpleStoreKey().List(context.Background(), &gobizfly.ListOptions{})
 	if err != nil {
 		return fmt.Errorf("Error retrieving simple store key: %v", err)
 	}
@@ -70,7 +70,7 @@ func resourceBizflyCloudSimpleStoreKeyRead(d *schema.ResourceData, meta interfac
 
 func resourceBizflySimpleStoreKeyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	err := client.CloudSimpleStoreBucket.SimpleStoreKey().Delete(context.Background(), d.Id())
+	err := client.CloudSimpleStorage.SimpleStoreKey().Delete(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("Error deleting simple store key: %v", err)
 	}

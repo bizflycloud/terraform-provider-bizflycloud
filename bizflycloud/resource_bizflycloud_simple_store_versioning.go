@@ -45,7 +45,7 @@ func resourceBizflyCloudSimpleStoreVersioningUpdate(d *schema.ResourceData, meta
 		bucketName := d.Get("bucket_name").(string)
 		versioning := d.Get("versioning").(bool)
 
-		_, err := client.CloudSimpleStoreBucket.UpdateVersioning(context.Background(), versioning, bucketName)
+		_, err := client.CloudSimpleStorage.UpdateVersioning(context.Background(), versioning, bucketName)
 		if err != nil {
 			return fmt.Errorf("error updating simple store versioning: %v", err)
 		}
@@ -60,7 +60,7 @@ func resourceBizflyCloudSimpleStoreVersioningRead(d *schema.ResourceData, meta i
 		Versioning: "versioning",
 		BucketName: d.Get("bucket_name").(string),
 	}
-	dataBuckets, err := client.CloudSimpleStoreBucket.ListWithBucketNameInfo(context.Background(), paramGetPath)
+	dataBuckets, err := client.CloudSimpleStorage.ListWithBucketNameInfo(context.Background(), paramGetPath)
 	if err != nil {
 		return fmt.Errorf("Error when reading simple store Verioning: %v", err)
 	}
