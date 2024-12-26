@@ -82,7 +82,7 @@ func resourceBizflyCloudSimpleStoreCorsUpdate(d *schema.ResourceData, meta inter
 		BucketName: d.Get("bucket_name").(string),
 	}
 
-	_, err := client.CloudSimpleStoreBucket.UpdateCors(context.Background(), &paramCors)
+	_, err := client.CloudSimpleStorage.UpdateCors(context.Background(), &paramCors)
 	if err != nil {
 		return fmt.Errorf("error updating simple store CORS: %v", err)
 	}
@@ -105,7 +105,7 @@ func resourceBizflyCloudSimpleStoreCorsRead(d *schema.ResourceData, meta interfa
 		Cors:       "cors",
 		BucketName: d.Get("bucket_name").(string),
 	}
-	dataBuckets, err := client.CloudSimpleStoreBucket.ListWithBucketNameInfo(context.Background(), paramGetPath)
+	dataBuckets, err := client.CloudSimpleStorage.ListWithBucketNameInfo(context.Background(), paramGetPath)
 	if err != nil {
 		return fmt.Errorf("Error when reading simple store Cors: %v", err)
 	}

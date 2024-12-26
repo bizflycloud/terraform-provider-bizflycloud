@@ -52,7 +52,7 @@ func resourceBizflyCloudSimpleStoreWebsiteConfigUpdate(d *schema.ResourceData, m
 			Error:      d.Get("error").(string),
 			BucketName: d.Get("bucket_name").(string),
 		}
-		_, err := client.CloudSimpleStoreBucket.UpdateWebsiteConfig(context.Background(), &ParamUpdateWebConfig)
+		_, err := client.CloudSimpleStorage.UpdateWebsiteConfig(context.Background(), &ParamUpdateWebConfig)
 		if err != nil {
 			return fmt.Errorf("error updating simple store website config: %v", err)
 		}
@@ -67,7 +67,7 @@ func resourceBizflyCloudSimpleStoreWebsiteConfigRead(d *schema.ResourceData, met
 		WebsiteConfig: "website_config",
 		BucketName:    d.Get("bucket_name").(string),
 	}
-	dataList, err := client.CloudSimpleStoreBucket.ListWithBucketNameInfo(context.Background(), paramGetPath)
+	dataList, err := client.CloudSimpleStorage.ListWithBucketNameInfo(context.Background(), paramGetPath)
 	if err != nil {
 		return fmt.Errorf("Error when reading simple store website config: %v", err)
 	}

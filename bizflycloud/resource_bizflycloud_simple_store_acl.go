@@ -45,7 +45,7 @@ func resourceBizflyCloudSimpleStoreAclUpdate(d *schema.ResourceData, meta interf
 		bucketName := d.Get("bucket_name").(string)
 		acl := d.Get("acl").(string)
 
-		_, err := client.CloudSimpleStoreBucket.UpdateAcl(context.Background(), acl, bucketName)
+		_, err := client.CloudSimpleStorage.UpdateAcl(context.Background(), acl, bucketName)
 		if err != nil {
 			return fmt.Errorf("error updating simple store ACL: %v", err)
 		}
@@ -60,7 +60,7 @@ func resourceBizflyCloudSimpleStoreAclRead(d *schema.ResourceData, meta interfac
 		Acl:        "acl",
 		BucketName: d.Get("bucket_name").(string),
 	}
-	dataBuckets, err := client.CloudSimpleStoreBucket.ListWithBucketNameInfo(context.Background(), paramGetPath)
+	dataBuckets, err := client.CloudSimpleStorage.ListWithBucketNameInfo(context.Background(), paramGetPath)
 	if err != nil {
 		return fmt.Errorf("Error when reading simple store Acl: %v", err)
 	}
