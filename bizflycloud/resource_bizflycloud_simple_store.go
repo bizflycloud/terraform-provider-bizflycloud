@@ -16,7 +16,7 @@ func resourceBizflySimpleStoreBucket() *schema.Resource {
 		},
 		Create: resourceBizflyCloudSimpleStoreCreate,
 		Read:   resourceBizflyCloudSimpleStoreRead,
-		Delete: resourceBizflySimpleStoreDelete,
+		Delete: resourceBizflyCloudSimpleStoreDelete,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -77,7 +77,7 @@ func resourceBizflyCloudSimpleStoreRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceBizflySimpleStoreDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudSimpleStoreDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	err := client.CloudSimpleStorage.Delete(context.Background(), d.Id())
 	if err != nil {
