@@ -65,11 +65,11 @@ func resourceBizflyCloudSimpleStoreCorsUpdate(d *schema.ResourceData, meta inter
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	rulesData := d.Get("rules").(*schema.Set).List()
-	rules := make([]gobizfly.Rules, len(rulesData))
+	rules := make([]gobizfly.Rule, len(rulesData))
 
 	for i, rule := range rulesData {
 		ruleMap := rule.(map[string]interface{})
-		rules[i] = gobizfly.Rules{
+		rules[i] = gobizfly.Rule{
 			AllowedOrigin:  ruleMap["allowed_origin"].(string),
 			AllowedMethods: convertInterfaceSliceToStringSlice(ruleMap["allowed_methods"].([]interface{})),
 			AllowedHeaders: convertInterfaceSliceToStringSlice(ruleMap["allowed_headers"].([]interface{})),
