@@ -63,16 +63,16 @@ func resourceBizflyCloudSimpleStoreWebsiteConfigUpdate(d *schema.ResourceData, m
 
 func resourceBizflyCloudSimpleStoreWebsiteConfigRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	paramGetPath := gobizfly.ParamListWithBucketNameInfo{
+	paramListBucketInfo := gobizfly.ParamListWithBucketNameInfo{
 		WebsiteConfig: "website_config",
 		BucketName:    d.Get("bucket_name").(string),
 	}
-	dataList, err := client.CloudSimpleStorage.ListWithBucketNameInfo(context.Background(), paramGetPath)
+	dataBucket, err := client.CloudSimpleStorage.ListWithBucketNameInfo(context.Background(), paramListBucketInfo)
 	if err != nil {
 		return fmt.Errorf("Error when reading simple store website config: %v", err)
 	}
 
-	if err = d.Set("index", dataList.WebsiteConfig.Index); err != nil {
+	if err = d.Set("index", dataBucket.WebsiteConfig.Index); err != nil {
 		return fmt.Errorf("Error setting website config state: %v", err)
 	}
 	return nil

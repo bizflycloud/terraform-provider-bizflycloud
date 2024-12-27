@@ -14,9 +14,9 @@ func resourceBizflyCloudSimpleStoreBucket() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		Create: resourceBizflyCloudSimpleStoreCreate,
-		Read:   resourceBizflyCloudSimpleStoreRead,
-		Delete: resourceBizflyCloudSimpleStoreDelete,
+		Create: resourceBizflyCloudSimpleStoreBucketCreate,
+		Read:   resourceBizflyCloudSimpleStoreBucketRead,
+		Delete: resourceBizflyCloudSimpleStoreBucketDelete,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -45,23 +45,23 @@ func resourceBizflyCloudSimpleStoreBucket() *schema.Resource {
 	}
 }
 
-func resourceBizflyCloudSimpleStoreCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudSimpleStoreBucketCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	sscr := gobizfly.BucketCreateRequest{
+	bcr := gobizfly.BucketCreateRequest{
 		Name:                d.Get("name").(string),
 		Location:            d.Get("location").(string),
 		Acl:                 d.Get("acl").(string),
 		DefaultStorageClass: d.Get("default_storage_class").(string),
 	}
-	ss, err := client.CloudSimpleStorage.Create(context.Background(), &sscr)
+	ss, err := client.CloudSimpleStorage.Create(context.Background(), &bcr)
 	if err != nil {
 		return fmt.Errorf("Error when creating simple store bucket: %v", err)
 	}
 	d.SetId(ss.Name)
-	return resourceBizflyCloudSimpleStoreRead(d, meta)
+	return resourceBizflyCloudSimpleStoreBucketRead(d, meta)
 }
 
-func resourceBizflyCloudSimpleStoreRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudSimpleStoreBucketRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	simpleStores, err := client.CloudSimpleStorage.List(context.Background(), &gobizfly.ListOptions{})
 	if err != nil {
@@ -77,7 +77,7 @@ func resourceBizflyCloudSimpleStoreRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceBizflyCloudSimpleStoreDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudSimpleStoreBucketDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	err := client.CloudSimpleStorage.Delete(context.Background(), d.Id())
 	if err != nil {
