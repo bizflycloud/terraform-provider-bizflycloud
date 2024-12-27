@@ -56,11 +56,11 @@ func resourceBizflyCloudSimpleStoreAclUpdate(d *schema.ResourceData, meta interf
 
 func resourceBizflyCloudSimpleStoreAclRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	paramGetPath := gobizfly.ParamListWithBucketNameInfo{
+	paramListBucketInfo := gobizfly.ParamListWithBucketNameInfo{
 		Acl:        "acl",
 		BucketName: d.Get("bucket_name").(string),
 	}
-	dataBuckets, err := client.CloudSimpleStorage.ListWithBucketNameInfo(context.Background(), paramGetPath)
+	dataBuckets, err := client.CloudSimpleStorage.ListWithBucketNameInfo(context.Background(), paramListBucketInfo)
 	if err != nil {
 		return fmt.Errorf("Error when reading simple store Acl: %v", err)
 	}

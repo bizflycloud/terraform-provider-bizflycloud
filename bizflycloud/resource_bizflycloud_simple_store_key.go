@@ -16,7 +16,7 @@ func resourceBizflyCloudSimpleStoreAccessKey() *schema.Resource {
 		},
 		Create: resourceBizflyCloudSimpleStoreKeyCreate,
 		Read:   resourceBizflyCloudSimpleStoreKeyRead,
-		Delete: resourceBizflySimpleStoreKeyDelete,
+		Delete: resourceBizflyCloudSimpleStoreKeyDelete,
 		Schema: map[string]*schema.Schema{
 			"subuser_id": {
 				Type:     schema.TypeString,
@@ -42,17 +42,17 @@ func resourceBizflyCloudSimpleStoreAccessKey() *schema.Resource {
 
 func resourceBizflyCloudSimpleStoreKeyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	cr := gobizfly.KeyCreateRequest{
+	kcr := gobizfly.KeyCreateRequest{
 		SubuserId: d.Get("subuser_id").(string),
 		AccessKey: d.Get("access_key").(string),
 		SecretKey: d.Get("secret_key").(string),
 	}
-	_, err := client.CloudSimpleStorage.SimpleStoreKey().Create(context.Background(), &cr)
+	_, err := client.CloudSimpleStorage.SimpleStoreKey().Create(context.Background(), &kcr)
 	if err != nil {
 		return fmt.Errorf("Error when creating simple store key: %v", err)
 	}
-	d.SetId(cr.AccessKey)
-	return resourceBizflyCloudSimpleStoreRead(d, meta)
+	d.SetId(kcr.AccessKey)
+	return resourceBizflyCloudSimpleStoreKeyRead(d, meta)
 }
 
 func resourceBizflyCloudSimpleStoreKeyRead(d *schema.ResourceData, meta interface{}) error {
@@ -68,7 +68,7 @@ func resourceBizflyCloudSimpleStoreKeyRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceBizflySimpleStoreKeyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudSimpleStoreKeyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	err := client.CloudSimpleStorage.SimpleStoreKey().Delete(context.Background(), d.Id())
 	if err != nil {

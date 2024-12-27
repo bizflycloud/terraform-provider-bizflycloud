@@ -56,16 +56,16 @@ func resourceBizflyCloudSimpleStoreVersioningUpdate(d *schema.ResourceData, meta
 
 func resourceBizflyCloudSimpleStoreVersioningRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	paramGetPath := gobizfly.ParamListWithBucketNameInfo{
+	paramListBucketInfo := gobizfly.ParamListWithBucketNameInfo{
 		Versioning: "versioning",
 		BucketName: d.Get("bucket_name").(string),
 	}
-	dataBuckets, err := client.CloudSimpleStorage.ListWithBucketNameInfo(context.Background(), paramGetPath)
+	dataBucket, err := client.CloudSimpleStorage.ListWithBucketNameInfo(context.Background(), paramListBucketInfo)
 	if err != nil {
 		return fmt.Errorf("Error when reading simple store Verioning: %v", err)
 	}
 	versioningEnabled := false
-	if dataBuckets.Versioning.Status == "Enabled" {
+	if dataBucket.Versioning.Status == "Enabled" {
 		versioningEnabled = true
 	}
 

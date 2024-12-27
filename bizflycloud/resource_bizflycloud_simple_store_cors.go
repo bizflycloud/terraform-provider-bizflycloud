@@ -101,15 +101,15 @@ func convertInterfaceSliceToStringSlice(input []interface{}) []string {
 
 func resourceBizflyCloudSimpleStoreCorsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	paramGetPath := gobizfly.ParamListWithBucketNameInfo{
+	paramListBucketInfo := gobizfly.ParamListWithBucketNameInfo{
 		Cors:       "cors",
 		BucketName: d.Get("bucket_name").(string),
 	}
-	dataBuckets, err := client.CloudSimpleStorage.ListWithBucketNameInfo(context.Background(), paramGetPath)
+	dataBucket, err := client.CloudSimpleStorage.ListWithBucketNameInfo(context.Background(), paramListBucketInfo)
 	if err != nil {
 		return fmt.Errorf("Error when reading simple store Cors: %v", err)
 	}
-	d.SetId(dataBuckets.Bucket.Name)
+	d.SetId(dataBucket.Bucket.Name)
 
 	return nil
 }
