@@ -86,7 +86,7 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_loadbalancer_l7policy":            resourceBizflyCloudLoadBalancerL7Policy(),
 			"bizflycloud_loadbalancer_pool":                resourceBizflyCloudLoadBalancerPool(),
 			"bizflycloud_simple_storage_bucket":            resourceBizflyCloudSimpleStoreBucket(),
-			"bizflycloud_simple_storage_access_key":        resourceBizflyCloudSimpleStoreKey(),
+			"bizflycloud_simple_storage_access_key":        resourceBizflyCloudSimpleStoreAccessKey(),
 			"bizflycloud_simple_store_acl":                 resourceBizflyCloudSimpleStoreAcl(),
 			"bizflycloud_simple_store_versioning":          resourceBizflyCloudSimpleStoreVersioning(),
 			"bizflycloud_simple_store_cors":                resourceBizflyCloudSimpleStoreCors(),

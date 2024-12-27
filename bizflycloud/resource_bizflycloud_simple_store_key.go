@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceBizflyCloudSimpleStoreKey() *schema.Resource {
+func resourceBizflyCloudSimpleStoreAccessKey() *schema.Resource {
 	return &schema.Resource{
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
