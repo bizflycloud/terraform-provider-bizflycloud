@@ -1,3 +1,9 @@
+---
+subcategory: Cloud Simple Storage
+page_title: "Bizfly Cloud: bizflycloud_simple_storage_bucket_versioning"
+description: |-
+  Provides a Bizfly Cloud Simple Storage Bucket Website Config resource. This can be change Simple Storage Bucket Website Config
+---
 
 # Resource: bizflycloud_simple_storage_bucket_website_config
 
@@ -6,7 +12,7 @@ Provides a Bizfly Cloud Simple Storage Bucket Website Config resource. This can 
 ## Example Update Simple Storage Bucket Website Config
 
 ```hcl
-resource "bizflycloud_simple_storage_bucket_website_config" "example" {
+resource "bizflycloud_simple_storage_bucket_website_config" "bucket_website_config_example" {
     bucket_name = "newtest"
     index = "tttt.html"
     error = "okokokoefe"
@@ -29,5 +35,11 @@ The following attributes are exported:
 -   `index` - When users visit the website URL, this file will be loaded as the homepage. It is typically an HTML file like index.html
 -   `error` - This file acts as a fallback to display error messages, guiding users when the requested content is not available.
 
+## Import
 
+Bizfly Cloud Simple Storage Bucket Website Config resource can be imported using the server id in the Bizfly manage dashboard
+
+```
+$ terraform import bizflycloud_simple_storage_bucket_website_config.bucket_website_config_example bucket_name
+```
 

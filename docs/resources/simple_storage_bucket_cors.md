@@ -1,3 +1,9 @@
+---
+subcategory: Cloud Simple Storage
+page_title: "Bizfly Cloud: bizflycloud_simple_storage_bucket_cors"
+description: |-
+  Provides a Bizfly Cloud Simple Storage Bucket Cors resource. This can be change Simple Storage Bucket Cors
+---
 
 # Resource: bizflycloud_simple_storage_bucket_cors
 
@@ -6,7 +12,7 @@ Provides a Bizfly Cloud Simple Storage Bucket Cors resource. This can be change 
 ## Example Update Simple Storage Bucket Cors
 
 ```hcl
-resource "bizflycloud_simple_storage_bucket_cors" "example" {
+resource "bizflycloud_simple_storage_bucket_cors" "bucket_cors_example" {
   bucket_name = "newtest"
 
   rules {
@@ -48,3 +54,11 @@ The following attributes are exported:
     -   `allowed_methods` - A list of HTTP methods that are allowed for the specified origin.
     -   `allowed_headers` - A list of headers allowed in requests from the specified origin.
     -   `max_age_seconds` - The maximum time, in seconds, that the results of a preflight request can be cached by the browser.
+
+## Import
+
+Bizfly Cloud Simple Storage Bucket Cors resource can be imported using the server id in the Bizfly manage dashboard
+
+```
+$ terraform import bizflycloud_simple_storage_bucket_cors.bucket_cors_example bucket_name
+```

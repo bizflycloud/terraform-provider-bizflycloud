@@ -1,3 +1,10 @@
+---
+subcategory: Cloud Simple Storage
+page_title: "Bizfly Cloud: bizflycloud_simple_storage_bucket_acl"
+description: |-
+  Provides a Bizfly Cloud Simple Storage Bucket Acl resource. This can be change Simple Storage Bucket Acl
+---
+
 
 # Resource: bizflycloud_simple_storage_bucket_acl
 
@@ -6,7 +13,7 @@ Provides a Bizfly Cloud Simple Storage Bucket Acl resource. This can be change S
 ## Example Update Simple Storage Bucket Acl
 
 ```hcl
-resource "bizflycloud_simple_storage_bucket_acl" "bucket_example" {
+resource "bizflycloud_simple_storage_bucket_acl" "bucket_acl_example" {
     bucket_name = "newtest2"
     acl = "public-read"
 }
@@ -42,4 +49,10 @@ The following attributes are exported:
         - `email` - The email address of the grantee (if available, otherwise `null`).
         - `uri` - A URI identifying the group (if the grantee type is `Group`, otherwise `null`).
 
+## Import
 
+Bizfly Cloud Simple Storage Bucket Acl resource can be imported using the server id in the Bizfly manage dashboard
+
+```
+$ terraform import bizflycloud_simple_storage_bucket_acl.bucket_acl_example bucket_name
+```
