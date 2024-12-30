@@ -1,3 +1,9 @@
+---
+subcategory: Cloud Simple Storage
+page_title: "Bizfly Cloud: bizflycloud_simple_storage_access_key"
+description: |-
+    Provides a Bizfly Cloud Simple Storage Bucket resource. This can be used to create, modify, and delete Simple Storage Buckets.
+---
 
 # Resource: bizflycloud_simple_storage_access_key
 
@@ -28,3 +34,11 @@ The following attributes are exported:
 
 - `subuser_id` - The identifier linking the access key to the correct subuser in the Bizfly Cloud system.
 - `access_key` - The access key associated with the subuser.
+
+## Import
+
+Bizfly Cloud Simple Storage Access Key resource can be imported using the server id in the Bizfly manage dashboard
+
+```
+$ terraform import bizflycloud_simple_storage_access_key.access_key_example access_key
+```

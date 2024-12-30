@@ -1,8 +1,8 @@
 ---
-subcategory: Cloud Simple Storage Bucket
+subcategory: Cloud Simple Storage
 page_title: "Bizfly Cloud: bizflycloud_simple_storage_bucket"
 description: |-
-    Provides a Bizfly Cloud Simple Storage Bucket resource. This can be used to create, modify, and delete Simple Storage Buckets.
+    Provides a Bizfly Cloud Simple Storage Bucket resource. This can be used to create, modify, and delete Simple Storage Bucket.
 ---
 
 # Resource: bizflycloud_simple_storage_bucket
@@ -16,7 +16,6 @@ modify, and delete Simple Storage Bucket.
 resource "bizflycloud_simple_storage_bucket" "bucket_example" {
     name = "newtest"
     location = "hn"
-    acl = "private"
     default_storage_class = "COLD"
 }
 ```
@@ -28,7 +27,6 @@ resource "bizflycloud_simple_storage_bucket" "bucket_example" {
 resource "bizflycloud_simple_storage_bucket" "bucket_example1" {
     name = "newtest"
     location = "hn"
-    acl = "private"
     default_storage_class = "STANDARD"
 }
 ```
@@ -54,3 +52,10 @@ The following attributes are exported:
 -   `created_at` - The time created simple storage
 -   `size_kb` - The provisioning status of Simple Storage Bucket
 
+## Import
+
+Bizfly Cloud Simple Storage Bucket resource can be imported using the server id in the Bizfly manage dashboard
+
+```
+$ terraform import bizflycloud_simple_storage_bucket.bucket_example name_bucket
+```

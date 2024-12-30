@@ -28,11 +28,6 @@ func resourceBizflyCloudSimpleStorageBucket() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"acl": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
 			"default_storage_class": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -50,7 +45,7 @@ func resourceBizflyCloudSimpleStorageBucketCreate(d *schema.ResourceData, meta i
 	bcr := gobizfly.BucketCreateRequest{
 		Name:                d.Get("name").(string),
 		Location:            d.Get("location").(string),
-		Acl:                 d.Get("acl").(string),
+		Acl:                 "private",
 		DefaultStorageClass: d.Get("default_storage_class").(string),
 	}
 	ss, err := client.CloudSimpleStorage.Create(context.Background(), &bcr)
