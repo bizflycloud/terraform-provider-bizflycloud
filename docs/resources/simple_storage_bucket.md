@@ -2,7 +2,7 @@
 subcategory: Cloud Simple Storage
 page_title: "Bizfly Cloud: bizflycloud_simple_storage_bucket"
 description: |-
-    Provides a Bizfly Cloud Simple Storage Bucket resource. This can be used to create, modify, and delete Simple Storage Bucket.
+    Provides a Bizfly Cloud Simple Storage Bucket resource. This can be used to create, modify and delete Simple Storage Bucket.
 ---
 
 # Resource: bizflycloud_simple_storage_bucket

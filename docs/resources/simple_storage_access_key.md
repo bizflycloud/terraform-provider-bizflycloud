@@ -2,7 +2,7 @@
 subcategory: Cloud Simple Storage
 page_title: "Bizfly Cloud: bizflycloud_simple_storage_access_key"
 description: |-
-    Provides a Bizfly Cloud Simple Storage Bucket resource. This can be used to create, modify, and delete Simple Storage Buckets.
+    Provides a Bizfly Cloud Simple Storage Access Key resource. This can be used to create, modify and delete Simple Storage Access Key.
 ---
 
 # Resource: bizflycloud_simple_storage_access_key
