@@ -4,7 +4,7 @@
 Provides a Bizfly Cloud Simple Storage Access Key resource. This can be used to create,
 modify, and delete Simple Storage Bucket access keys.
 
-## Example Create Simple Storage Access Key with private access control
+## Example Create Simple Storage Access Key with access control
 
 ```hcl
 resource "bizflycloud_simple_storage_access_key" "access_key_example" {

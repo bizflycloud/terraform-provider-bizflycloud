@@ -10,18 +10,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceBizflyCloudSimpleStoreWebsiteConfig() *schema.Resource {
+func resourceBizflyCloudSimpleStorageBucketWebsiteConfig() *schema.Resource {
 	return &schema.Resource{
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		Create: resourceBizflyCloudSimpleStoreWebsiteConfigUpdate,
-		Read:   resourceBizflyCloudSimpleStoreWebsiteConfigRead,
+		Create: resourceBizflyCloudSimpleStorageBucketWebsiteConfigUpdate,
+		Read:   resourceBizflyCloudSimpleStorageBucketWebsiteConfigRead,
 		Delete: func(d *schema.ResourceData, meta interface{}) error {
 			log.Printf("[INFO] Delete operation is not supported for web config. Ignoring delete request.")
 			return nil
 		},
-		Update: resourceBizflyCloudSimpleStoreWebsiteConfigUpdate,
+		Update: resourceBizflyCloudSimpleStorageBucketWebsiteConfigUpdate,
 		Schema: map[string]*schema.Schema{
 			"bucket_name": {
 				Type:     schema.TypeString,
@@ -43,7 +43,7 @@ func resourceBizflyCloudSimpleStoreWebsiteConfig() *schema.Resource {
 	}
 }
 
-func resourceBizflyCloudSimpleStoreWebsiteConfigUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudSimpleStorageBucketWebsiteConfigUpdate(d *schema.ResourceData, meta interface{}) error {
 	if d.HasChange("error") {
 		client := meta.(*CombinedConfig).gobizflyClient()
 
@@ -58,10 +58,10 @@ func resourceBizflyCloudSimpleStoreWebsiteConfigUpdate(d *schema.ResourceData, m
 		}
 		d.SetId(d.Get("bucket_name").(string))
 	}
-	return resourceBizflyCloudSimpleStoreWebsiteConfigRead(d, meta)
+	return resourceBizflyCloudSimpleStorageBucketWebsiteConfigRead(d, meta)
 }
 
-func resourceBizflyCloudSimpleStoreWebsiteConfigRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudSimpleStorageBucketWebsiteConfigRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	paramListBucketInfo := gobizfly.ParamListWithBucketNameInfo{
 		WebsiteConfig: "website_config",

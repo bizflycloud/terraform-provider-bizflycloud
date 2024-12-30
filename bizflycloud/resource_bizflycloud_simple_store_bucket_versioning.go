@@ -10,18 +10,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceBizflyCloudSimpleStoreVersioning() *schema.Resource {
+func resourceBizflyCloudSimpleStorageBucketVersioning() *schema.Resource {
 	return &schema.Resource{
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		Create: resourceBizflyCloudSimpleStoreVersioningUpdate,
-		Read:   resourceBizflyCloudSimpleStoreVersioningRead,
+		Create: resourceBizflyCloudSimpleStorageBucketVersioningUpdate,
+		Read:   resourceBizflyCloudSimpleStorageBucketVersioningRead,
 		Delete: func(d *schema.ResourceData, meta interface{}) error {
 			log.Printf("[INFO] Delete operation is not supported for versioning. Ignoring delete request.")
 			return nil
 		},
-		Update: resourceBizflyCloudSimpleStoreVersioningUpdate,
+		Update: resourceBizflyCloudSimpleStorageBucketVersioningUpdate,
 		Schema: map[string]*schema.Schema{
 			"bucket_name": {
 				Type:     schema.TypeString,
@@ -39,7 +39,7 @@ func resourceBizflyCloudSimpleStoreVersioning() *schema.Resource {
 	}
 }
 
-func resourceBizflyCloudSimpleStoreVersioningUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudSimpleStorageBucketVersioningUpdate(d *schema.ResourceData, meta interface{}) error {
 	if d.HasChange("versioning") {
 		client := meta.(*CombinedConfig).gobizflyClient()
 		bucketName := d.Get("bucket_name").(string)
@@ -51,10 +51,10 @@ func resourceBizflyCloudSimpleStoreVersioningUpdate(d *schema.ResourceData, meta
 		}
 		d.SetId(bucketName)
 	}
-	return resourceBizflyCloudSimpleStoreVersioningRead(d, meta)
+	return resourceBizflyCloudSimpleStorageBucketVersioningRead(d, meta)
 }
 
-func resourceBizflyCloudSimpleStoreVersioningRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudSimpleStorageBucketVersioningRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	paramListBucketInfo := gobizfly.ParamListWithBucketNameInfo{
 		Versioning: "versioning",

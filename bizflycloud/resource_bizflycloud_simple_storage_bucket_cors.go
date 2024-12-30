@@ -10,18 +10,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceBizflyCloudSimpleStoreCors() *schema.Resource {
+func resourceBizflyCloudSimpleStorageBucketCors() *schema.Resource {
 	return &schema.Resource{
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		Create: resourceBizflyCloudSimpleStoreCorsUpdate,
-		Read:   resourceBizflyCloudSimpleStoreCorsRead,
+		Create: resourceBizflyCloudSimpleStorageBucketCorsUpdate,
+		Read:   resourceBizflyCloudSimpleStorageBucketCorsRead,
 		Delete: func(d *schema.ResourceData, meta interface{}) error {
 			log.Printf("[INFO] Delete operation is not supported for CORS. Ignoring delete request.")
 			return nil
 		},
-		Update: resourceBizflyCloudSimpleStoreCorsUpdate,
+		Update: resourceBizflyCloudSimpleStorageBucketCorsUpdate,
 		Schema: map[string]*schema.Schema{
 			"bucket_name": {
 				Type:     schema.TypeString,
@@ -61,7 +61,7 @@ func resourceBizflyCloudSimpleStoreCors() *schema.Resource {
 	}
 }
 
-func resourceBizflyCloudSimpleStoreCorsUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudSimpleStorageBucketCorsUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
 	rulesData := d.Get("rules").(*schema.Set).List()
@@ -88,7 +88,7 @@ func resourceBizflyCloudSimpleStoreCorsUpdate(d *schema.ResourceData, meta inter
 	}
 
 	d.SetId(d.Get("bucket_name").(string))
-	return resourceBizflyCloudSimpleStoreCorsRead(d, meta)
+	return resourceBizflyCloudSimpleStorageBucketCorsRead(d, meta)
 }
 
 func convertInterfaceSliceToStringSlice(input []interface{}) []string {
@@ -99,7 +99,7 @@ func convertInterfaceSliceToStringSlice(input []interface{}) []string {
 	return output
 }
 
-func resourceBizflyCloudSimpleStoreCorsRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudSimpleStorageBucketCorsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	paramListBucketInfo := gobizfly.ParamListWithBucketNameInfo{
 		Cors:       "cors",
