@@ -10,18 +10,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceBizflyCloudSimpleStoreAcl() *schema.Resource {
+func resourceBizflyCloudSimpleStorageBucketAcl() *schema.Resource {
 	return &schema.Resource{
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		Create: resourceBizflyCloudSimpleStoreAclUpdate,
-		Read:   resourceBizflyCloudSimpleStoreAclRead,
+		Create: resourceBizflyCloudSimpleStorageBucketAclUpdate,
+		Read:   resourceBizflyCloudSimpleStorageBucketAclRead,
 		Delete: func(d *schema.ResourceData, meta interface{}) error {
 			log.Printf("[INFO] Delete operation is not supported for ACL. Ignoring delete request.")
 			return nil
 		},
-		Update: resourceBizflyCloudSimpleStoreAclUpdate,
+		Update: resourceBizflyCloudSimpleStorageBucketAclUpdate,
 		Schema: map[string]*schema.Schema{
 			"bucket_name": {
 				Type:     schema.TypeString,
@@ -39,7 +39,7 @@ func resourceBizflyCloudSimpleStoreAcl() *schema.Resource {
 	}
 }
 
-func resourceBizflyCloudSimpleStoreAclUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudSimpleStorageBucketAclUpdate(d *schema.ResourceData, meta interface{}) error {
 	if d.HasChange("acl") {
 		client := meta.(*CombinedConfig).gobizflyClient()
 		bucketName := d.Get("bucket_name").(string)
@@ -51,10 +51,10 @@ func resourceBizflyCloudSimpleStoreAclUpdate(d *schema.ResourceData, meta interf
 		}
 		d.SetId(bucketName)
 	}
-	return resourceBizflyCloudSimpleStoreAclRead(d, meta)
+	return resourceBizflyCloudSimpleStorageBucketAclRead(d, meta)
 }
 
-func resourceBizflyCloudSimpleStoreAclRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBizflyCloudSimpleStorageBucketAclRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	paramListBucketInfo := gobizfly.ParamListWithBucketNameInfo{
 		Acl:        "acl",

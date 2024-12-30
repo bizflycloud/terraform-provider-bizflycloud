@@ -28,18 +28,18 @@ resource "bizflycloud_simple_storage_access_key" "example" {
     secret_key = "2222"
 }
 
-resource "bizflycloud_simple_store_acl" "example" {
+resource "bizflycloud_simple_storage_bucket_acl" "example" {
     bucket_name = "newtest"
     acl = "private"
 }
 // public-read
 // private
 
-resource "bizflycloud_simple_store_versioning" "example" {
+resource "bizflycloud_simple_storage_bucket_versioning" "example" {
     bucket_name = "newtest"
     versioning = false
 }
-resource "bizflycloud_simple_store_cors" "example" {
+resource "bizflycloud_simple_storage_bucket_cors" "example" {
   bucket_name = "newtest"
 
   rules {
@@ -57,7 +57,7 @@ resource "bizflycloud_simple_store_cors" "example" {
   }
 }
 
-resource "bizflycloud_simple_store_website_config" "example" {
+resource "bizflycloud_simple_storage_bucket_website_config" "example" {
     bucket_name = "newtest"
     index = "tttt.html"
     error = "okokokoefe"
