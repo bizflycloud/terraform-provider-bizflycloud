@@ -40,6 +40,6 @@ The following attributes are exported:
 Bizfly Cloud Simple Storage Bucket Website Config resource can be imported using the server id in the Bizfly manage dashboard
 
 ```
-$ terraform import bizflycloud_simple_storage_bucket_website_config.bucket_website_config_example name_bucket
+$ terraform import bizflycloud_simple_storage_bucket_website_config.bucket_website_config_example bucket_name
 ```
 

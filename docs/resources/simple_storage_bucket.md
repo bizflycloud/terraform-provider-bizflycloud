@@ -57,5 +57,5 @@ The following attributes are exported:
 Bizfly Cloud Simple Storage Bucket resource can be imported using the server id in the Bizfly manage dashboard
 
 ```
-$ terraform import bizflycloud_simple_storage_bucket.bucket_example name_bucket
+$ terraform import bizflycloud_simple_storage_bucket.bucket_example bucket_name
 ```

@@ -54,5 +54,5 @@ The following attributes are exported:
 Bizfly Cloud Simple Storage Bucket Acl resource can be imported using the server id in the Bizfly manage dashboard
 
 ```
-$ terraform import bizflycloud_simple_storage_bucket_acl.bucket_acl_example name_bucket
+$ terraform import bizflycloud_simple_storage_bucket_acl.bucket_acl_example bucket_name
 ```

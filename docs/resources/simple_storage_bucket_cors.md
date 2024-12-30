@@ -60,5 +60,5 @@ The following attributes are exported:
 Bizfly Cloud Simple Storage Bucket Cors resource can be imported using the server id in the Bizfly manage dashboard
 
 ```
-$ terraform import bizflycloud_simple_storage_bucket_cors.bucket_cors_example name_bucket
+$ terraform import bizflycloud_simple_storage_bucket_cors.bucket_cors_example bucket_name
 ```
