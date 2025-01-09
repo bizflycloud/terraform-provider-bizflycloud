@@ -22,7 +22,7 @@ data "bizflycloud_vpc_network" "tf_vpc" {
 resource "bizflycloud_internet_gateway" "tf_igw" {
     name = "igw-name"
     description = "Internet gateway for tf_vpc"
-    vpc_network_id = data.bizflycloud_vpc_network.tf_vpc
+    vpc_network_id = data.bizflycloud_vpc_network.tf_vpc.id
 }
 ```
 
