@@ -29,5 +29,5 @@ data "bizflycloud_vpc_network" "ducnv" {
 resource "bizflycloud_internet_gateway" "tf_igw" {
     name = "igw03"
     description = "Internet gateway 03"
-    vpc_network_id = data.bizflycloud_vpc_network.ducnv
+    vpc_network_id = data.bizflycloud_vpc_network.ducnv.id
 }
