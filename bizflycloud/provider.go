@@ -109,6 +109,7 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_custom_image":                         resourceBizflyCloudCustomImage(),
 			"bizflycloud_volume_attachment":                    resourceBizflyCloudVolumeAttachment(),
 			"bizflycloud_cdn":                                  resourceBizflyCloudCDN(),
+			"bizflycloud_internet_gateway":                     resourceInternetGateway(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"bizflycloud_image":                            datasourceBizflyCloudImages(),
