@@ -2,8 +2,7 @@
 subcategory: Cloud Server
 page_title: "Bizfly Cloud: bizflycloud_internet_gateway"
 description: |-
-    Provides a Bizfly Cloud Internet Gateway resource. This can be used to create,
-modify, and delete Internet Gateway.
+    Provides a Bizfly Cloud Internet Gateway resource. This can be used to create, modify, and delete Internet Gateway.
 ---
 
 # Resource: bizflycloud_internet_gateway
