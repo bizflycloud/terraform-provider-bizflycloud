@@ -234,6 +234,11 @@ func resourceBizflyClusterCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	log.Println("[DEBUG] creating cluster")
+	extendedPools := readWorkerPoolFromConfig(d)
+	pools := make([]gobizfly.WorkerPool, 0)
+	for _, extendedPool := range extendedPools {
+		pools = append(pools, extendedPool.WorkerPool)
+	}
 	ccrq := &gobizfly.ClusterCreateRequest{
 		Name:         d.Get("name").(string),
 		Version:      d.Get("version").(string),
@@ -242,7 +247,7 @@ func resourceBizflyClusterCreate(d *schema.ResourceData, meta interface{}) error
 		AutoUpgrade:  d.Get("auto_upgrade").(bool),
 		LocalDNS:     d.Get("local_dns").(bool),
 		CNIPlugin:    d.Get("cni_plugin").(string),
-		WorkerPools:  readWorkerPoolFromConfig(d),
+		WorkerPools:  pools,
 		Tags:         tags,
 	}
 	log.Printf("[DEBUG] Create Cluster configuration: %#v\n", ccrq)
@@ -334,78 +339,95 @@ func resourceBizflyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 	if d.HasChange("worker_pools") {
 		newPools := readWorkerPoolFromConfig(d)
-		addPools := make([]gobizfly.WorkerPool, 0)
-		isOldPool := make(map[string]bool)
-		isNewPool := make(map[string]bool)
-		for _, pool := range cluster.WorkerPools {
-			isOldPool[pool.Name] = true
-		}
-		newPoolMap := make(map[string]gobizfly.WorkerPool, len(newPools))
+		// Create worker pools
+		newPoolMap := make(map[string]gobizfly.ExtendedWorkerPool)
+		createPools := make([]gobizfly.WorkerPool, 0)
 		for _, pool := range newPools {
-			newPoolMap[pool.Name] = pool
-			if !isOldPool[pool.Name] {
-				addPools = append(addPools, pool)
+			poolID := pool.UID
+			workerPool := pool.WorkerPool
+			if poolID == "" {
+				// add worker pool
+				createPools = append(createPools, workerPool)
 			} else {
-				isNewPool[pool.Name] = true
+				// old worker pool for check update
+				newPoolMap[poolID] = pool
 			}
 		}
-
+		// Update worker pools
+		updatePoolMap := make(map[string]gobizfly.UpdateWorkerPoolRequest)
 		for _, oldPool := range cluster.WorkerPools {
-			if isNewPool[oldPool.Name] {
-				// Check that the pool has any change
-				newStatePool := newPoolMap[oldPool.Name]
-				isUpdateLabels := !cmp.Equal(newStatePool.Labels, oldPool.Labels)
-				isUpdateTaints := !cmp.Equal(newStatePool.Taints, oldPool.Taints)
-				isUpdatePool := (oldPool.MaxSize != newStatePool.MaxSize) || (oldPool.MinSize != newStatePool.MinSize) ||
-					(oldPool.DesiredSize != newStatePool.DesiredSize) || isUpdateLabels || isUpdateTaints
-
+			poolID := oldPool.UID
+			newPool, ok := newPoolMap[poolID]
+			if ok {
+				// check update
+				isUpdateLabels := !cmp.Equal(newPool.Labels, oldPool.Labels)
+				isUpdateTaints := !cmp.Equal(newPool.Taints, oldPool.Taints)
+				isUpdateMaxSize := newPool.MaxSize != oldPool.MaxSize
+				isUpdateMinSize := newPool.MinSize != oldPool.MinSize
+				isUpdateDesiredSize := newPool.DesiredSize != oldPool.DesiredSize
+				isUpdatePool := isUpdateLabels || isUpdateTaints || isUpdateMaxSize || isUpdateMinSize || isUpdateDesiredSize
 				if isUpdatePool {
-					fmt.Printf("[DEBUG] Old pool state: %+v\nNew pool state: %+v", oldPool, newStatePool)
-					updateRequest := &gobizfly.UpdateWorkerPoolRequest{
-						DesiredSize: newStatePool.DesiredSize,
-						MinSize:     newStatePool.MinSize,
-						MaxSize:     newStatePool.MaxSize,
-						Labels:      newStatePool.Labels,
-						Taints:      newStatePool.Taints,
+					log.Printf("[DEBUG] Old pool state: %+v\nNew pool state: %+v", oldPool, newPool)
+					updateReq := gobizfly.UpdateWorkerPoolRequest{
+						DesiredSize: newPool.DesiredSize,
+						MinSize:     newPool.MinSize,
+						MaxSize:     newPool.MaxSize,
+						Labels:      newPool.Labels,
+						Taints:      newPool.Taints,
 					}
-					log.Printf("[DEBUG] update pool %+v to %+v", oldPool, updateRequest)
-					err := client.KubernetesEngine.UpdateClusterWorkerPool(context.Background(), d.Id(),
-						oldPool.UID, updateRequest)
-					if err != nil {
-						return fmt.Errorf("error update pool: %+v", err)
-					}
-					_, err = waitForPoolUpdate(d, oldPool.UID, meta)
-					if err != nil {
-						return fmt.Errorf("error waiting for pool update: %+v", err)
-					}
+					updatePoolMap[poolID] = updateReq
 				}
 			}
 		}
-		log.Printf("[DEBUG] add Pools %+v", addPools)
-		if len(addPools) > 0 {
+		// Delete worker pools
+		deletePools := make(map[string]string)
+		for _, oldPool := range cluster.WorkerPools {
+			poolID := oldPool.UID
+			_, ok := newPoolMap[poolID]
+			if !ok {
+				// delete pool
+				deletePools[poolID] = poolID
+			}
+		}
+
+		// call add pools
+		log.Printf("[DEBUG] add Pools %+v", createPools)
+		if len(createPools) > 0 {
 			awrq := &gobizfly.AddWorkerPoolsRequest{
-				WorkerPools: addPools,
+				WorkerPools: createPools,
 			}
 			_, err := client.KubernetesEngine.AddWorkerPools(context.Background(), d.Id(), awrq)
 			if err != nil {
 				return fmt.Errorf("Error add pool: %v", err)
 			}
 		}
-		for _, pool := range cluster.WorkerPools {
-			if isOldPool[pool.Name] && !isNewPool[pool.Name] {
-				log.Printf("[DEBUG] remove pool %+v", pool)
-				err := client.KubernetesEngine.DeleteClusterWorkerPool(context.Background(), d.Id(), pool.UID)
-				if err != nil {
-					return fmt.Errorf("Error delete pool: %v", err)
-				}
+		// call update pools
+		for poolID, updateReq := range updatePoolMap {
+			log.Printf("[DEBUG] update pool %+v", updateReq)
+			err := client.KubernetesEngine.UpdateClusterWorkerPool(context.Background(), d.Id(),
+				poolID, &updateReq)
+			if err != nil {
+				return fmt.Errorf("error update pool: %+v", err)
+			}
+			_, err = waitForPoolUpdate(d, poolID, meta)
+			if err != nil {
+				return fmt.Errorf("error waiting for pool update: %+v", err)
+			}
+		}
+		// call delete pools
+		for _, poolID := range deletePools {
+			log.Printf("[DEBUG] remove pool %+v", poolID)
+			err := client.KubernetesEngine.DeleteClusterWorkerPool(context.Background(), d.Id(), poolID)
+			if err != nil {
+				return fmt.Errorf("Error delete pool: %v", err)
 			}
 		}
 	}
 	return resourceBizflyCloudClusterRead(d, meta)
 }
 
-func readWorkerPoolFromConfig(l *schema.ResourceData) []gobizfly.WorkerPool {
-	pools := make([]gobizfly.WorkerPool, 0)
+func readWorkerPoolFromConfig(l *schema.ResourceData) []gobizfly.ExtendedWorkerPool {
+	pools := make([]gobizfly.ExtendedWorkerPool, 0)
 	for i := 0; i < len(l.Get("worker_pools").([]interface{})); i++ {
 		pattern := fmt.Sprintf("worker_pools.%d.", i)
 		tags := make([]string, 0)
@@ -432,7 +454,11 @@ func readWorkerPoolFromConfig(l *schema.ResourceData) []gobizfly.WorkerPool {
 			Labels:            labels,
 			Taints:            taints,
 		}
-		pools = append(pools, pool)
+		extendedPool := gobizfly.ExtendedWorkerPool{
+			WorkerPool: pool,
+			UID:        l.Get(pattern + "id").(string),
+		}
+		pools = append(pools, extendedPool)
 	}
 	return pools
 }

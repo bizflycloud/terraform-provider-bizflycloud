@@ -92,3 +92,5 @@ require (
 	google.golang.org/protobuf v1.33.0 // indirect
 	k8s.io/klog/v2 v2.2.0 // indirect
 )
+
+replace github.com/bizflycloud/gobizfly => github.com/duc20176723/gobizfly v0.0.0-20250214072015-63ff66dd07cc
