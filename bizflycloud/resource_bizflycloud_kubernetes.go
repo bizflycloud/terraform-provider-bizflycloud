@@ -283,12 +283,12 @@ func resourceBizflyCloudClusterRead(d *schema.ResourceData, meta interface{}) er
 	// get default worker pool
 	defaultWorkerPool := readWorkerPoolFromConfig(d)
 	defaultWorkerPoolID := cluster.WorkerPools[0].UID
-	if defaultWorkerPool != nil {
+	if defaultWorkerPool != nil && defaultWorkerPool.UID != "" {
 		defaultWorkerPoolID = defaultWorkerPool.UID
 	}
 	workerPool, err := client.KubernetesEngine.GetClusterWorkerPool(context.Background(), clusterID, defaultWorkerPoolID)
 	if err != nil {
-		return fmt.Errorf("[ERROR] GetClusterWorkerPool error: %v", err)
+		return fmt.Errorf("[ERROR] GetClusterWorkerPool %v error: %v", defaultWorkerPoolID, err)
 	}
 	workerPoolsConfig := parseWorkerPools(workerPool)
 	log.Printf("[DEBUG] workerPoolsConfig %v", workerPoolsConfig)
