@@ -355,7 +355,7 @@ func resourceBizflyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 	}
-	if d.HasChange("worker_pool") {
+	if d.HasChange("worker_pools") {
 		newWorkerPool := readWorkerPoolFromConfig(d)
 		poolID := newWorkerPool.UID
 		oldWorkerPool, err := client.KubernetesEngine.GetClusterWorkerPool(context.Background(), clusterID, poolID)
