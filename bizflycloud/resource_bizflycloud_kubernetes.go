@@ -65,6 +65,8 @@ func resourceBizflyCloudKubernetes() *schema.Resource {
 			},
 			"worker_pools": {
 				Type:     schema.TypeList,
+				MinItems: 1,
+				MaxItems: 1,
 				Required: true,
 				Elem:     &schema.Resource{Schema: workerPoolSchema()},
 			},
@@ -234,6 +236,11 @@ func resourceBizflyClusterCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	log.Println("[DEBUG] creating cluster")
+	workerPools := make([]gobizfly.WorkerPool, 0)
+	workerPool := readWorkerPoolFromConfig(d)
+	if workerPool != nil {
+		workerPools = append(workerPools, workerPool.WorkerPool)
+	}
 	ccrq := &gobizfly.ClusterCreateRequest{
 		Name:         d.Get("name").(string),
 		Version:      d.Get("version").(string),
@@ -242,7 +249,7 @@ func resourceBizflyClusterCreate(d *schema.ResourceData, meta interface{}) error
 		AutoUpgrade:  d.Get("auto_upgrade").(bool),
 		LocalDNS:     d.Get("local_dns").(bool),
 		CNIPlugin:    d.Get("cni_plugin").(string),
-		WorkerPools:  readWorkerPoolFromConfig(d),
+		WorkerPools:  workerPools,
 		Tags:         tags,
 	}
 	log.Printf("[DEBUG] Create Cluster configuration: %#v\n", ccrq)
@@ -273,6 +280,23 @@ func resourceBizflyCloudClusterRead(d *schema.ResourceData, meta interface{}) er
 		log.Printf("Error get upragde cluster %s version failed: %+v", clusterID, err)
 		upgradeVersion = &gobizfly.UpgradeClusterVersionResponse{}
 	}
+	// get default worker pool
+	defaultWorkerPool := readWorkerPoolFromConfig(d)
+	defaultWorkerPoolID := cluster.WorkerPools[0].UID
+	if defaultWorkerPool != nil {
+		defaultWorkerPoolID = defaultWorkerPool.UID
+	}
+	workerPool, err := client.KubernetesEngine.GetClusterWorkerPool(context.Background(), clusterID, defaultWorkerPoolID)
+	if err != nil {
+		return fmt.Errorf("[ERROR] GetClusterWorkerPool error: %v", err)
+	}
+	workerPoolsConfig := parseWorkerPools(workerPool)
+	log.Printf("[DEBUG] workerPoolsConfig %v", workerPoolsConfig)
+	// set config
+	err = d.Set("worker_pools", workerPoolsConfig)
+	if err != nil {
+		return fmt.Errorf("[ERROR] read cluster.worker_pool error %v", err)
+	}
 	_ = d.Set("name", cluster.Name)
 	_ = d.Set("version", cluster.Version.ID)
 	_ = d.Set("package_name", cluster.ClusterPackage.Name)
@@ -287,9 +311,8 @@ func resourceBizflyCloudClusterRead(d *schema.ResourceData, meta interface{}) er
 	_ = d.Set("current_version", cluster.Version.K8SVersion)
 	_ = d.Set("next_version", upgradeVersion.UpgradeTo)
 	_ = d.Set("enabled_upgrade_version", false)
-
-	workerPools := parseWorkerPools(cluster.WorkerPools)
-	_ = d.Set("worker_pools", workerPools)
+	_ = d.Set("tags", cluster.Tags)
+	_ = d.Set("package_id", cluster.ClusterPackage.ID)
 	return nil
 }
 
@@ -305,7 +328,7 @@ func resourceBizflyCloudClusterDelete(d *schema.ResourceData, meta interface{}) 
 func resourceBizflyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	clusterID := d.Id()
-	cluster, err := client.KubernetesEngine.Get(context.Background(), clusterID)
+	_, err := client.KubernetesEngine.Get(context.Background(), clusterID)
 	if err != nil {
 		return fmt.Errorf("Error update cluster: %v", err)
 	}
@@ -332,80 +355,46 @@ func resourceBizflyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 	}
-	if d.HasChange("worker_pools") {
-		newPools := readWorkerPoolFromConfig(d)
-		addPools := make([]gobizfly.WorkerPool, 0)
-		isOldPool := make(map[string]bool)
-		isNewPool := make(map[string]bool)
-		for _, pool := range cluster.WorkerPools {
-			isOldPool[pool.Name] = true
+	if d.HasChange("worker_pool") {
+		newWorkerPool := readWorkerPoolFromConfig(d)
+		poolID := newWorkerPool.UID
+		oldWorkerPool, err := client.KubernetesEngine.GetClusterWorkerPool(context.Background(), clusterID, poolID)
+		if err != nil {
+			return fmt.Errorf("[ERROR] GetClusterWorkerPool pool %v error: %v", poolID, clusterID)
 		}
-		newPoolMap := make(map[string]gobizfly.WorkerPool, len(newPools))
-		for _, pool := range newPools {
-			newPoolMap[pool.Name] = pool
-			if !isOldPool[pool.Name] {
-				addPools = append(addPools, pool)
-			} else {
-				isNewPool[pool.Name] = true
+		// Check that the pool has any change
+		isUpdateLabels := !cmp.Equal(newWorkerPool.Labels, oldWorkerPool.Labels)
+		isUpdateTaints := !cmp.Equal(newWorkerPool.Taints, oldWorkerPool.Taints)
+		isUpdateMaxSize := newWorkerPool.MaxSize != oldWorkerPool.MaxSize
+		isUpdateMinSize := newWorkerPool.MinSize != oldWorkerPool.MinSize
+		isUpdateDesiredSize := newWorkerPool.DesiredSize != oldWorkerPool.DesiredSize
+		isUpdatePool := isUpdateLabels || isUpdateTaints || isUpdateMaxSize || isUpdateMinSize || isUpdateDesiredSize
+		if isUpdatePool {
+			fmt.Printf("[DEBUG] Old pool state: %+v\nNew pool state: %+v", oldWorkerPool, newWorkerPool)
+			updateRequest := &gobizfly.UpdateWorkerPoolRequest{
+				DesiredSize: newWorkerPool.DesiredSize,
+				MinSize:     newWorkerPool.MinSize,
+				MaxSize:     newWorkerPool.MaxSize,
+				Labels:      newWorkerPool.Labels,
+				Taints:      newWorkerPool.Taints,
 			}
-		}
-
-		for _, oldPool := range cluster.WorkerPools {
-			if isNewPool[oldPool.Name] {
-				// Check that the pool has any change
-				newStatePool := newPoolMap[oldPool.Name]
-				isUpdateLabels := !cmp.Equal(newStatePool.Labels, oldPool.Labels)
-				isUpdateTaints := !cmp.Equal(newStatePool.Taints, oldPool.Taints)
-				isUpdatePool := (oldPool.MaxSize != newStatePool.MaxSize) || (oldPool.MinSize != newStatePool.MinSize) ||
-					(oldPool.DesiredSize != newStatePool.DesiredSize) || isUpdateLabels || isUpdateTaints
-
-				if isUpdatePool {
-					fmt.Printf("[DEBUG] Old pool state: %+v\nNew pool state: %+v", oldPool, newStatePool)
-					updateRequest := &gobizfly.UpdateWorkerPoolRequest{
-						DesiredSize: newStatePool.DesiredSize,
-						MinSize:     newStatePool.MinSize,
-						MaxSize:     newStatePool.MaxSize,
-						Labels:      newStatePool.Labels,
-						Taints:      newStatePool.Taints,
-					}
-					log.Printf("[DEBUG] update pool %+v to %+v", oldPool, updateRequest)
-					err := client.KubernetesEngine.UpdateClusterWorkerPool(context.Background(), d.Id(),
-						oldPool.UID, updateRequest)
-					if err != nil {
-						return fmt.Errorf("error update pool: %+v", err)
-					}
-					_, err = waitForPoolUpdate(d, oldPool.UID, meta)
-					if err != nil {
-						return fmt.Errorf("error waiting for pool update: %+v", err)
-					}
-				}
-			}
-		}
-		log.Printf("[DEBUG] add Pools %+v", addPools)
-		if len(addPools) > 0 {
-			awrq := &gobizfly.AddWorkerPoolsRequest{
-				WorkerPools: addPools,
-			}
-			_, err := client.KubernetesEngine.AddWorkerPools(context.Background(), d.Id(), awrq)
+			log.Printf("[DEBUG] update pool %+v to %+v", poolID, updateRequest)
+			err := client.KubernetesEngine.UpdateClusterWorkerPool(context.Background(), clusterID,
+				poolID, updateRequest)
 			if err != nil {
-				return fmt.Errorf("Error add pool: %v", err)
+				return fmt.Errorf("error update pool: %+v", err)
 			}
-		}
-		for _, pool := range cluster.WorkerPools {
-			if isOldPool[pool.Name] && !isNewPool[pool.Name] {
-				log.Printf("[DEBUG] remove pool %+v", pool)
-				err := client.KubernetesEngine.DeleteClusterWorkerPool(context.Background(), d.Id(), pool.UID)
-				if err != nil {
-					return fmt.Errorf("Error delete pool: %v", err)
-				}
+			_, err = waitForPoolUpdate(d, poolID, meta)
+			if err != nil {
+				return fmt.Errorf("error waiting for pool update: %+v", err)
 			}
 		}
 	}
 	return resourceBizflyCloudClusterRead(d, meta)
 }
 
-func readWorkerPoolFromConfig(l *schema.ResourceData) []gobizfly.WorkerPool {
-	pools := make([]gobizfly.WorkerPool, 0)
+func readWorkerPoolFromConfig(l *schema.ResourceData) *gobizfly.ExtendedWorkerPool {
+	pools := make([]*gobizfly.ExtendedWorkerPool, 0)
 	for i := 0; i < len(l.Get("worker_pools").([]interface{})); i++ {
 		pattern := fmt.Sprintf("worker_pools.%d.", i)
 		tags := make([]string, 0)
@@ -415,26 +404,33 @@ func readWorkerPoolFromConfig(l *schema.ResourceData) []gobizfly.WorkerPool {
 		}
 		labels := readLabelsConfig(l, pattern)
 		taints := readTaintsConfig(l, pattern)
-		pool := gobizfly.WorkerPool{
-			Name:              l.Get(pattern + "name").(string),
-			Flavor:            l.Get(pattern + "flavor").(string),
-			ProfileType:       l.Get(pattern + "profile_type").(string),
-			VolumeType:        l.Get(pattern + "volume_type").(string),
-			VolumeSize:        l.Get(pattern + "volume_size").(int),
-			AvailabilityZone:  l.Get(pattern + "availability_zone").(string),
-			DesiredSize:       l.Get(pattern + "desired_size").(int),
-			EnableAutoScaling: l.Get(pattern + "enable_autoscaling").(bool),
-			MinSize:           l.Get(pattern + "min_size").(int),
-			MaxSize:           l.Get(pattern + "max_size").(int),
-			NetworkPlan:       l.Get(pattern + "network_plan").(string),
-			BillingPlan:       l.Get(pattern + "billing_plan").(string),
-			Tags:              tags,
-			Labels:            labels,
-			Taints:            taints,
+		pool := &gobizfly.ExtendedWorkerPool{
+			UID: l.Get(pattern + "id").(string),
+			WorkerPool: gobizfly.WorkerPool{
+				Name:              l.Get(pattern + "name").(string),
+				Flavor:            l.Get(pattern + "flavor").(string),
+				ProfileType:       l.Get(pattern + "profile_type").(string),
+				VolumeType:        l.Get(pattern + "volume_type").(string),
+				VolumeSize:        l.Get(pattern + "volume_size").(int),
+				AvailabilityZone:  l.Get(pattern + "availability_zone").(string),
+				DesiredSize:       l.Get(pattern + "desired_size").(int),
+				EnableAutoScaling: l.Get(pattern + "enable_autoscaling").(bool),
+				MinSize:           l.Get(pattern + "min_size").(int),
+				MaxSize:           l.Get(pattern + "max_size").(int),
+				NetworkPlan:       l.Get(pattern + "network_plan").(string),
+				BillingPlan:       l.Get(pattern + "billing_plan").(string),
+				Tags:              tags,
+				Labels:            labels,
+				Taints:            taints,
+			},
 		}
 		pools = append(pools, pool)
+		break
 	}
-	return pools
+	if len(pools) == 0 {
+		return nil
+	}
+	return pools[0]
 }
 
 func readTaintsConfig(l *schema.ResourceData, pattern string) []gobizfly.Taint {
@@ -506,29 +502,30 @@ func parseWorkerPoolTaints(taints []gobizfly.Taint) []map[string]interface{} {
 	return results
 }
 
-func parseWorkerPools(workerPools []gobizfly.ExtendedWorkerPool) []map[string]interface{} {
+func parseWorkerPools(workerPool *gobizfly.WorkerPoolWithNodes) []map[string]interface{} {
 	results := make([]map[string]interface{}, 0)
-	for _, workerPool := range workerPools {
-		taints := parseWorkerPoolTaints(workerPool.Taints)
-		result := map[string]interface{}{
-			"id":                 workerPool.UID,
-			"name":               workerPool.Name,
-			"flavor":             workerPool.Flavor,
-			"profile_type":       workerPool.ProfileType,
-			"volume_type":        workerPool.VolumeType,
-			"volume_size":        workerPool.VolumeSize,
-			"availability_zone":  workerPool.AvailabilityZone,
-			"desired_size":       workerPool.DesiredSize,
-			"enable_autoscaling": workerPool.EnableAutoScaling,
-			"min_size":           workerPool.MinSize,
-			"max_size":           workerPool.MaxSize,
-			"tags":               workerPool.Tags,
-			"labels":             workerPool.Labels,
-			"taints":             taints,
-			"network_plan":       workerPool.NetworkPlan,
-			"billing_plan":       workerPool.BillingPlan,
-		}
-		results = append(results, result)
+	if workerPool == nil {
+		return nil
 	}
+	taints := parseWorkerPoolTaints(workerPool.Taints)
+	result := map[string]interface{}{
+		"id":                 workerPool.UID,
+		"name":               workerPool.Name,
+		"flavor":             workerPool.Flavor,
+		"profile_type":       workerPool.ProfileType,
+		"volume_type":        workerPool.VolumeType,
+		"volume_size":        workerPool.VolumeSize,
+		"availability_zone":  workerPool.AvailabilityZone,
+		"desired_size":       workerPool.DesiredSize,
+		"enable_autoscaling": workerPool.EnableAutoScaling,
+		"min_size":           workerPool.MinSize,
+		"max_size":           workerPool.MaxSize,
+		"tags":               workerPool.Tags,
+		"labels":             workerPool.Labels,
+		"taints":             taints,
+		"network_plan":       workerPool.NetworkPlan,
+		"billing_plan":       workerPool.BillingPlan,
+	}
+	results = append(results, result)
 	return results
 }
