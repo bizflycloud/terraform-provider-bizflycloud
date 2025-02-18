@@ -97,6 +97,7 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_autoscaling_deletion_policy":          resourceBizflyCloudAutoscalingDeletionPolicy(),
 			"bizflycloud_autoscaling_launch_configuration":     resourceBizflyCloudAutoscalingLaunchConfiguration(),
 			"bizflycloud_kubernetes":                           resourceBizflyCloudKubernetes(),
+			"bizflycloud_kubernetes_worker_pool":               resourceBizflyCloudKubernetesWorkerPool(),
 			"bizflycloud_vpc_network":                          resourceBizflyCloudVPCNetwork(),
 			"bizflycloud_network_interface":                    resourceBizflyCloudNetworkInterface(),
 			"bizflycloud_dns":                                  resourceBizflyCloudDNS(),
