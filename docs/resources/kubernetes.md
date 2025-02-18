@@ -12,48 +12,54 @@ Provides a Bizfly Cloud Kubernetes Engine resource. This can be used to create, 
 ## Example Usage
 
 ```hcl
-data "bizflycloud_kubernetes_package" "standard_1" {
-  provision_type = "standard"
-  name = "STANDARD - 1"
+# Get version of the kubernetes
+data "bizflycloud_kubernetes_version" "tf_k8s_version" {
+  version = "v1.29.13"
 }
 
-resource "bizflycloud_kubernetes" "tf_create_k8s" {
-  name            = "create-ducnv"
-  auto_upgrade    = false
-  cni_plugin      = "kube-router"
-  local_dns       = false
-  version         = "64c8709c3f881935b73b43f0"
-  package_id     = data.bizflycloud_kubernetes_package.standard_1.id
-  vpc_network_id  = "e15c7244-7f16-4af6-8a67-2a31f7af38f9"
-  enabled_upgrade_version = false
-  worker_pools {
-      availability_zone  = "HN1"
-      billing_plan       = "saving_plan"
-      desired_size       = 1
-      enable_autoscaling = false
-      flavor             = "nix.2c_2g"
-      labels             = {
-          "ducnv" = "123"
-      }
-      max_size           = 1
-      min_size           = 1
-      name               = "pool-name"
-      network_plan       = "free_bandwidth"
-      profile_type       = "premium"
-      tags               = ["tag-name"]
-      volume_size        = 30
-      volume_type        = "PREMIUM-SSD1"
+# Get package of the kubernetes
+data "bizflycloud_kubernetes_package" "tf_k8s_package" {
+  provision_type = "standard"
+  name = "STANDARD-1"
+}
 
-      taints {
-          effect = "NoSchedule"
-          key    = "duc"
-          value  = "123"
-      }
+# Get VPC network
+data "bizflycloud_vpc_network" "tf_vpc" {
+  cidr = "10.20.2.0/24"
+}
 
-      taints {
-          effect = "PreferNoSchedule"
-          key    = "ducnv"
-      }
+resource "bizflycloud_kubernetes" "tf_cluster" {
+  name           = "cluster-name"
+  version        = data.bizflycloud_kubernetes_version.tf_k8s_version.id
+  vpc_network_id = data.bizflycloud_vpc_network.tf_vpc.id
+  tags           = ["tag-name"]
+  package_id     = data.bizflycloud_kubernetes_package.tf_k8s_package.id
+
+  worker_pool {
+    availability_zone  = "HN1"
+    billing_plan       = "on_demand"
+    desired_size       = 1
+    enable_autoscaling = true
+    flavor             = "nix.2c_2g"
+    labels             = {
+        "label-key" = "label-value"
+    }
+    max_size           = 3
+    min_size           = 1
+    name               = "pool-69645"
+    network_plan       = "free_datatransfer"
+    profile_type       = "premium"
+    tags               = [
+        "pool_tag"
+    ]
+    volume_size        = 40
+    volume_type        = "PREMIUM-HDD1"
+
+    taints {
+        effect = "NoSchedule"
+        key    = "taint-key"
+        value  = "taint-value"
+    }
   }
 }
 
@@ -72,7 +78,7 @@ The following arguments are supported:
 -   `local_dns` - (Optional) The local DNS (true/false). Default value is false.
 -   `cni_plugin` - (Optional) The CNI plugin (kube-router/cilium). Default value is kube-router.
 -   `enabled_upgrade_version` - (Optional) The enabled upgrade cluster version (true/false). Default value is false
--   `worker_pools` - (Required) The worker pools of Cluster
+-   `worker_pool` - (Required) A worker pool of the cluster.
     -   `name` - (Required) The worker pool name
     -   `flavor` - (Required) The flavor of pool
     -   `profile_type` - (Required) The profile type of pool
@@ -111,7 +117,7 @@ The following attributes are exported:
 -   `is_latest` - The cluster version is latest
 -   `current_version` - The current version of cluster
 -   `next_version` - The next version for upgrade cluster version
--   `worker_pools` - The worker pools of Cluster
+-   `worker_pool` - A worker pool of the cluster.
     -   `id` - The worker pool ID
     -   `name` - The worker pool name
     -   `flavor` - The flavor of pool
@@ -136,5 +142,5 @@ The following attributes are exported:
 Bizfly Cloud kubernetes resource can be imported using the cluster id
 
 ```
-$ terraform import bizflycloud_kubernetes.tf_create_k8s cluster-id
+$ terraform import bizflycloud_kubernetes.tf_cluster cluster-id
 ```

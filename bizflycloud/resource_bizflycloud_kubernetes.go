@@ -63,7 +63,7 @@ func resourceBizflyCloudKubernetes() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"worker_pools": {
+			"worker_pool": {
 				Type:     schema.TypeList,
 				MinItems: 1,
 				MaxItems: 1,
@@ -293,7 +293,7 @@ func resourceBizflyCloudClusterRead(d *schema.ResourceData, meta interface{}) er
 	workerPoolsConfig := parseWorkerPools(workerPool)
 	log.Printf("[DEBUG] workerPoolsConfig %v", workerPoolsConfig)
 	// set config
-	err = d.Set("worker_pools", workerPoolsConfig)
+	err = d.Set("worker_pool", workerPoolsConfig)
 	if err != nil {
 		return fmt.Errorf("[ERROR] read cluster.worker_pool error %v", err)
 	}
@@ -355,7 +355,7 @@ func resourceBizflyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 	}
-	if d.HasChange("worker_pools") {
+	if d.HasChange("worker_pool") {
 		newWorkerPool := readWorkerPoolFromConfig(d)
 		poolID := newWorkerPool.UID
 		oldWorkerPool, err := client.KubernetesEngine.GetClusterWorkerPool(context.Background(), clusterID, poolID)
@@ -395,8 +395,8 @@ func resourceBizflyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 
 func readWorkerPoolFromConfig(l *schema.ResourceData) *gobizfly.ExtendedWorkerPool {
 	pools := make([]*gobizfly.ExtendedWorkerPool, 0)
-	for i := 0; i < len(l.Get("worker_pools").([]interface{})); i++ {
-		pattern := fmt.Sprintf("worker_pools.%d.", i)
+	for i := 0; i < len(l.Get("worker_pool").([]interface{})); i++ {
+		pattern := fmt.Sprintf("worker_pool.%d.", i)
 		tags := make([]string, 0)
 		for j := 0; j < len(l.Get("tags").([]interface{})); j++ {
 			tagPattern := pattern + fmt.Sprintf("tags.%d", j)
