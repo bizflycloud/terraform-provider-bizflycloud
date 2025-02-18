@@ -396,6 +396,9 @@ func resourceBizflyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 func readWorkerPoolFromConfig(l *schema.ResourceData) *gobizfly.ExtendedWorkerPool {
 	pools := make([]*gobizfly.ExtendedWorkerPool, 0)
 	for i := 0; i < len(l.Get("worker_pool").([]interface{})); i++ {
+		if len(pools) > 0 {
+			break
+		}
 		pattern := fmt.Sprintf("worker_pool.%d.", i)
 		tags := make([]string, 0)
 		for j := 0; j < len(l.Get("tags").([]interface{})); j++ {
@@ -425,7 +428,6 @@ func readWorkerPoolFromConfig(l *schema.ResourceData) *gobizfly.ExtendedWorkerPo
 			},
 		}
 		pools = append(pools, pool)
-		break
 	}
 	if len(pools) == 0 {
 		return nil
