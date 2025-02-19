@@ -21,68 +21,81 @@ provider "bizflycloud" {
   password    = var.PASSWORD
 }
 
-data "bizflycloud_kubernetes_version" "test_k8s_version" {
-  version = "v1.27.13"
+# Get version of the kubernetes
+data "bizflycloud_kubernetes_version" "tf_k8s_version" {
+  version = "v1.29.13"
 }
 
-data "bizflycloud_kubernetes_package" "standard_1" {
+# Get package of the kubernetes
+data "bizflycloud_kubernetes_package" "tf_k8s_package" {
   provision_type = "standard"
-  name = "STANDARD - 1"
+  name = "STANDARD-1"
 }
 
-resource "bizflycloud_kubernetes" "test_k8s_cluster" {
-  name           = "ducnv"
-  version        = data.bizflycloud_kubernetes_version.test_k8s_version.id
-  vpc_network_id = "0f05d672-6e25-439b-a27f-e7ffb44a07b2"
+# Get VPC network
+data "bizflycloud_vpc_network" "tf_vpc" {
+  cidr = "10.20.2.0/24"
+}
+
+resource "bizflycloud_kubernetes" "ducnv" {
+  name           = "ducnv-cluster"
+  version        = data.bizflycloud_kubernetes_version.tf_k8s_version.id
+  vpc_network_id = data.bizflycloud_vpc_network.tf_vpc.id
   tags           = ["tags", "123"]
-  package_id     = data.bizflycloud_kubernetes_package.standard_1.id
-  worker_pools {
-    name               = "pool-69646"
-    flavor             = "nix.2c_2g"
-    profile_type       = "premium"
-    volume_type        = "PREMIUM-HDD1"
-    volume_size        = 40
-    availability_zone  = "HN1"
-    desired_size       = 1
-    enable_autoscaling = true
-    min_size           = 1
-    max_size           = 3
-    tags               = ["pool_tag"]
-    labels = {
-      "UpdateLabel" = "UpdateLabelVal"
-    }
-    taints {
-      effect = "NoSchedule"
-      key    = "UpdateTaint"
-      value  = "UpdateTaintVal"
-    }
-  }
+  package_id     = data.bizflycloud_kubernetes_package.tf_k8s_package.id
 
-  worker_pools {
-    name               = "pool-69645"
-    flavor             = "nix.2c_2g"
-    profile_type       = "premium"
-    volume_type        = "PREMIUM-HDD1"
-    volume_size        = 40
+  worker_pool {
     availability_zone  = "HN1"
+    billing_plan       = "on_demand"
     desired_size       = 1
     enable_autoscaling = true
-    min_size           = 1
+    flavor             = "nix.2c_2g"
+    labels             = {
+        "label-key" = "label-value"
+    }
     max_size           = 3
-    tags               = ["pool_tag"]
-    labels = {
-      "UpdateLabel" = "UpdateLabelVal"
-      "label2"      = "labelVal2"
-    }
+    min_size           = 1
+    name               = "pool-69645"
+    network_plan       = "free_datatransfer"
+    profile_type       = "premium"
+    tags               = [
+      "pool_tag", ""
+    ]
+    volume_size        = 40
+    volume_type        = "PREMIUM-HDD1"
+
     taints {
       effect = "NoSchedule"
-      key    = "UpdateTaint2"
-      value  = "UpdateTaintVal2"
-    }
-    taints {
-      effect = "NoSchedule"
-      key    = "UpdateTaint1"
-      value  = "UpdateTaintVal1"
+      key    = "taint-key"
+      value  = "taint-value"
     }
   }
 }
+
+resource "bizflycloud_kubernetes_worker_pool" "tf_k8s_pool" {
+  cluster_id         = resource.bizflycloud_kubernetes.ducnv.id
+  availability_zone  = "HN1"
+  billing_plan       = "on_demand"
+  desired_size       = 1
+  enable_autoscaling = true
+  flavor             = "nix.2c_2g"
+  labels             = {
+      "label-key" = "label-value"
+  }
+  max_size           = 3
+  min_size           = 1
+  name               = "pool-12345"
+  network_plan       = "free_datatransfer"
+  profile_type       = "premium"
+  tags               = [
+    "pool_tag"
+  ]
+  volume_size        = 40
+  volume_type        = "PREMIUM-HDD1"
+
+  taints {
+    effect = "NoSchedule"
+    key    = "taint-key"
+    value  = "taint-value"
+  }
+} 

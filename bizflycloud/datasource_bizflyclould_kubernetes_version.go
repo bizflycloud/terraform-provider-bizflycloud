@@ -20,6 +20,8 @@ package bizflycloud
 import (
 	"context"
 	"fmt"
+
+	"github.com/bizflycloud/gobizfly"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -40,7 +42,11 @@ func datasourceBizflyCloudKubernetesControllerVersions() *schema.Resource {
 }
 func dataSourceBizflyCloudKubernetesVersion(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	resp, err := client.KubernetesEngine.GetKubernetesVersion(context.Background())
+	allOpt := true
+	opts := gobizfly.GetKubernetesVersionOpts{
+		All: &allOpt,
+	}
+	resp, err := client.KubernetesEngine.GetKubernetesVersion(context.Background(), opts)
 	if err != nil {
 		return err
 	}
