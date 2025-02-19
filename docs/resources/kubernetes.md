@@ -98,6 +98,8 @@ The following arguments are supported:
     -   `network_plan` - (Optional) The networking plan for the worker pool. Possible values: `free_datatransfer` (default): Data transfer is free | `free_bandwidth`: Bandwidth usage is free.
     -   `billing_plan` - (Optional) The billing model for the worker pool. Possible values:
 `saving_plan` (Cost-efficient pricing) | `on_demand` (Pay-as-you-go pricing). Default: `on_demand`
+    
+    **Note**: Update when the following fields change: `min_size`, `max_size`, `desired_size`, `labels` or `taints`. Replace when the following fields change: `name`, `flavor`, `profile_type`, `volume_type`, `volume_size`, `availability_zone`, `network_plan` or `billing_plan`.
 
 ## Attributes Reference
 

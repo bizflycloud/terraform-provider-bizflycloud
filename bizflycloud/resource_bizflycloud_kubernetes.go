@@ -259,6 +259,10 @@ func resourceBizflyClusterCreate(d *schema.ResourceData, meta interface{}) error
 	}
 	log.Println("[DEBUG] set id " + cluster.UID)
 	d.SetId(cluster.UID)
+	_, err = waitForClusterUpdate(d, meta)
+	if err != nil {
+		return fmt.Errorf("[ERROR] wait for create cluster %v error: %v", cluster.UID, err)
+	}
 	return resourceBizflyCloudClusterRead(d, meta)
 }
 
@@ -362,33 +366,84 @@ func resourceBizflyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 		if err != nil {
 			return fmt.Errorf("[ERROR] GetClusterWorkerPool pool %v error: %v", poolID, clusterID)
 		}
-		// Check that the pool has any change
-		isUpdateLabels := !cmp.Equal(newWorkerPool.Labels, oldWorkerPool.Labels)
-		isUpdateTaints := !cmp.Equal(newWorkerPool.Taints, oldWorkerPool.Taints)
-		isUpdateMaxSize := newWorkerPool.MaxSize != oldWorkerPool.MaxSize
-		isUpdateMinSize := newWorkerPool.MinSize != oldWorkerPool.MinSize
-		isUpdateDesiredSize := newWorkerPool.DesiredSize != oldWorkerPool.DesiredSize
-		isUpdatePool := isUpdateLabels || isUpdateTaints || isUpdateMaxSize || isUpdateMinSize || isUpdateDesiredSize
-		if isUpdatePool {
-			fmt.Printf("[DEBUG] Old pool state: %+v\nNew pool state: %+v", oldWorkerPool, newWorkerPool)
-			updateRequest := &gobizfly.UpdateWorkerPoolRequest{
-				DesiredSize: newWorkerPool.DesiredSize,
-				MinSize:     newWorkerPool.MinSize,
-				MaxSize:     newWorkerPool.MaxSize,
-				Labels:      newWorkerPool.Labels,
-				Taints:      newWorkerPool.Taints,
+		isUpdateName := newWorkerPool.Name != oldWorkerPool.Name
+		isUpdateFlavor := newWorkerPool.Flavor != oldWorkerPool.Flavor
+		isUpdateBillingPlan := newWorkerPool.BillingPlan != oldWorkerPool.BillingPlan
+		isUpdateAvailabilityZone := newWorkerPool.AvailabilityZone != oldWorkerPool.AvailabilityZone
+		isUpdateNetworkPlan := newWorkerPool.NetworkPlan != oldWorkerPool.NetworkPlan
+		isUpdateProfileType := newWorkerPool.ProfileType != oldWorkerPool.ProfileType
+		isUpdateVolumeSize := newWorkerPool.VolumeSize != oldWorkerPool.VolumeSize
+		isUpdateVolumeType := newWorkerPool.VolumeType != oldWorkerPool.VolumeType
+		isRenew := isUpdateName || isUpdateFlavor || isUpdateBillingPlan || isUpdateAvailabilityZone ||
+			isUpdateNetworkPlan || isUpdateProfileType || isUpdateVolumeSize || isUpdateVolumeType
+		if isRenew {
+			// Check create new default pool.
+			addPoolReq := &gobizfly.AddWorkerPoolsRequest{
+				WorkerPools: []gobizfly.WorkerPool{
+					newWorkerPool.WorkerPool,
+				},
 			}
-			log.Printf("[DEBUG] update pool %+v to %+v", poolID, updateRequest)
-			err := client.KubernetesEngine.UpdateClusterWorkerPool(context.Background(), clusterID,
-				poolID, updateRequest)
+			// Add new default pool
+			addedPool, err := client.KubernetesEngine.AddWorkerPools(context.Background(), clusterID, addPoolReq)
 			if err != nil {
-				return fmt.Errorf("error update pool: %+v", err)
+				return fmt.Errorf("[ERROR] add new worker pool for cluster %v error: %v", clusterID, err)
 			}
-			_, err = waitForPoolUpdate(d, poolID, meta)
+			// Delete old default pool
+			err = client.KubernetesEngine.DeleteClusterWorkerPool(context.Background(), clusterID, poolID)
 			if err != nil {
-				return fmt.Errorf("error waiting for pool update: %+v", err)
+				if errors.Is(err, gobizfly.ErrNotFound) {
+					log.Printf("[INFO] Worker pool %s is deleted", poolID)
+				} else {
+					return fmt.Errorf("[ERROR] remove old worker pool out of cluster %v error: %v", clusterID, err)
+				}
+			}
+			newPoolID := addedPool[0].UID
+			// Wait for new pool
+			_, err = waitForPoolUpdate(d, newPoolID, meta)
+			if err != nil {
+				return fmt.Errorf("error waiting for new pool %v update: %+v", newPoolID, err)
+			}
+			// Update new pool into state
+			newPool, err := client.KubernetesEngine.GetClusterWorkerPool(context.Background(), clusterID, newPoolID)
+			if err != nil {
+				return fmt.Errorf("[ERROR] Get new default pool %v error: %v", newPoolID, err)
+			}
+			newPoolConfig := parseWorkerPools(newPool)
+			_ = d.Set("worker_pool", newPoolConfig)
+		} else {
+			// Check that the pool has any change
+			isUpdateLabels := !cmp.Equal(newWorkerPool.Labels, oldWorkerPool.Labels)
+			isUpdateTaints := !cmp.Equal(newWorkerPool.Taints, oldWorkerPool.Taints)
+			isUpdateMaxSize := newWorkerPool.MaxSize != oldWorkerPool.MaxSize
+			isUpdateMinSize := newWorkerPool.MinSize != oldWorkerPool.MinSize
+			isUpdateDesiredSize := newWorkerPool.DesiredSize != oldWorkerPool.DesiredSize
+			isUpdatePool := isUpdateLabels || isUpdateTaints || isUpdateMaxSize || isUpdateMinSize || isUpdateDesiredSize
+			if isUpdatePool {
+				fmt.Printf("[DEBUG] Old pool state: %+v\nNew pool state: %+v", oldWorkerPool, newWorkerPool)
+				updateRequest := &gobizfly.UpdateWorkerPoolRequest{
+					DesiredSize: newWorkerPool.DesiredSize,
+					MinSize:     newWorkerPool.MinSize,
+					MaxSize:     newWorkerPool.MaxSize,
+					Labels:      newWorkerPool.Labels,
+					Taints:      newWorkerPool.Taints,
+				}
+				log.Printf("[DEBUG] update pool %+v to %+v", poolID, updateRequest)
+				err := client.KubernetesEngine.UpdateClusterWorkerPool(context.Background(), clusterID,
+					poolID, updateRequest)
+				if err != nil {
+					return fmt.Errorf("error update pool: %+v", err)
+				}
+				_, err = waitForPoolUpdate(d, poolID, meta)
+				if err != nil {
+					return fmt.Errorf("error waiting for pool update: %+v", err)
+				}
 			}
 		}
+	}
+	// wait for update cluster
+	_, err = waitForClusterUpdate(d, meta)
+	if err != nil {
+		return fmt.Errorf("[ERROR] wait for update cluster %v error: %v", clusterID, err)
 	}
 	return resourceBizflyCloudClusterRead(d, meta)
 }
@@ -530,4 +585,29 @@ func parseWorkerPools(workerPool *gobizfly.WorkerPoolWithNodes) []map[string]int
 	}
 	results = append(results, result)
 	return results
+}
+
+func waitForClusterUpdate(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	clusterID := d.Id()
+	log.Printf("[INFO] Waiting for cluster updating %s", clusterID)
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"PENDING_PROVISION", "PROVISIONING", "PENDING_UPDATE", "UPDATING"},
+		Target:     []string{"PROVISIONED", "PROVISION_ERROR", "UPDATE_ERROR", "UPGRADE_ERROR", "DESTROY_ERROR"},
+		Refresh:    newClusterStatusRefreshFunc(d, meta),
+		Timeout:    1200 * time.Second,
+		Delay:      20 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+	return stateConf.WaitForState()
+}
+
+func newClusterStatusRefreshFunc(d *schema.ResourceData, meta interface{}) resource.StateRefreshFunc {
+	client := meta.(*CombinedConfig).gobizflyClient()
+	return func() (interface{}, string, error) {
+		cluster, err := client.KubernetesEngine.Get(context.Background(), d.Id())
+		if err != nil {
+			return nil, "", err
+		}
+		return cluster, cluster.ProvisionStatus, nil
+	}
 }

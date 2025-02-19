@@ -179,7 +179,7 @@ func resourceBizflyCloudKubernetesWorkerPoolUpdate(d *schema.ResourceData, meta 
 		oldWorkerPool, err := client.KubernetesEngine.GetClusterWorkerPool(context.Background(), clusterID, poolID)
 		if err != nil {
 			if errors.Is(err, gobizfly.ErrNotFound) {
-				log.Printf("[WARN] Worker pool %s is not found", d.Id())
+				log.Printf("[WARN] Worker pool %s of cluster %v is not found", d.Id(), clusterID)
 				d.SetId("")
 				return nil
 			}
