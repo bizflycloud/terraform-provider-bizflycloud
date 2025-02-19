@@ -96,54 +96,54 @@ resource "bizflycloud_kubernetes_worker_pool" "tf_k8s_pool" {
 ## Argument Reference
 
 The following arguments are supported:
--   `cluster_id` - (Required) The ID of cluter.
--   `name` - (Required) The name of worker pool
--   `flavor` - (Required) The flavor of pool
--   `profile_type` - (Required) The profile type of pool
--   `volume_type` - (Required) The volume type
--   `volume_size` - (Required) The volume size
--   `availability_zone` - (Required) The availability zone
--   `enable_autoscaling` - (Optional) Enable auto scaling or not
--   `min_size` - (Optional) The number of the minimum node
--   `max_size` - (Optional) The number of the maximum node
--   `tags` - (Optional) The tags of the pool
--   `labels` - (Optional) The labels
--   `taints` - (Optional) The taints
-    -   `effect` - (Required) The effect (NoSchedule/PreferNoSchedule/NoExecute).
-    -   `key` - (Required) The key
-    -   `value` - (Optional) The value
--   `desired_size` - (Required) The desired size
--   `network_plan` - (Optional) The network plan (free_datatransfer/free_bandwidth). Default value is free_datatransfer.
--   `billing_plan` - (Optional) The billing plan (saving_plan/on_demand). Default value is on_demand.
+-   `cluster_id` - (Required) The unique ID of the Kubernetes cluster to which this worker pool belongs.
+-   `name` - (Required) The name of the worker pool, used to differentiate between multiple pools within the same cluster.
+-   `flavor` - (Required) The specification (flavor) for the worker nodes in this pool.
+-   `profile_type` - (Required) The profile type defining the characteristics (category) of the worker pool.
+-   `volume_type` - (Required) The type of storage volume attached to the worker nodes.
+-   `volume_size` - (Required) The size of the attached storage volume (in GB).
+-   `availability_zone` - (Required) The specific availability zone in which the worker nodes are deployed.
+-   `enable_autoscaling` - (Optional) Determines whether autoscaling is enabled for this worker pool (`true` or `false`). Default: `false`.
+-   `min_size` - (Optional) The minimum number of nodes allowed in the worker pool (applicable when autoscaling is enabled).
+-   `max_size` - (Optional) The maximum number of nodes allowed in the worker pool (applicable when autoscaling is enabled).
+-   `tags` - (Optional) Custom metadata tags assigned to the worker pool.
+-   `labels` - (Optional) Key-value pairs assigned to the worker nodes for identification and grouping.
+-   `taints` - (Optional) Scheduling constraints applied to the worker nodes to control which workloads can be scheduled on them.
+    -   `effect` - (Required) Defines how the taint affects pod scheduling (`NoSchedule`, `PreferNoSchedule`, or `NoExecute`).
+    -   `key` - (Required) The taint key.
+    -   `value` - (Optional) The taint value.
+-   `desired_size` - (Required) The desired number of nodes in the worker pool.
+-   `network_plan` - (Optional) The networking plan for the worker pool. Possible values: `free_datatransfer` (Data transfer is free) | `free_bandwidth` (Bandwidth usage is free). Default: `free_datatransfer`.
+-   `billing_plan` - (Optional) The billing model for the worker pool. Possible values: `saving_plan` (Cost-efficient pricing) | `on_demand` (Pay-as-you-go pricing). Default: `on_demand`.
 
 ## Attributes Reference
 
-The following attributes are exported:
+When a worker pool is created, the following attributes are returned:
 
--   `id` - The ID of worker pool
--   `cluster_id` - The ID of cluster
--   `name` - The name of worker pool
--   `flavor` - The flavor of pool
--   `profile_type` - The profile type of pool
--   `volume_type` - The volume type
--   `volume_size` - The volume size
--   `availability_zone` - The availability zone
--   `enable_autoscaling` - Enable auto scaling or not
--   `min_size` - The number of the minimum node
--   `max_size` - The number of the maximum node
--   `tags` - The tags of the pool
--   `labels` - The labels
--   `taints` - The taints
-    -   `effect` - The effect
-    -   `key` - The key
-    -   `value` - The value
--   `network_plan` - The network plan
--   `billing_plan` - The billing plan
--   `provision_status` - The status of worker pool
+-   `id` - The unique identifier of the worker pool.
+-   `cluster_id` - The ID of the cluster this worker pool belongs to.
+-   `name` - The name of the worker pool.
+-   `flavor` - The specification (flavor) of the worker nodes.
+-   `profile_type` - The profile type (category) of the worker pool.
+-   `volume_type` - The type of storage volume.
+-   `volume_size` - The size of the storage volume (in GB).
+-   `availability_zone` - The deployment zone of the worker nodes.
+-   `enable_autoscaling` - Whether autoscaling is enabled.
+-   `min_size` - The minimum number of nodes in the pool.
+-   `max_size` - The maximum number of nodes in the pool.
+-   `tags` - The assigned metadata tags.
+-   `labels` - Key-value labels applied to the nodes.
+-   `taints` - Applied scheduling constraints.
+    -   `effect` - The effect of the taint.
+    -   `key` - The taint key.
+    -   `value` - The taint value.
+-   `network_plan` - The selected network plan.
+-   `billing_plan` - The selected billing model.
+-   `provision_status` - The current status of the worker pool.
 
-## Import
+## Importing a Worker Pool
 
-Bizfly Cloud Worker Pool of Kubernetes resource can be imported using the worker pool id
+A Kubernetes Worker Pool on Bizfly Cloud can be imported using the worker pool ID.
 
 ```
 $ terraform import bizflycloud_kubernetes_worker_pool.tf_k8s_pool pool-id
