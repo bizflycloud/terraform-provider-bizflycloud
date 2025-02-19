@@ -78,7 +78,7 @@ The following arguments are supported:
 -   `local_dns` - (Optional) Enables a local DNS service for cluster name resolution. Improves internal DNS performance and reliability. Values: `true` (enabled) | `false` (disabled). Default: `false`.
 -   `cni_plugin` - (Optional) Specifies the Container Network Interface (CNI) plugin used for networking. Possible values: `kube-router` (A lightweight CNI plugin that provides network policies and BGP routing) | `cilium` (A more advanced CNI plugin with security features and network observability). Default: `kube-router`.
 -   `enabled_upgrade_version` - (Optional) Allows upgrading the cluster version. If enabled, the cluster can be manually upgraded to a new Kubernetes version. Values: `true` (enabled) | `false` (disabled). Default: `false`.
--   `worker_pool` - (Required) A **worker pool** defines a set of worker nodes that handle workloads within the cluster. The following arguments may be specified:
+-   `worker_pool` - (Required) A *worker pool* defines a set of worker nodes that handle workloads within the cluster. Additional worker pools may be added to the cluster using the **bizflycloud_kubernetes_worker_pool** resource. The following arguments may be specified:
     -   `name` - (Required) The name of the worker pool, used to differentiate between multiple pools within the same cluster.
     -   `flavor` - (Required) The specification (flavor) for the worker nodes in this pool.
     -   `profile_type` - (Required) The profile type defining the characteristics (category) of the worker pool.
