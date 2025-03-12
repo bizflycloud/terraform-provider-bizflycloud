@@ -111,6 +111,7 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_volume_attachment":                    resourceBizflyCloudVolumeAttachment(),
 			"bizflycloud_cdn":                                  resourceBizflyCloudCDN(),
 			"bizflycloud_internet_gateway":                     resourceInternetGateway(),
+			"bizflycloud_container_registry":                   resourceBizflyCloudContainerRegistry(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"bizflycloud_image":                            datasourceBizflyCloudImages(),
@@ -132,6 +133,7 @@ func Provider() terraform.ResourceProvider {
 			"bizflycloud_cloud_database_node":              datasourceBizflyCloudDatabaseNode(),
 			"bizflycloud_custom_image":                     dataSourceBizflyCloudCustomImage(),
 			"bizflycloud_volume_snapshot":                  dataSourceBizflyCloudVolumeSnapshot(),
+			"bizflycloud_container_registry":               dataSourceBizflyCloudContainerRegistry(),
 		},
 	}
 	p.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {
