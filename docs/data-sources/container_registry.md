@@ -1,5 +1,5 @@
 ---
-page_title: "BizFly Cloud: bizflycloud_container_registry"
+page_title: "Bizfly Cloud: bizflycloud_container_registry"
 subcategory: "Container Registry"
 description: |-
     Get information about a container registry.

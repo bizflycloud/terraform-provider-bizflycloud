@@ -16,6 +16,9 @@ func resourceBizflyCloudContainerRegistry() *schema.Resource {
 		Read:   resourceBizflyCloudContainerRegistryRead,
 		Update: resourceBizflyCloudContainerRegistryUpdate,
 		Delete: resourceBizflyCloudContainerRegistryDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -72,9 +75,15 @@ func resourceBizflyCloudContainerRegistryRead(d *schema.ResourceData, m interfac
 
 	for _, registry := range registries {
 		if registry.Name == name {
-			d.Set("name", registry.Name)
-			d.Set("public", registry.Public)
-			d.Set("created_at", registry.CreatedAt)
+			if err := d.Set("name", registry.Name); err != nil {
+				return fmt.Errorf("Error setting name: %v", err)
+			}
+			if err := d.Set("public", registry.Public); err != nil {
+				return fmt.Errorf("Error setting public: %v", err)
+			}
+			if err := d.Set("created_at", registry.CreatedAt); err != nil {
+				return fmt.Errorf("Error setting created_at: %v", err)
+			}
 			return nil
 		}
 	}

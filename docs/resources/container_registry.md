@@ -1,13 +1,13 @@
 ---
-page_title: "BizFly Cloud: bizflycloud_container_registry"
+page_title: "Bizfly Cloud: bizflycloud_container_registry"
 subcategory: "Container Registry"
 description: |-
-    Provides a BizFly Cloud Container Registry resource. This can be used to create, read, and delete container registries.
+    Provides a Bizfly Cloud Container Registry resource. This can be used to create, read, and delete container registries.
 ---
 
 # bizflycloud_container_registry
 
-Provides a BizFly Cloud Container Registry resource. This can be used to create and manage container registries.
+Provides a Bizfly Cloud Container Registry resource. This can be used to create and manage container registries.
 
 ## Example Usage
 
