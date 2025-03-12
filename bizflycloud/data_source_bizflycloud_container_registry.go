@@ -37,8 +37,15 @@ func dataSourceBizflyCloudContainerRegistryRead(d *schema.ResourceData, m interf
 	for _, registry := range registries {
 		if registry.Name == name {
 			d.SetId(registry.Name)
-			d.Set("name", registry.Name)
-			d.Set("created_at", registry.CreatedAt)
+			if err := d.Set("name", registry.Name); err != nil {
+				return fmt.Errorf("Error setting name: %v", err)
+			}
+			if err := d.Set("public", registry.Public); err != nil {
+				return fmt.Errorf("Error setting public: %v", err)
+			}
+			if err := d.Set("created_at", registry.CreatedAt); err != nil {
+				return fmt.Errorf("Error setting created_at: %v", err)
+			}
 			return nil
 		}
 	}
