@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/YakDriver/regexache v0.23.0
-	github.com/bizflycloud/gobizfly v1.1.18
+	github.com/bizflycloud/gobizfly v1.1.20
 	github.com/google/go-cmp v0.6.0
 	github.com/hashicorp/terraform-plugin-sdk v1.17.2
 	k8s.io/apimachinery v0.19.2
