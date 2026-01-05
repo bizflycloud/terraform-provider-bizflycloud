@@ -195,17 +195,15 @@ func resourceCloudDatabaseInstanceSchema() map[string]*schema.Schema {
 					"availability_zone": {
 						Type:     schema.TypeString,
 						Required: true,
-						ForceNew: true,
 					},
 					"quantity": {
 						Type:     schema.TypeInt,
 						Optional: true,
 						Default:  1,
-						ForceNew: true,
 						ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 							switch v := val.(int); true {
-							case v < 1:
-								errs = append(errs, fmt.Errorf("%q must be greater than 0, got: %d", key, v))
+							case v < 0:
+								errs = append(errs, fmt.Errorf("%q must be greater than or equal to 0, got: %d", key, v))
 							}
 							return
 						},

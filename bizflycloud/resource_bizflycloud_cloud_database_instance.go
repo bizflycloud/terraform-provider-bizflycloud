@@ -31,6 +31,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
+const (
+	nodeStatusRestartRequired = "RESTART_REQUIRED"
+)
+
 func resourceBizflyCloudDatabaseInstance() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceBizflyCloudCloudDatabaseInstanceCreate,
@@ -338,6 +342,233 @@ func resourceBizflyCloudCloudDatabaseInstanceUpdate(d *schema.ResourceData, meta
 		}
 	}
 
+	if d.HasChange("secondaries") {
+		old, new := d.GetChange("secondaries")
+		
+		// Get current instance
+		instance, err := client.CloudDatabase.Instances().Get(context.Background(), id)
+		if err != nil {
+			return fmt.Errorf("[ERROR] Get database instance [%s] failed: %v", id, err)
+		}
+
+		// Get old and new secondary counts
+		var oldQuantity, newQuantity int
+		var oldAZ, newAZ string
+		
+		if oldSet := old.(*schema.Set); oldSet.Len() > 0 {
+			oldSecondaries := readResourceCloudDatabaseInstanceSecondary(oldSet)
+			oldQuantity = oldSecondaries["quantity"].(int)
+			oldAZ = oldSecondaries["availability_zone"].(string)
+		}
+		
+		if newSet := new.(*schema.Set); newSet.Len() > 0 {
+			newSecondaries := readResourceCloudDatabaseInstanceSecondary(newSet)
+			newQuantity = newSecondaries["quantity"].(int)
+			newAZ = newSecondaries["availability_zone"].(string)
+		}
+
+		log.Printf("[DEBUG] Secondaries change: old_quantity=%d, new_quantity=%d, old_az=%s, new_az=%s", 
+			oldQuantity, newQuantity, oldAZ, newAZ)
+
+		// Handle removal of all secondaries
+		if newQuantity == 0 && oldQuantity > 0 {
+			log.Printf("[DEBUG] Removing all secondary nodes")
+			
+			// Get all secondary nodes to delete
+			for _, node := range instance.Nodes {
+				if node.Role == "secondary" {
+					log.Printf("[DEBUG] Deleting secondary node %s (%s)", node.ID, node.Name)
+					_, err := client.CloudDatabase.Nodes().Delete(context.Background(), node.ID, &gobizfly.CloudDatabaseDelete{})
+					if err != nil {
+						return fmt.Errorf("[ERROR] Delete secondary node %s failed: %v", node.ID, err)
+					}
+				}
+			}
+		} else if newQuantity > oldQuantity {
+			// Increase quantity - create new nodes
+			log.Printf("[DEBUG] Adding secondary nodes: %d -> %d", oldQuantity, newQuantity)
+			
+			// Find primary node ID
+			var primaryNodeID string
+			for _, node := range instance.Nodes {
+				if node.Role == "primary" {
+					primaryNodeID = node.ID
+					break
+				}
+			}
+
+			if primaryNodeID == "" {
+				return fmt.Errorf("[ERROR] Primary node not found for database instance [%s]", id)
+			}
+
+			// Create additional secondary nodes (quantity difference)
+			addCount := newQuantity - oldQuantity
+			nodeCreate := &gobizfly.CloudDatabaseNodeCreate{
+				ReplicaOf: primaryNodeID,
+				Role:      "secondary",
+			}
+
+			// Determine if it's secondary or replica based on datastore type
+			if datastore["type"] == "MariaDB" || datastore["type"] == "MySQL" || datastore["type"] == "MongoDB" || datastore["type"] == "Postgres" || datastore["type"] == "Redis" {
+				nodeCreate.Secondaries = &gobizfly.CloudDatabaseReplicaNodeCreate{
+					Quantity:       addCount,
+					Configurations: gobizfly.CloudDatabaseReplicasConfiguration{AvailabilityZone: newAZ},
+				}
+			} else {
+				nodeCreate.Replicas = &gobizfly.CloudDatabaseReplicaNodeCreate{
+					Quantity:       addCount,
+					Configurations: gobizfly.CloudDatabaseReplicasConfiguration{AvailabilityZone: newAZ},
+				}
+			}
+
+			nodeResp, err := client.CloudDatabase.Nodes().Create(context.Background(), nodeCreate)
+			if err != nil {
+				return fmt.Errorf("[ERROR] Create secondary nodes for database instance [%s] failed: %v", id, err)
+			}
+
+			log.Printf("[DEBUG] Created secondary node %s for database instance %s", nodeResp.ID, id)
+
+			// Wait for the new node to become active
+			err = waitForCloudDatabaseNodeCreate(nodeResp.ID, 10*time.Minute, meta)
+			if err != nil {
+				return fmt.Errorf("[ERROR] Wait for secondary node %s to become active failed: %s", nodeResp.ID, err)
+			}
+
+			// Attach configuration group if instance has one
+			if cfgGroup, ok := d.GetOk("configuration_group"); ok {
+				cfgMap := make(map[string]string)
+				for k, v := range cfgGroup.(map[string]interface{}) {
+					cfgMap[k] = fmt.Sprintf("%v", v)
+				}
+				
+				if cfgID, ok := cfgMap["id"]; ok && cfgID != "" {
+					log.Printf("[DEBUG] Attaching configuration group %s to new secondary node %s", cfgID, nodeResp.ID)
+					_, err := client.CloudDatabase.Configurations().Attach(context.Background(), nodeResp.ID, cfgID, true)
+					if err != nil {
+						return fmt.Errorf("[ERROR] Failed to attach configuration group %s to new secondary node %s: %v", cfgID, nodeResp.ID, err)
+					}
+					
+					// Restart if apply_immediately is true
+					if cfgMap["apply_immediately"] == "true" {
+						log.Printf("[DEBUG] Restarting new secondary node %s to apply configuration", nodeResp.ID)
+						_, err := client.CloudDatabase.Nodes().Restart(context.Background(), nodeResp.ID)
+						if err != nil {
+							return fmt.Errorf("[ERROR] Failed to restart new secondary node %s: %v", nodeResp.ID, err)
+						}
+						
+						// Wait for node to become active again
+						err = waitForCloudDatabaseNodeCreate(nodeResp.ID, 10*time.Minute, meta)
+						if err != nil {
+							return fmt.Errorf("[ERROR] Wait for new secondary node %s to become active after restart failed: %s", nodeResp.ID, err)
+						}
+					}
+					
+					log.Printf("[DEBUG] Successfully attached configuration group to new secondary node %s", nodeResp.ID)
+				}
+			}
+		} else if newQuantity < oldQuantity {
+			// Decrease quantity - delete excess nodes
+			log.Printf("[DEBUG] Removing secondary nodes: %d -> %d", oldQuantity, newQuantity)
+			
+			deleteCount := oldQuantity - newQuantity
+			
+			// Collect all secondary nodes
+			var secondaryNodes []gobizfly.CloudDatabaseNode
+			for _, node := range instance.Nodes {
+				if node.Role == "secondary" {
+					secondaryNodes = append(secondaryNodes, node)
+				}
+			}
+			
+			// Delete from newest to oldest (LIFO - last nodes in list are newest)
+			deletedCount := 0
+			for i := len(secondaryNodes) - 1; i >= 0 && deletedCount < deleteCount; i-- {
+				node := secondaryNodes[i]
+				log.Printf("[DEBUG] Deleting secondary node %s (%s)", node.ID, node.Name)
+				_, err := client.CloudDatabase.Nodes().Delete(context.Background(), node.ID, &gobizfly.CloudDatabaseDelete{})
+				if err != nil {
+					return fmt.Errorf("[ERROR] Delete secondary node %s failed: %v", node.ID, err)
+				}
+				deletedCount++
+			}
+			
+			log.Printf("[DEBUG] Deleted %d secondary nodes from database instance %s", deletedCount, id)
+		}
+	}
+
+	if d.HasChange("configuration_group") {
+		_, new := d.GetChange("configuration_group")
+		
+		// Get current instance to get all nodes
+		instance, err := client.CloudDatabase.Instances().Get(context.Background(), id)
+		if err != nil {
+			return fmt.Errorf("[ERROR] Get database instance [%s] for configuration group update failed: %v", id, err)
+		}
+
+		if newCfg := new.(map[string]interface{}); len(newCfg) > 0 {
+			newCfgMap := make(map[string]string)
+			for k, v := range newCfg {
+				newCfgMap[k] = fmt.Sprintf("%v", v)
+			}
+
+			if newCfgID, ok := newCfgMap["id"]; ok && newCfgID != "" {
+				// Check if any node requires restart, restart and wait for active first
+				for _, node := range instance.Nodes {
+					if node.Status == nodeStatusRestartRequired {
+						log.Printf("[DEBUG] Node %s is in RESTART_REQUIRED state, restarting before attaching new configuration", node.ID)
+						_, err := client.CloudDatabase.Nodes().Restart(context.Background(), node.ID)
+						if err != nil {
+							return fmt.Errorf("[ERROR] Failed to restart node %s before attaching configuration: %v", node.ID, err)
+						}
+						
+						// Wait for node to become active
+						err = waitForCloudDatabaseNodeCreate(node.ID, 5*time.Minute, meta)
+						if err != nil {
+							return fmt.Errorf("[ERROR] Wait for node %s to become active after restart failed: %s", node.ID, err)
+						}
+						log.Printf("[DEBUG] Node %s is now active after restart", node.ID)
+					}
+				}
+				
+				// Attach to all nodes
+				attachErrors := []error{}
+				for _, node := range instance.Nodes {
+					_, err := client.CloudDatabase.Configurations().Attach(context.Background(), node.ID, newCfgID, true)
+					if err != nil {
+						log.Printf("[WARN] Failed to attach configuration group %s to node %s: %v", newCfgID, node.ID, err)
+						attachErrors = append(attachErrors, fmt.Errorf("node %s: %v", node.ID, err))
+					}
+				}
+				
+				if len(attachErrors) > 0 {
+					return fmt.Errorf("[ERROR] Failed to attach new configuration group %s to some nodes: %v", newCfgID, attachErrors)
+				}
+
+				// Restart nodes if apply_immediately is true
+				if newCfgMap["apply_immediately"] == "true" {
+					restartErrors := []error{}
+					for _, node := range instance.Nodes {
+						_, err := client.CloudDatabase.Nodes().Restart(context.Background(), node.ID)
+						if err != nil {
+							log.Printf("[WARN] Failed to restart node %s: %v", node.ID, err)
+							restartErrors = append(restartErrors, fmt.Errorf("node %s: %v", node.ID, err))
+						}
+					}
+					
+					if len(restartErrors) > 0 {
+						return fmt.Errorf("[ERROR] Failed to restart some nodes after configuration update: %v", restartErrors)
+					}
+
+					// Wait for instance to become active again
+					_, err = waitForCloudDatabaseInstanceUpdate(d, meta)
+					if err != nil {
+						return fmt.Errorf("[ERROR] Wait for instance to become active after configuration update failed: %s", err)
+					}
+				}
+			}
+		}
+	}
+
 	return resourceBizflyCloudCloudDatabaseInstanceRead(d, meta)
 }
 
@@ -411,6 +642,33 @@ func waitForCloudDatabaseInstanceDelete(d *schema.ResourceData, meta interface{}
 		NotFoundChecks: 30,
 	}
 	return stateConf.WaitForState()
+}
+
+func waitForCloudDatabaseNodeCreate(nodeID string, timeout time.Duration, meta interface{}) error {
+	log.Printf("[INFO] Waiting for cloud database node (%s) to become active", nodeID)
+	stateConf := &resource.StateChangeConf{
+		Pending:        []string{"BUILD", "BACKUP", "RESIZE"},
+		Target:         []string{"ACTIVE", "HEALTHY"},
+		Refresh:        cloudDatabaseNodeStateRefreshFunc(nodeID, meta),
+		Timeout:        timeout,
+		Delay:          30 * time.Second,
+		MinTimeout:     10 * time.Second,
+		NotFoundChecks: 30,
+	}
+	_, err := stateConf.WaitForState()
+	return err
+}
+
+func cloudDatabaseNodeStateRefreshFunc(nodeID string, meta interface{}) resource.StateRefreshFunc {
+	client := meta.(*CombinedConfig).gobizflyClient()
+
+	return func() (interface{}, string, error) {
+		node, err := client.CloudDatabase.Nodes().Get(context.Background(), nodeID)
+		if err != nil {
+			return nil, "", fmt.Errorf("[ERROR] Retrieving cloud database node %s error: %v", nodeID, err)
+		}
+		return node, node.Status, nil
+	}
 }
 
 func newCloudDatabaseInstanceStateRefreshFunc(d *schema.ResourceData, meta interface{}) resource.StateRefreshFunc {
