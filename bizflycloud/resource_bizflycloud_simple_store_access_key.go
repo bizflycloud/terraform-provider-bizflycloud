@@ -3,8 +3,9 @@ package bizflycloud
 import (
 	"context"
 	"fmt"
-	"github.com/bizflycloud/gobizfly"
 	"time"
+
+	"github.com/bizflycloud/gobizfly"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -62,8 +63,10 @@ func resourceBizflyCloudSimpleStorageKeyRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error retrieving simple store key: %v", err)
 	}
 	for _, key := range keys {
-		_ = d.Set("name", key.AccessKey)
-		_ = d.Set("location", key.User)
+		if key.AccessKey == d.Id() {
+			_ = d.Set("name", key.AccessKey)
+			_ = d.Set("location", key.User)
+		}
 	}
 	return nil
 }

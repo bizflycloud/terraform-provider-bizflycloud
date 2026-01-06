@@ -180,7 +180,7 @@ func resourceBizflyCloudCloudDatabaseConfigurationDelete(d *schema.ResourceData,
 	configuration, err := client.CloudDatabase.Configurations().Get(context.Background(), id)
 	if err == nil && len(configuration.Nodes) > 0 {
 		log.Printf("[WARN] Configuration %s is attached to %d nodes, attempting to detach before deletion", id, len(configuration.Nodes))
-		
+
 		for _, node := range configuration.Nodes {
 			log.Printf("[DEBUG] Detaching configuration %s from node %s (%s)", id, node.ID, node.Name)
 			_, detachErr := client.CloudDatabase.Configurations().Detach(context.Background(), node.ID, id, false)

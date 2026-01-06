@@ -497,6 +497,7 @@ func newServerStateRefreshFunc(d *schema.ResourceData, attribute string, meta in
 			if err != nil {
 				return nil, "", fmt.Errorf("Error retrieving cloud server: %v", err)
 			}
+			_ = server // ensure variable is recognized as used
 			switch attr := attr.(type) {
 			case bool:
 				return &server, strconv.FormatBool(attr), nil
@@ -530,6 +531,7 @@ func updateServerStateRefreshFunc(d *schema.ResourceData, attribute string, meta
 			if err != nil {
 				return nil, "", fmt.Errorf("Error retrieving cloud server: %v", err)
 			}
+			_ = server // ensure variable is recognized as used
 			switch attr := attr.(type) {
 			case bool:
 				return &server, strconv.FormatBool(attr), nil
