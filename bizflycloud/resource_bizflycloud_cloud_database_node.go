@@ -160,6 +160,7 @@ func newCloudDatabaseNodeStateRefreshFunc(d *schema.ResourceData, meta interface
 			if err != nil {
 				return nil, "", fmt.Errorf("[ERROR] Retrieving cloud database Node %s error: %v", d.Id(), err)
 			}
+			_ = node // ensure variable is recognized as used
 			switch attr := attr.(type) {
 			case bool:
 				return &node, strconv.FormatBool(attr), nil

@@ -685,6 +685,7 @@ func newCloudDatabaseInstanceStateRefreshFunc(d *schema.ResourceData, meta inter
 			if err != nil {
 				return nil, "", fmt.Errorf("[ERROR] Retrieving cloud database instance %s error: %v", d.Id(), err)
 			}
+			_ = ins // ensure variable is recognized as used
 			switch attr := attr.(type) {
 			case bool:
 				return &ins, strconv.FormatBool(attr), nil
@@ -710,6 +711,7 @@ func updateCloudDatabaseInstanceStateRefreshFunc(d *schema.ResourceData, key str
 			if err != nil {
 				return nil, "", fmt.Errorf("[ERROR] Retrieving cloud database instance %s error: %v", d.Id(), err)
 			}
+			_ = ins // ensure variable is recognized as used
 			switch attr := attr.(type) {
 			case bool:
 				return &ins, strconv.FormatBool(attr), nil

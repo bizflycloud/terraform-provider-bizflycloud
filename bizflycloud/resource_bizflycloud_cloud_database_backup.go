@@ -183,6 +183,7 @@ func newCloudDatabaseBackupStateRefreshFunc(d *schema.ResourceData, meta interfa
 			if err != nil {
 				return nil, "", fmt.Errorf("[ERROR] Retrieving cloud database backup %s error: %v", d.Id(), err)
 			}
+			_ = bac // ensure variable is recognized as used
 			switch attr := attr.(type) {
 			case bool:
 				return &bac, strconv.FormatBool(attr), nil
