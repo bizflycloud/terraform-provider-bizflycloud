@@ -175,6 +175,29 @@ func resourceBizflyCloudCloudDatabaseConfigurationDelete(d *schema.ResourceData,
 	client := meta.(*CombinedConfig).gobizflyClient()
 	id := d.Id()
 
+	// First, detach configuration from all attached nodes
+	log.Printf("[DEBUG] Checking for nodes attached to configuration %s before deletion", id)
+	configuration, err := client.CloudDatabase.Configurations().Get(context.Background(), id)
+	if err == nil && len(configuration.Nodes) > 0 {
+		log.Printf("[WARN] Configuration %s is attached to %d nodes, attempting to detach before deletion", id, len(configuration.Nodes))
+		
+		for _, node := range configuration.Nodes {
+			log.Printf("[DEBUG] Detaching configuration %s from node %s (%s)", id, node.ID, node.Name)
+			_, detachErr := client.CloudDatabase.Configurations().Detach(context.Background(), node.ID, id, false)
+			if detachErr != nil {
+				// Skip if resource not found (already detached or deleted)
+				if errors.Is(detachErr, gobizfly.ErrNotFound) {
+					log.Printf("[DEBUG] Configuration %s or node %s not found, skipping detach", id, node.ID)
+					continue
+				}
+				// Just log warning for other errors, don't fail - node might be in transition state
+				log.Printf("[WARN] Failed to detach configuration %s from node %s: %v. Continuing with deletion anyway.", id, node.ID, detachErr)
+			} else {
+				log.Printf("[DEBUG] Successfully detached configuration %s from node %s", id, node.ID)
+			}
+		}
+	}
+
 	// retry
 	retry := maxRetry
 	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
