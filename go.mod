@@ -1,6 +1,6 @@
 module github.com/bizflycloud/terraform-provider-bizflycloud
 
-go 1.24
+go 1.24.0
 
 require (
 	github.com/YakDriver/regexache v0.23.0
