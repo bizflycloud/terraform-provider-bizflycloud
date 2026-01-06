@@ -3,8 +3,9 @@ package bizflycloud
 import (
 	"context"
 	"fmt"
-	"github.com/bizflycloud/gobizfly"
 	"time"
+
+	"github.com/bizflycloud/gobizfly"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -63,11 +64,13 @@ func resourceBizflyCloudSimpleStorageBucketRead(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error retrieving simple store bucket: %v", err)
 	}
 	for _, simpleStore := range simpleStores {
-		_ = d.Set("name", simpleStore.Name)
-		_ = d.Set("location", simpleStore.Location)
-		_ = d.Set("created_at", simpleStore.CreatedAt)
-		_ = d.Set("num_objects", simpleStore.NumObjects)
-		_ = d.Set("size_kb", simpleStore.SizeKb)
+		if simpleStore.Name == d.Id() {
+			_ = d.Set("name", simpleStore.Name)
+			_ = d.Set("location", simpleStore.Location)
+			_ = d.Set("created_at", simpleStore.CreatedAt)
+			_ = d.Set("num_objects", simpleStore.NumObjects)
+			_ = d.Set("size_kb", simpleStore.SizeKb)
+		}
 	}
 	return nil
 }
