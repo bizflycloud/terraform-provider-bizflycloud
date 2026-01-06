@@ -344,7 +344,7 @@ func resourceBizflyCloudCloudDatabaseInstanceUpdate(d *schema.ResourceData, meta
 
 	if d.HasChange("secondaries") {
 		old, new := d.GetChange("secondaries")
-		
+
 		// Get current instance
 		instance, err := client.CloudDatabase.Instances().Get(context.Background(), id)
 		if err != nil {
@@ -354,26 +354,26 @@ func resourceBizflyCloudCloudDatabaseInstanceUpdate(d *schema.ResourceData, meta
 		// Get old and new secondary counts
 		var oldQuantity, newQuantity int
 		var oldAZ, newAZ string
-		
+
 		if oldSet := old.(*schema.Set); oldSet.Len() > 0 {
 			oldSecondaries := readResourceCloudDatabaseInstanceSecondary(oldSet)
 			oldQuantity = oldSecondaries["quantity"].(int)
 			oldAZ = oldSecondaries["availability_zone"].(string)
 		}
-		
+
 		if newSet := new.(*schema.Set); newSet.Len() > 0 {
 			newSecondaries := readResourceCloudDatabaseInstanceSecondary(newSet)
 			newQuantity = newSecondaries["quantity"].(int)
 			newAZ = newSecondaries["availability_zone"].(string)
 		}
 
-		log.Printf("[DEBUG] Secondaries change: old_quantity=%d, new_quantity=%d, old_az=%s, new_az=%s", 
+		log.Printf("[DEBUG] Secondaries change: old_quantity=%d, new_quantity=%d, old_az=%s, new_az=%s",
 			oldQuantity, newQuantity, oldAZ, newAZ)
 
 		// Handle removal of all secondaries
 		if newQuantity == 0 && oldQuantity > 0 {
 			log.Printf("[DEBUG] Removing all secondary nodes")
-			
+
 			// Get all secondary nodes to delete
 			for _, node := range instance.Nodes {
 				if node.Role == "secondary" {
@@ -387,7 +387,7 @@ func resourceBizflyCloudCloudDatabaseInstanceUpdate(d *schema.ResourceData, meta
 		} else if newQuantity > oldQuantity {
 			// Increase quantity - create new nodes
 			log.Printf("[DEBUG] Adding secondary nodes: %d -> %d", oldQuantity, newQuantity)
-			
+
 			// Find primary node ID
 			var primaryNodeID string
 			for _, node := range instance.Nodes {
@@ -440,14 +440,14 @@ func resourceBizflyCloudCloudDatabaseInstanceUpdate(d *schema.ResourceData, meta
 				for k, v := range cfgGroup.(map[string]interface{}) {
 					cfgMap[k] = fmt.Sprintf("%v", v)
 				}
-				
+
 				if cfgID, ok := cfgMap["id"]; ok && cfgID != "" {
 					log.Printf("[DEBUG] Attaching configuration group %s to new secondary node %s", cfgID, nodeResp.ID)
 					_, err := client.CloudDatabase.Configurations().Attach(context.Background(), nodeResp.ID, cfgID, true)
 					if err != nil {
 						return fmt.Errorf("[ERROR] Failed to attach configuration group %s to new secondary node %s: %v", cfgID, nodeResp.ID, err)
 					}
-					
+
 					// Restart if apply_immediately is true
 					if cfgMap["apply_immediately"] == "true" {
 						log.Printf("[DEBUG] Restarting new secondary node %s to apply configuration", nodeResp.ID)
@@ -455,23 +455,23 @@ func resourceBizflyCloudCloudDatabaseInstanceUpdate(d *schema.ResourceData, meta
 						if err != nil {
 							return fmt.Errorf("[ERROR] Failed to restart new secondary node %s: %v", nodeResp.ID, err)
 						}
-						
+
 						// Wait for node to become active again
 						err = waitForCloudDatabaseNodeCreate(nodeResp.ID, 10*time.Minute, meta)
 						if err != nil {
 							return fmt.Errorf("[ERROR] Wait for new secondary node %s to become active after restart failed: %s", nodeResp.ID, err)
 						}
 					}
-					
+
 					log.Printf("[DEBUG] Successfully attached configuration group to new secondary node %s", nodeResp.ID)
 				}
 			}
 		} else if newQuantity < oldQuantity {
 			// Decrease quantity - delete excess nodes
 			log.Printf("[DEBUG] Removing secondary nodes: %d -> %d", oldQuantity, newQuantity)
-			
+
 			deleteCount := oldQuantity - newQuantity
-			
+
 			// Collect all secondary nodes
 			var secondaryNodes []gobizfly.CloudDatabaseNode
 			for _, node := range instance.Nodes {
@@ -479,7 +479,7 @@ func resourceBizflyCloudCloudDatabaseInstanceUpdate(d *schema.ResourceData, meta
 					secondaryNodes = append(secondaryNodes, node)
 				}
 			}
-			
+
 			// Delete from newest to oldest (LIFO - last nodes in list are newest)
 			deletedCount := 0
 			for i := len(secondaryNodes) - 1; i >= 0 && deletedCount < deleteCount; i-- {
@@ -491,14 +491,14 @@ func resourceBizflyCloudCloudDatabaseInstanceUpdate(d *schema.ResourceData, meta
 				}
 				deletedCount++
 			}
-			
+
 			log.Printf("[DEBUG] Deleted %d secondary nodes from database instance %s", deletedCount, id)
 		}
 	}
 
 	if d.HasChange("configuration_group") {
 		_, new := d.GetChange("configuration_group")
-		
+
 		// Get current instance to get all nodes
 		instance, err := client.CloudDatabase.Instances().Get(context.Background(), id)
 		if err != nil {
@@ -520,7 +520,7 @@ func resourceBizflyCloudCloudDatabaseInstanceUpdate(d *schema.ResourceData, meta
 						if err != nil {
 							return fmt.Errorf("[ERROR] Failed to restart node %s before attaching configuration: %v", node.ID, err)
 						}
-						
+
 						// Wait for node to become active
 						err = waitForCloudDatabaseNodeCreate(node.ID, 5*time.Minute, meta)
 						if err != nil {
@@ -529,7 +529,7 @@ func resourceBizflyCloudCloudDatabaseInstanceUpdate(d *schema.ResourceData, meta
 						log.Printf("[DEBUG] Node %s is now active after restart", node.ID)
 					}
 				}
-				
+
 				// Attach to all nodes
 				attachErrors := []error{}
 				for _, node := range instance.Nodes {
@@ -539,7 +539,7 @@ func resourceBizflyCloudCloudDatabaseInstanceUpdate(d *schema.ResourceData, meta
 						attachErrors = append(attachErrors, fmt.Errorf("node %s: %v", node.ID, err))
 					}
 				}
-				
+
 				if len(attachErrors) > 0 {
 					return fmt.Errorf("[ERROR] Failed to attach new configuration group %s to some nodes: %v", newCfgID, attachErrors)
 				}
@@ -554,7 +554,7 @@ func resourceBizflyCloudCloudDatabaseInstanceUpdate(d *schema.ResourceData, meta
 							restartErrors = append(restartErrors, fmt.Errorf("node %s: %v", node.ID, err))
 						}
 					}
-					
+
 					if len(restartErrors) > 0 {
 						return fmt.Errorf("[ERROR] Failed to restart some nodes after configuration update: %v", restartErrors)
 					}
