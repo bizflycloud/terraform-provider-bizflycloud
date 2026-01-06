@@ -92,3 +92,5 @@ require (
 	google.golang.org/protobuf v1.33.0 // indirect
 	k8s.io/klog/v2 v2.2.0 // indirect
 )
+
+replace github.com/ulikunitz/xz => github.com/ulikunitz/xz v0.5.15
