@@ -175,6 +175,7 @@ func newStateRefreshfunc(d *schema.ResourceData, attribute string, meta interfac
 			if err != nil {
 				return nil, "", fmt.Errorf("Error retrieving auto scaling group: %v", err)
 			}
+			_ = asg // ensure variable is recognized as used
 			switch attr := attr.(type) {
 			case bool:
 				return &asg, strconv.FormatBool(attr), nil
