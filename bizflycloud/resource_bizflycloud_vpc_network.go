@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"log"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 
 	"github.com/bizflycloud/gobizfly"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -133,9 +134,51 @@ func resourceBizflyCloudVPCNetworkUpdate(d *schema.ResourceData, meta interface{
 
 func resourceBizflyCloudVPCNetworkDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
-	err := client.CloudServer.VPCNetworks().Delete(context.Background(), d.Id())
-	if err != nil {
+	vpcID := d.Id()
+	if err := detachIgwOutOfVpc(client, vpcID); err != nil {
+		return err
+	}
+	err := client.CloudServer.VPCNetworks().Delete(context.Background(), vpcID)
+	if err != nil && !errors.Is(err, gobizfly.ErrNotFound) {
 		return fmt.Errorf("Error when delete vpc network: %v", err)
+	}
+	return nil
+}
+
+func detachIgwOutOfVpc(client *gobizfly.Client, vpcID string) error {
+	var igwID *string
+	igwAttached := "true"
+	listOpts := gobizfly.ListVpcOpts{
+		IgwAttached: &igwAttached,
+	}
+	attachedVPCs, err := client.CloudServer.VPCNetworks().List(context.Background(), listOpts)
+	if err != nil {
+		return fmt.Errorf("Error when list igw vpc networks [%v]: %v", vpcID, err)
+	}
+	for _, vpc := range attachedVPCs {
+		if vpc.ID == vpcID {
+			igwID = vpc.InternetGateway
+			break
+		}
+	}
+	if igwID == nil {
+		return nil
+	}
+
+	detailIGW, err := client.CloudServer.InternetGateways().Get(context.Background(), *igwID)
+	if err != nil {
+		if errors.Is(err, gobizfly.ErrNotFound) {
+			return nil
+		}
+		return fmt.Errorf("Error when get detail IGW [%v]: %v", *igwID, err)
+	}
+	payload := gobizfly.UpdateInternetGatewayPayload{
+		Name:        detailIGW.Name,
+		Description: detailIGW.Description,
+		NetworkIDs:  []string{},
+	}
+	if _, err = client.CloudServer.InternetGateways().Update(context.Background(), *igwID, payload); err != nil {
+		return fmt.Errorf("Error when detach IGW [%v] out of vpc network [%v]: %v", *igwID, vpcID, err)
 	}
 	return nil
 }
