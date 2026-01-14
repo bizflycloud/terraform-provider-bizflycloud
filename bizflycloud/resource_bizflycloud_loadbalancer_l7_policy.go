@@ -123,7 +123,26 @@ func getL7PolicyRuleSchema() map[string]*schema.Schema {
 func resourceBizflycloudLoadbalancerL7PolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	listenerID := d.Get("listener_id").(string)
-	_, err := waitListenerActiveProvisioningStatus(client, listenerID)
+
+	// Get load balancer ID from listener to use mutex
+	listener, err := client.CloudLoadBalancer.Listeners().Get(context.Background(), listenerID)
+	if err != nil {
+		return fmt.Errorf("Error when retrieving listener %s: %v", listenerID, err)
+	}
+	if listener == nil {
+		return fmt.Errorf("Error when retrieving listener %s: listener object is nil", listenerID)
+	}
+	if len(listener.LoadBalancers) == 0 {
+		return fmt.Errorf("Error when retrieving listener %s: listener has no load balancers", listenerID)
+	}
+	lbID := listener.LoadBalancers[0].ID
+
+	// Lock to serialize operations on the same load balancer
+	mutex := getLoadBalancerMutex(lbID)
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	_, err = waitListenerActiveProvisioningStatus(client, listenerID)
 	if err != nil {
 		log.Printf("[ERROR] wait listener active provisioning status failed: %v", err)
 		return err
@@ -136,6 +155,9 @@ func resourceBizflycloudLoadbalancerL7PolicyCreate(d *schema.ResourceData, meta 
 	l7Policy, createErr := client.CloudLoadBalancer.L7Policies().Create(context.Background(), listenerID, createReq)
 	if createErr != nil {
 		return fmt.Errorf("Create l7 policy for listener %s error: %v", listenerID, createErr)
+	}
+	if l7Policy == nil {
+		return fmt.Errorf("Error when creating l7 policy for listener %s: l7 policy object is nil", listenerID)
 	}
 	d.SetId(l7Policy.ID)
 	return resourceBizflycloudLoadbalancerL7PolicyRead(d, meta)
@@ -150,6 +172,9 @@ func resourceBizflycloudLoadbalancerL7PolicyRead(d *schema.ResourceData, meta in
 	l7Policy, err := client.CloudLoadBalancer.L7Policies().Get(context.Background(), policyID)
 	if err != nil {
 		return fmt.Errorf("Error when retrieving l7 policy %s: %v", policyID, err)
+	}
+	if l7Policy == nil {
+		return fmt.Errorf("Error when retrieving l7 policy %s: l7 policy object is nil", policyID)
 	}
 	l7PolicyRules, err := client.CloudLoadBalancer.L7Policies().ListL7PolicyRules(context.Background(), policyID)
 	if err != nil {
@@ -171,7 +196,26 @@ func resourceBizflycloudLoadbalancerL7PolicyRead(d *schema.ResourceData, meta in
 func resourceBizflycloudLoadbalancerL7PolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	listenerID := d.Get("listener_id").(string)
-	_, err := waitListenerActiveProvisioningStatus(client, listenerID)
+
+	// Get load balancer ID from listener to use mutex
+	listener, err := client.CloudLoadBalancer.Listeners().Get(context.Background(), listenerID)
+	if err != nil {
+		return fmt.Errorf("Error when retrieving listener %s: %v", listenerID, err)
+	}
+	if listener == nil {
+		return fmt.Errorf("Error when retrieving listener %s: listener object is nil", listenerID)
+	}
+	if len(listener.LoadBalancers) == 0 {
+		return fmt.Errorf("Error when retrieving listener %s: listener has no load balancers", listenerID)
+	}
+	lbID := listener.LoadBalancers[0].ID
+
+	// Lock to serialize operations on the same load balancer
+	mutex := getLoadBalancerMutex(lbID)
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	_, err = waitListenerActiveProvisioningStatus(client, listenerID)
 	if err != nil {
 		log.Printf("[ERROR] wait listener active provisioning status failed: %v", err)
 		return err
@@ -203,7 +247,26 @@ func resourceBizflycloudLoadbalancerL7PolicyDelete(d *schema.ResourceData, meta 
 	policyID := d.Id()
 	listenerID := d.Get("listener_id").(string)
 	client := meta.(*CombinedConfig).gobizflyClient()
-	_, err := waitListenerActiveProvisioningStatus(client, listenerID)
+
+	// Get load balancer ID from listener to use mutex
+	listener, err := client.CloudLoadBalancer.Listeners().Get(context.Background(), listenerID)
+	if err != nil {
+		return fmt.Errorf("Error when retrieving listener %s: %v", listenerID, err)
+	}
+	if listener == nil {
+		return fmt.Errorf("Error when retrieving listener %s: listener object is nil", listenerID)
+	}
+	if len(listener.LoadBalancers) == 0 {
+		return fmt.Errorf("Error when retrieving listener %s: listener has no load balancers", listenerID)
+	}
+	lbID := listener.LoadBalancers[0].ID
+
+	// Lock to serialize operations on the same load balancer
+	mutex := getLoadBalancerMutex(lbID)
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	_, err = waitListenerActiveProvisioningStatus(client, listenerID)
 	if err != nil {
 		log.Printf("[ERROR] wait listener active provisioning status failed: %v", err)
 		return err
@@ -322,7 +385,6 @@ func validateL7PolicyRuleType(ruleType, key, value string) error {
 
 // Update L7 policy
 func getUpdateL7PolicyFromConfig(d *schema.ResourceData) (*gobizfly.UpdateL7PolicyRequest, error) {
-	var err error
 	updateReq := gobizfly.UpdateL7PolicyRequest{
 		Name:     d.Get("name").(string),
 		Action:   d.Get("action").(string),
@@ -353,9 +415,6 @@ func getUpdateL7PolicyFromConfig(d *schema.ResourceData) (*gobizfly.UpdateL7Poli
 		return nil, fmt.Errorf("Invalid l7 policy action %s.", action)
 	}
 
-	if err != nil {
-		return nil, err
-	}
 	return &updateReq, nil
 }
 

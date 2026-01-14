@@ -3,6 +3,7 @@ package bizflycloud
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/bizflycloud/gobizfly"
@@ -24,6 +25,27 @@ const (
 	listenerResource     = "listener"
 	poolResource         = "pool"
 )
+
+// loadBalancerMutexes provides per-load-balancer mutexes to serialize operations
+var (
+	loadBalancerMutexes   = make(map[string]*sync.Mutex)
+	loadBalancerMutexLock sync.Mutex
+)
+
+// getLoadBalancerMutex returns a mutex for the given load balancer ID
+// This ensures operations on the same load balancer happen sequentially
+func getLoadBalancerMutex(lbID string) *sync.Mutex {
+	loadBalancerMutexLock.Lock()
+	defer loadBalancerMutexLock.Unlock()
+
+	if mutex, exists := loadBalancerMutexes[lbID]; exists {
+		return mutex
+	}
+
+	mutex := &sync.Mutex{}
+	loadBalancerMutexes[lbID] = mutex
+	return mutex
+}
 
 func resourceBizflyCloudLoadBalancer() *schema.Resource {
 	return &schema.Resource{

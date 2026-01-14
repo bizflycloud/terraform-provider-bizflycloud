@@ -225,6 +225,12 @@ func getPersistentSchema() map[string]*schema.Schema {
 func resourceBizflyCloudLoadBalancerPoolCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	lbID := d.Get("load_balancer_id").(string)
+
+	// Lock to serialize operations on the same load balancer
+	mutex := getLoadBalancerMutex(lbID)
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	_, err := waitLoadbalancerActiveProvisioningStatus(client, lbID, loadbalancerResource)
 	if err != nil {
 		return err
@@ -234,6 +240,10 @@ func resourceBizflyCloudLoadBalancerPoolCreate(d *schema.ResourceData, meta inte
 	pool, err := client.CloudLoadBalancer.Pools().Create(context.Background(), lbID, &createReq)
 	if err != nil {
 		return fmt.Errorf("Error when create pool for loadbalancer %s: %+v", lbID, err)
+	}
+	if pool == nil {
+		/// need retry here to get the pool object
+		return fmt.Errorf("Error when create pool for loadbalancer %s: pool object is nil", lbID)
 	}
 	poolID := pool.ID
 	err = checkLoadbalancerPoolActiveStatus(client, poolID, lbID)
@@ -270,7 +280,7 @@ func resourceBizflyCloudLoadBalancerPoolCreate(d *schema.ResourceData, meta inte
 			log.Printf("[ERROR] Create health monitor for pool %s failed: %+v", poolID, err)
 			return err
 		}
-		err = checkLoadbalancerPoolActiveStatus(client, pool.ID, lbID)
+		err = checkLoadbalancerPoolActiveStatus(client, poolID, lbID)
 		if err != nil {
 			return err
 		}
@@ -285,8 +295,11 @@ func resourceBizflyCloudLoadBalancerPoolRead(d *schema.ResourceData, meta interf
 	if err != nil {
 		return fmt.Errorf("Error when retrieving load balancer pool %s: %v", d.Id(), err)
 	}
-	if err != nil {
-		return fmt.Errorf("Error when list vpc networks: %v", err)
+	if pool == nil {
+		return fmt.Errorf("Error when retrieving load balancer pool %s: pool object is nil", d.Id())
+	}
+	if len(pool.LoadBalancers) == 0 {
+		return fmt.Errorf("Error when retrieving load balancer pool %s: pool has no load balancers", d.Id())
 	}
 	healthMonitor := convertHealthMonitor(pool.HealthMonitor)
 	persistent := convertSessionPersistent(pool.SessionPersistence)
@@ -308,6 +321,12 @@ func resourceBizflyCloudLoadBalancerPoolUpdate(d *schema.ResourceData, meta inte
 	client := meta.(*CombinedConfig).gobizflyClient()
 	poolID := d.Id()
 	lbID := d.Get("load_balancer_id").(string)
+
+	// Lock to serialize operations on the same load balancer
+	mutex := getLoadBalancerMutex(lbID)
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	err := checkLoadbalancerPoolActiveStatus(client, poolID, lbID)
 	if err != nil {
 		return err
@@ -401,6 +420,12 @@ func resourceBizflyCloudLoadBalancerPoolUpdate(d *schema.ResourceData, meta inte
 func resourceBizflyCloudLoadBalancerPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	lbID := d.Get("load_balancer_id").(string)
+
+	// Lock to serialize operations on the same load balancer
+	mutex := getLoadBalancerMutex(lbID)
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID, loadbalancerResource)
 	err := client.CloudLoadBalancer.Pools().Delete(context.Background(), d.Id())
 	if err != nil {
