@@ -96,6 +96,12 @@ func resourceBizflyCloudLoadBalancerListener() *schema.Resource {
 func resourceBizflyCloudLoadBalancerListenerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	lbID := d.Get("load_balancer_id").(string)
+
+	// Lock to serialize operations on the same load balancer
+	mutex := getLoadBalancerMutex(lbID)
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID, loadbalancerResource)
 	lName := d.Get("name").(string)
 	lPoolDefaultID := d.Get("default_pool_id").(string)
@@ -117,6 +123,9 @@ func resourceBizflyCloudLoadBalancerListenerCreate(d *schema.ResourceData, meta 
 	if err != nil {
 		return fmt.Errorf("Error when creating listener: %v", err)
 	}
+	if listener == nil {
+		return fmt.Errorf("Error when creating listener for loadbalancer %s: listener object is nil", lbID)
+	}
 	d.SetId(listener.ID)
 	return resourceBizflyCloudLoadBalancerListenerRead(d, meta)
 }
@@ -126,6 +135,12 @@ func resourceBizflyCloudLoadBalancerListenerRead(d *schema.ResourceData, meta in
 	listener, err := client.CloudLoadBalancer.Listeners().Get(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("Error when retrieving listener: %v", err)
+	}
+	if listener == nil {
+		return fmt.Errorf("Error when retrieving listener %s: listener object is nil", d.Id())
+	}
+	if len(listener.LoadBalancers) == 0 {
+		return fmt.Errorf("Error when retrieving listener %s: listener has no load balancers", d.Id())
 	}
 	l7policyIDs := make([]string, 0)
 	for _, policy := range listener.L7Policies {
@@ -153,6 +168,12 @@ func resourceBizflyCloudLoadBalancerListenerRead(d *schema.ResourceData, meta in
 func resourceBizflyCloudLoadBalancerListenerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	lbID := d.Get("load_balancer_id").(string)
+
+	// Lock to serialize operations on the same load balancer
+	mutex := getLoadBalancerMutex(lbID)
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID, loadbalancerResource)
 	name := d.Get("name").(string)
 	description := d.Get("description").(string)
@@ -180,6 +201,12 @@ func resourceBizflyCloudLoadBalancerListenerUpdate(d *schema.ResourceData, meta 
 func resourceBizflyCloudLoadBalancerListenerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 	lbID := d.Get("load_balancer_id").(string)
+
+	// Lock to serialize operations on the same load balancer
+	mutex := getLoadBalancerMutex(lbID)
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID, loadbalancerResource)
 	err := client.CloudLoadBalancer.Listeners().Delete(context.Background(), d.Id())
 	if err != nil {
