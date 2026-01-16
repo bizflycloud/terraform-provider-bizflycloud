@@ -60,7 +60,7 @@ func dataSourceBizflyCloudKubernetesVersion(d *schema.ResourceData, meta interfa
 
 	versionID := d.Get("id")
 	if versionID == "" {
-		return fmt.Errorf("Version %s not found", versionName)
+		return fmt.Errorf("version %s not found", versionName)
 	}
 	return nil
 }

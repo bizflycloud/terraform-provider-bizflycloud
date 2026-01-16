@@ -120,7 +120,7 @@ func resourceBizflyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 
 	tasks, err := client.CloudServer.Create(context.Background(), scr)
 	if err != nil {
-		return fmt.Errorf("Error creating server: %s", err)
+		return fmt.Errorf("error creating server: %s", err)
 	}
 	// Set ID of server with task ID, we need to change to the real ID after server is created
 	d.SetId(tasks.Task[0])
@@ -128,7 +128,7 @@ func resourceBizflyCloudServerCreate(d *schema.ResourceData, meta interface{}) e
 	// wait for cloud server to become active
 	_, err = waitForServerCreate(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error creating cloud server with task id (%s): %s", d.Id(), err)
+		return fmt.Errorf("error creating cloud server with task id (%s): %s", d.Id(), err)
 	}
 
 	ports, err := client.CloudServer.NetworkInterfaces().List(context.Background(), &gobizfly.ListNetworkInterfaceOptions{
@@ -205,7 +205,7 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving server: %v", err)
+		return fmt.Errorf("error retrieving server: %v", err)
 	}
 	rootDisk, err := getServerRootDisk(client, server.ID)
 	if err != nil {
@@ -279,7 +279,7 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	_ = d.Set("vpc_network_ids", vpcNetworkIDs)
 	_ = d.Set("network_interfaces", serverNetworkInterfaces)
 	if err = d.Set("volume_ids", flatternBizflyCloudVolumeIDs(server.AttachedVolumes)); err != nil {
-		return fmt.Errorf("Error setting `volume_ids`: %+v", err)
+		return fmt.Errorf("error setting `volume_ids`: %+v", err)
 	}
 	_ = d.Set("root_disk_id", rootDisk.ID)
 	// Hardcode in here
@@ -294,11 +294,12 @@ func resourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) err
 	_ = d.Set("root_disk_size", rootDisk.Size)
 
 	var state string
-	if server.Status == "ACTIVE" {
+	switch server.Status {
+	case "ACTIVE":
 		state = "running"
-	} else if server.Status == "SHUTOFF" {
+	case "SHUTOFF":
 		state = "stopped"
-	} else {
+	default:
 		state = server.Status
 	}
 	_ = d.Set("state", state)
@@ -312,19 +313,19 @@ func resourceBizflyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 		// Rename server
 		newName := d.Get("name").(string)
 		if err := client.CloudServer.Rename(context.Background(), id, newName); err != nil {
-			return fmt.Errorf("Error when rename server [%s]: %v", id, err)
+			return fmt.Errorf("error when rename server [%s]: %v", id, err)
 		}
 	}
 	if d.HasChange("flavor_name") {
 		// Resize server to new flavor
 		task, err := client.CloudServer.Resize(context.Background(), id, d.Get("flavor_name").(string))
 		if err != nil {
-			return fmt.Errorf("Error when resize server [%s]: %v", id, err)
+			return fmt.Errorf("error when resize server [%s]: %v", id, err)
 		}
 		// wait for server is active again
 		_, err = waitForServerUpdate(d, meta, task.TaskID)
 		if err != nil {
-			return fmt.Errorf("Error updating cloud server with task id (%s): %s", d.Id(), err)
+			return fmt.Errorf("error updating cloud server with task id (%s): %s", d.Id(), err)
 		}
 	}
 	if d.HasChange("category") {
@@ -336,7 +337,7 @@ func resourceBizflyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 		// wait for server is active again
 		_, err = waitForServerUpdate(d, meta, task.TaskID)
 		if err != nil {
-			return fmt.Errorf("Error updating cloud server with task id (%s): %s", d.Id(), err)
+			return fmt.Errorf("error updating cloud server with task id (%s): %s", d.Id(), err)
 		}
 	}
 
@@ -371,12 +372,13 @@ func resourceBizflyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 		if oldState.(string) == "ERROR" {
 			return fmt.Errorf("cannot change server state because server state is %s", oldState.(string))
 		}
-		if newState.(string) == "running" {
+		switch newState.(string) {
+		case "running":
 			_, err := client.CloudServer.Start(context.Background(), d.Id())
 			if err != nil {
 				return fmt.Errorf("error changing state of server: %v", err)
 			}
-		} else if newState.(string) == "stopped" {
+		case "stopped":
 			_, err := client.CloudServer.Stop(context.Background(), d.Id())
 			if err != nil {
 				return fmt.Errorf("error changing state of server: %v", err)
@@ -388,7 +390,7 @@ func resourceBizflyCloudServerUpdate(d *schema.ResourceData, meta interface{}) e
 		oldRootDiskSize, newRootDiskSize := d.GetChange("root_disk_size")
 		oldRootDiskSizeInt, newRootDiskSizeInt := oldRootDiskSize.(int), newRootDiskSize.(int)
 		if oldRootDiskSizeInt >= newRootDiskSizeInt {
-			return fmt.Errorf("New rootdisk size must be greater than %d to extend rootdisk", oldRootDiskSizeInt)
+			return fmt.Errorf("new rootdisk size must be greater than %d to extend rootdisk", oldRootDiskSizeInt)
 		}
 		task, err := client.CloudServer.Volumes().ExtendVolume(context.Background(), rootDiskID, newRootDiskSizeInt)
 		if err != nil {
@@ -412,7 +414,7 @@ func resourceBizflyCloudServerDelete(d *schema.ResourceData, meta interface{}) e
 	// destroy the cloud server
 	server, err := client.CloudServer.Get(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving cloud server: %v", err)
+		return fmt.Errorf("error retrieving cloud server: %v", err)
 	}
 	var rootDiskID string
 	for _, v := range server.AttachedVolumes {
@@ -422,12 +424,12 @@ func resourceBizflyCloudServerDelete(d *schema.ResourceData, meta interface{}) e
 	}
 	task, err := client.CloudServer.Delete(context.Background(), d.Id(), []string{rootDiskID})
 	if err != nil {
-		return fmt.Errorf("Error delete cloud server %v", err)
+		return fmt.Errorf("error delete cloud server %v", err)
 	}
 
 	_, err = waitforServerDelete(d, meta, task.TaskID)
 	if err != nil && !errors.Is(err, gobizfly.ErrNotFound) {
-		return fmt.Errorf("Error delete cloud server with task id (%s): %s", d.Id(), err)
+		return fmt.Errorf("error delete cloud server with task id (%s): %s", d.Id(), err)
 	}
 	return nil
 }
@@ -486,16 +488,16 @@ func newServerStateRefreshFunc(d *schema.ResourceData, attribute string, meta in
 			return nil, "", nil
 		}
 		// server is ready now, set ID for resourceData
-		d.SetId(resp.Result.Server.ID)
+		d.SetId(resp.Result.ID)
 		err = resourceBizflyCloudServerRead(d, meta)
 		if err != nil {
 			return nil, "", err
 		}
 
 		if attr, ok := d.GetOk(attribute); ok { // nolint
-			server, err := client.CloudServer.Get(context.Background(), resp.Result.Server.ID)
+			server, err := client.CloudServer.Get(context.Background(), resp.Result.ID)
 			if err != nil {
-				return nil, "", fmt.Errorf("Error retrieving cloud server: %v", err)
+				return nil, "", fmt.Errorf("error retrieving cloud server: %v", err)
 			}
 			_ = server // ensure variable is recognized as used
 			switch attr := attr.(type) {
@@ -529,7 +531,7 @@ func updateServerStateRefreshFunc(d *schema.ResourceData, attribute string, meta
 		if attr, ok := d.GetOk(attribute); ok { // nolint
 			server, err := client.CloudServer.Get(context.Background(), d.Id())
 			if err != nil {
-				return nil, "", fmt.Errorf("Error retrieving cloud server: %v", err)
+				return nil, "", fmt.Errorf("error retrieving cloud server: %v", err)
 			}
 			_ = server // ensure variable is recognized as used
 			switch attr := attr.(type) {
@@ -631,18 +633,6 @@ func leftDiff(left, right map[string]struct{}) map[string]struct{} {
 	return out
 }
 
-func uniqueList(list []string) []string {
-	unique := make(map[string]struct{})
-	for _, v := range list {
-		unique[v] = struct{}{}
-	}
-	out := make([]string, 0, len(unique))
-	for v := range unique {
-		out = append(out, v)
-	}
-	return out
-}
-
 func attachFirewallsForPort(client *gobizfly.Client, portID string, firewallIDs []string) error {
 	if len(firewallIDs) == 0 {
 		return nil
@@ -697,12 +687,12 @@ func checkIDInList(id string, IDs []string) bool {
 func enableIpv6ForServer(client *gobizfly.Client, serverID string) (wanIpv6 *gobizfly.CloudServerPublicNetworkInterface, err error) {
 	enableErr := client.CloudServer.EnableIPv6(context.Background(), serverID)
 	if enableErr != nil {
-		err = fmt.Errorf("Error enable ipv6 for server %s failed: %v", serverID, enableErr)
+		err = fmt.Errorf("error enable ipv6 for server %s failed: %v", serverID, enableErr)
 		return
 	}
 	wanIps, wanIpsErr := client.CloudServer.PublicNetworkInterfaces().List(context.Background())
 	if wanIpsErr != nil {
-		err = fmt.Errorf("Error list wan ip failed: %v", wanIpsErr)
+		err = fmt.Errorf("error list wan ip failed: %v", wanIpsErr)
 		return
 	}
 	for _, wanIp := range wanIps {
@@ -715,7 +705,7 @@ func enableIpv6ForServer(client *gobizfly.Client, serverID string) (wanIpv6 *gob
 		}
 	}
 	if wanIpv6 == nil {
-		err = fmt.Errorf("Error enable ipv6 for server %s failed", serverID)
+		err = fmt.Errorf("error enable ipv6 for server %s failed", serverID)
 	}
 	return
 }
@@ -876,7 +866,7 @@ func getServerRootDisk(client *gobizfly.Client, serverID string) (*gobizfly.Volu
 			}
 		}
 	}
-	return nil, fmt.Errorf("rootdisk of server %s not found.", serverID)
+	return nil, fmt.Errorf("rootdisk of server %s not found", serverID)
 }
 
 func changeServerNetworkInterfaces(d *schema.ResourceData, client *gobizfly.Client) error {

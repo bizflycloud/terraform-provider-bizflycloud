@@ -255,7 +255,7 @@ func resourceBizflyClusterCreate(d *schema.ResourceData, meta interface{}) error
 	log.Printf("[DEBUG] Create Cluster configuration: %#v\n", ccrq)
 	cluster, err := client.KubernetesEngine.Create(context.Background(), ccrq)
 	if err != nil {
-		return fmt.Errorf("Error creating cluster: %v", err)
+		return fmt.Errorf("error creating cluster: %v", err)
 	}
 	log.Println("[DEBUG] set id " + cluster.UID)
 	d.SetId(cluster.UID)
@@ -276,7 +276,7 @@ func resourceBizflyCloudClusterRead(d *schema.ResourceData, meta interface{}) er
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieved cluster: %v", err)
+		return fmt.Errorf("error retrieving cluster: %v", err)
 	}
 	clusterID := cluster.UID
 	upgradeVersion, err := client.KubernetesEngine.GetUpgradeClusterVersion(context.Background(), clusterID)
@@ -324,7 +324,7 @@ func resourceBizflyCloudClusterDelete(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*CombinedConfig).gobizflyClient()
 	err := client.KubernetesEngine.Delete(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error delete cluster: %v", err)
+		return fmt.Errorf("error deleting cluster: %v", err)
 	}
 	return nil
 }
@@ -334,7 +334,7 @@ func resourceBizflyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 	clusterID := d.Id()
 	_, err := client.KubernetesEngine.Get(context.Background(), clusterID)
 	if err != nil {
-		return fmt.Errorf("Error update cluster: %v", err)
+		return fmt.Errorf("error updating cluster: %v", err)
 	}
 	if d.HasChange("auto_upgrade") {
 		_, new_auto_upgrade := d.GetChange("auto_upgrade")
@@ -345,7 +345,7 @@ func resourceBizflyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 		log.Printf("[DEBUG] Update cluster payload: %+v", updateClusterPayload)
 		_, err = client.KubernetesEngine.UpdateCluster(context.Background(), clusterID, &updateClusterPayload)
 		if err != nil {
-			return fmt.Errorf("Error update auto_upgrade: %+v", err)
+			return fmt.Errorf("error updating auto_upgrade: %+v", err)
 		}
 	}
 	if d.HasChange("enabled_upgrade_version") {
@@ -355,7 +355,7 @@ func resourceBizflyCloudClusterUpdate(d *schema.ResourceData, meta interface{}) 
 			payload := gobizfly.UpgradeClusterVersionRequest{}
 			err := client.KubernetesEngine.UpgradeClusterVersion(context.Background(), clusterID, &payload)
 			if err != nil {
-				return fmt.Errorf("Upragde cluster version error: %+v", err)
+				return fmt.Errorf("error upgrading cluster version: %+v", err)
 			}
 		}
 	}

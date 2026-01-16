@@ -32,6 +32,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
+func resourceBizflyCloudCloudDatabaseNode() *schema.Resource {
+	return &schema.Resource{
+		Read:   resourceBizflyCloudCloudDatabaseNodeRead,
+		Update: resourceBizflyCloudCloudDatabaseNodeUpdate,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Update: schema.DefaultTimeout(80 * time.Minute),
+		},
+		Schema: resourceCloudDatabaseNodeSchema(),
+	}
+}
+
 func resourceBizflyCloudCloudDatabaseNodeRead(d *schema.ResourceData, meta interface{}) error {
 	if err := dataSourceBizflyCloudDatabaseNodeRead(d, meta); err != nil {
 		return err
@@ -132,6 +146,7 @@ func waitForCloudDatabaseNodeUpdate(d *schema.ResourceData, meta interface{}, ke
 	return stateConf.WaitForState()
 }
 
+//nolint:unused // Reserved for future Delete operation
 func waitForCloudDatabaseNodeDelete(d *schema.ResourceData, meta interface{}) (interface{}, error) {
 	log.Printf("[INFO] Waiting for cloud database node (%s) to be delete", d.Get("name").(string))
 	stateConf := &resource.StateChangeConf{
@@ -146,6 +161,7 @@ func waitForCloudDatabaseNodeDelete(d *schema.ResourceData, meta interface{}) (i
 	return stateConf.WaitForState()
 }
 
+//nolint:unused // Reserved for future Create operation
 func newCloudDatabaseNodeStateRefreshFunc(d *schema.ResourceData, meta interface{}) resource.StateRefreshFunc {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
@@ -216,6 +232,7 @@ func updateCloudDatabaseNodeStateRefreshFunc(d *schema.ResourceData, key string,
 	}
 }
 
+//nolint:unused // Reserved for future Delete operation
 func deleteCloudDatabaseNodeStateRefreshFunc(d *schema.ResourceData, meta interface{}) resource.StateRefreshFunc {
 	client := meta.(*CombinedConfig).gobizflyClient()
 

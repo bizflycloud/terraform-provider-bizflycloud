@@ -133,7 +133,7 @@ func resourceBizflyCloudAutoscalingGroupDelete(d *schema.ResourceData, meta inte
 
 	err := client.AutoScaling.AutoScalingGroups().Delete(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error delete auto scaling group %v", err)
+		return fmt.Errorf("error deleting auto scaling group %v", err)
 	}
 
 	return nil
@@ -173,7 +173,7 @@ func newStateRefreshfunc(d *schema.ResourceData, attribute string, meta interfac
 		if attr, ok := d.GetOk(attribute); ok {
 			asg, err := client.AutoScaling.AutoScalingGroups().Get(context.Background(), d.Id())
 			if err != nil {
-				return nil, "", fmt.Errorf("Error retrieving auto scaling group: %v", err)
+				return nil, "", fmt.Errorf("error retrieving auto scaling group: %v", err)
 			}
 			_ = asg // ensure variable is recognized as used
 			switch attr := attr.(type) {

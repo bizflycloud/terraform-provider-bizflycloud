@@ -61,7 +61,7 @@ func dataSourceBizflyCloudKubernetesPackage(d *schema.ResourceData, meta interfa
 
 	packageID := d.Get("id")
 	if packageID == "" {
-		return fmt.Errorf("Package %s not found", packageName)
+		return fmt.Errorf("package %s not found", packageName)
 	}
 	return nil
 }

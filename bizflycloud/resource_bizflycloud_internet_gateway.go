@@ -45,7 +45,7 @@ func resourceInternetGatewayCreate(d *schema.ResourceData, meta interface{}) err
 	otps := createIGWBuilder(d)
 	createdIGW, err := client.CloudServer.InternetGateways().Create(context.Background(), otps)
 	if err != nil {
-		return fmt.Errorf("Error when creating internet gateway: %v", err)
+		return fmt.Errorf("error creating internet gateway: %v", err)
 	}
 	d.SetId(createdIGW.ID)
 	return resourceInternetGatewayRead(d, meta)
@@ -55,7 +55,7 @@ func resourceInternetGatewayRead(d *schema.ResourceData, meta interface{}) error
 	client := meta.(*CombinedConfig).gobizflyClient()
 	igw, err := client.CloudServer.InternetGateways().Get(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error when retrieving internet gateway: %v", err)
+		return fmt.Errorf("error retrieving internet gateway: %v", err)
 	}
 	_ = d.Set("name", igw.Name)
 	_ = d.Set("description", igw.Description)
@@ -98,7 +98,7 @@ func resourceInternetGatewayUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 		_, err := client.CloudServer.InternetGateways().Update(context.Background(), d.Id(), opts)
 		if err != nil {
-			return fmt.Errorf("Error when updating internet gateway: %v", err)
+			return fmt.Errorf("error updating internet gateway: %v", err)
 		}
 	}
 	return resourceInternetGatewayRead(d, meta)
@@ -108,7 +108,7 @@ func resourceInternetGatewayDelete(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*CombinedConfig).gobizflyClient()
 	err := client.CloudServer.InternetGateways().Delete(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error when deleting internet gateway: %v", err)
+		return fmt.Errorf("error deleting internet gateway: %v", err)
 	}
 	return nil
 }

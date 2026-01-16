@@ -98,12 +98,12 @@ func resourceBizflyCloudVolumeCreate(d *schema.ResourceData, meta interface{}) e
 	log.Printf("[DEBUG] Create Volume configuration #{vcr}")
 	volume, err := client.CloudServer.Volumes().Create(context.Background(), vcr)
 	if err != nil {
-		return fmt.Errorf("Error creating volume: %v", err)
+		return fmt.Errorf("error creating volume: %v", err)
 	}
 	d.SetId(volume.ID)
 	err = resourceBizflyCloudVolumeRead(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error retrieving volume: %v", err)
+		return fmt.Errorf("error retrieving volume: %v", err)
 	}
 	return nil
 }
@@ -117,7 +117,7 @@ func resourceBizflyCloudVolumeRead(d *schema.ResourceData, meta interface{}) err
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving volume: %v", err)
+		return fmt.Errorf("error retrieving volume: %v", err)
 	}
 	_ = d.Set("name", volume.Name)
 	_ = d.Set("size", volume.Size)
@@ -152,7 +152,7 @@ func resourceBizflyCloudVolumeDelete(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*CombinedConfig).gobizflyClient()
 	err := client.CloudServer.Volumes().Delete(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error delete volume: #{err}")
+		return fmt.Errorf("error delete volume: %v", err)
 	}
 	return nil
 }

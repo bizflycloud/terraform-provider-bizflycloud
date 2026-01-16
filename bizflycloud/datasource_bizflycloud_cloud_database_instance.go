@@ -81,19 +81,6 @@ func dataSourceBizflyCloudDatabaseInstanceRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func readDataStore(d gobizfly.CloudDatabaseDatastore) map[string]interface{} {
-	result := map[string]interface{}{
-		"type":       d.Type,
-		"name":       d.VersionName,
-		"version_id": d.VersionID,
-	}
-	if d.ID != "" {
-		result["id"] = d.ID
-	}
-
-	return result
-}
-
 func readDataCloudDatabaseAutoScaling(as gobizfly.CloudDatabaseAutoScaling) map[string]interface{} {
 	m := map[string]interface{}{
 		"volume_limited":   as.Volume.Limited,

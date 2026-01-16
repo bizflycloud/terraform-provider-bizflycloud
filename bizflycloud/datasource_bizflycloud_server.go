@@ -20,8 +20,9 @@ package bizflycloud
 import (
 	"context"
 	"fmt"
-	"github.com/bizflycloud/gobizfly"
 	"strings"
+
+	"github.com/bizflycloud/gobizfly"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -143,7 +144,7 @@ func dataSourceBizflyCloudServerRead(d *schema.ResourceData, meta interface{}) e
 			break
 		}
 	} else {
-		return fmt.Errorf("Server ID must be set")
+		return fmt.Errorf("server ID must be set")
 	}
 	return nil
 }

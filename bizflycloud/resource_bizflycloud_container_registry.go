@@ -55,7 +55,7 @@ func resourceBizflyCloudContainerRegistryCreate(d *schema.ResourceData, m interf
 
 	err := client.ContainerRegistry.Create(context.Background(), payload)
 	if err != nil {
-		return fmt.Errorf("Error creating container registry: %v", err)
+		return fmt.Errorf("error creating container registry: %v", err)
 	}
 
 	d.SetId(name)
@@ -70,19 +70,19 @@ func resourceBizflyCloudContainerRegistryRead(d *schema.ResourceData, m interfac
 	opts := &gobizfly.ListOptions{}
 	registries, err := client.ContainerRegistry.List(context.Background(), opts)
 	if err != nil {
-		return fmt.Errorf("Error retrieving container registries: %v", err)
+		return fmt.Errorf("error retrieving container registries: %v", err)
 	}
 
 	for _, registry := range registries {
 		if registry.Name == name {
 			if err := d.Set("name", registry.Name); err != nil {
-				return fmt.Errorf("Error setting name: %v", err)
+				return fmt.Errorf("error setting name: %v", err)
 			}
 			if err := d.Set("public", registry.Public); err != nil {
-				return fmt.Errorf("Error setting public: %v", err)
+				return fmt.Errorf("error setting public: %v", err)
 			}
 			if err := d.Set("created_at", registry.CreatedAt); err != nil {
-				return fmt.Errorf("Error setting created_at: %v", err)
+				return fmt.Errorf("error setting created_at: %v", err)
 			}
 			return nil
 		}
@@ -106,7 +106,7 @@ func resourceBizflyCloudContainerRegistryUpdate(d *schema.ResourceData, m interf
 
 		err := client.ContainerRegistry.EditRepo(context.Background(), name, payload)
 		if err != nil {
-			return fmt.Errorf("Error updating container registry visibility: %v", err)
+			return fmt.Errorf("error updating container registry visibility: %v", err)
 		}
 	}
 
@@ -119,7 +119,7 @@ func resourceBizflyCloudContainerRegistryDelete(d *schema.ResourceData, m interf
 	log.Printf("[DEBUG] Deleting container registry: %s", d.Id())
 	err := client.ContainerRegistry.Delete(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting container registry: %v", err)
+		return fmt.Errorf("error deleting container registry: %v", err)
 	}
 
 	return nil

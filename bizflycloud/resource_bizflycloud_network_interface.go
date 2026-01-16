@@ -61,7 +61,7 @@ func resourceBizflyCloudNetworkInterfaceRead(d *schema.ResourceData, meta interf
 		return nil
 	}
 	if err != nil {
-		return fmt.Errorf("Error read network interface network %s: %w", d.Id(), err)
+		return fmt.Errorf("error reading network interface network %s: %w", d.Id(), err)
 	}
 	d.SetId(networkInterface.ID)
 	_ = d.Set("name", networkInterface.Name)

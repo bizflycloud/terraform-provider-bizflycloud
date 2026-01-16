@@ -123,7 +123,7 @@ func resourceBizflyCloudLoadBalancerCreate(d *schema.ResourceData, meta interfac
 	}
 	lb, err := client.CloudLoadBalancer.Create(context.Background(), &lbcr)
 	if err != nil {
-		return fmt.Errorf("Error when creating load balancer: %v", err)
+		return fmt.Errorf("error creating load balancer: %v", err)
 	}
 	d.SetId(lb.ID)
 	return resourceBizflyCloudLoadBalancerRead(d, meta)
@@ -133,7 +133,7 @@ func resourceBizflyCloudLoadBalancerRead(d *schema.ResourceData, meta interface{
 	client := meta.(*CombinedConfig).gobizflyClient()
 	lb, err := waitLoadbalancerActiveProvisioningStatus(client, d.Id(), loadbalancerResource)
 	if err != nil {
-		return fmt.Errorf("Error when retrieving load balancer: %v", err)
+		return fmt.Errorf("error retrieving load balancer: %v", err)
 	}
 	_ = d.Set("name", lb.Name)
 	_ = d.Set("description", lb.Description)
@@ -150,14 +150,14 @@ func resourceBizflyCloudLoadBalancerRead(d *schema.ResourceData, meta interface{
 	}
 
 	if err := d.Set("pools", pools); err != nil {
-		return fmt.Errorf("Error setting pools: %v", err)
+		return fmt.Errorf("error setting pools: %v", err)
 	}
 	listeners := schema.NewSet(schema.HashString, []interface{}{})
 	for _, v := range lb.Listeners {
 		listeners.Add(v.ID)
 	}
 	if err := d.Set("listeners", listeners); err != nil {
-		return fmt.Errorf("Error setting listeners: %v", err)
+		return fmt.Errorf("error setting listeners: %v", err)
 	}
 	return nil
 }
@@ -170,7 +170,7 @@ func resourceBizflyCloudLoadBalancerDelete(d *schema.ResourceData, meta interfac
 	client := meta.(*CombinedConfig).gobizflyClient()
 	lb, err := waitLoadbalancerActiveProvisioningStatus(client, d.Id(), loadbalancerResource)
 	if err != nil {
-		return fmt.Errorf("Error when retrieving load balancer: %v", err)
+		return fmt.Errorf("error retrieving load balancer: %v", err)
 	}
 	ldr := gobizfly.LoadBalancerDeleteRequest{
 		ID:      lb.ID,
@@ -193,11 +193,12 @@ func waitLoadbalancerActiveProvisioningStatus(client *gobizfly.Client, ID string
 			if err != nil {
 				return false, err
 			}
-			if lb.ProvisioningStatus == activeStatus {
+			switch lb.ProvisioningStatus {
+			case activeStatus:
 				return true, nil
-			} else if lb.ProvisioningStatus == errorStatus {
+			case errorStatus:
 				return true, fmt.Errorf("loadbalancer %s has gone into ERROR state", ID)
-			} else {
+			default:
 				return false, nil
 			}
 		case poolResource:
@@ -205,11 +206,12 @@ func waitLoadbalancerActiveProvisioningStatus(client *gobizfly.Client, ID string
 			if err != nil {
 				return false, err
 			}
-			if pool.ProvisoningStatus == activeStatus {
+			switch pool.ProvisoningStatus {
+			case activeStatus:
 				return true, nil
-			} else if pool.ProvisoningStatus == errorStatus {
-				return true, fmt.Errorf("Pool %s has gone into ERROR state", ID)
-			} else {
+			case errorStatus:
+				return true, fmt.Errorf("pool %s has gone into ERROR state", ID)
+			default:
 				return false, nil
 			}
 		case listenerResource:
@@ -217,11 +219,12 @@ func waitLoadbalancerActiveProvisioningStatus(client *gobizfly.Client, ID string
 			if err != nil {
 				return false, err
 			}
-			if listener.ProvisoningStatus == activeStatus {
+			switch listener.ProvisoningStatus {
+			case activeStatus:
 				return true, nil
-			} else if listener.ProvisoningStatus == errorStatus {
-				return true, fmt.Errorf("Listener %s has gone into ERROR state", ID)
-			} else {
+			case errorStatus:
+				return true, fmt.Errorf("listener %s has gone into ERROR state", ID)
+			default:
 				return false, nil
 			}
 		default:

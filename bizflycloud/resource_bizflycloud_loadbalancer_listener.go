@@ -121,10 +121,10 @@ func resourceBizflyCloudLoadBalancerListenerCreate(d *schema.ResourceData, meta 
 	}
 	listener, err := client.CloudLoadBalancer.Listeners().Create(context.Background(), lbID, &lcr)
 	if err != nil {
-		return fmt.Errorf("Error when creating listener: %v", err)
+		return fmt.Errorf("error creating listener: %v", err)
 	}
 	if listener == nil {
-		return fmt.Errorf("Error when creating listener for loadbalancer %s: listener object is nil", lbID)
+		return fmt.Errorf("error creating listener for loadbalancer %s: listener object is nil", lbID)
 	}
 	d.SetId(listener.ID)
 	return resourceBizflyCloudLoadBalancerListenerRead(d, meta)
@@ -134,13 +134,13 @@ func resourceBizflyCloudLoadBalancerListenerRead(d *schema.ResourceData, meta in
 	client := meta.(*CombinedConfig).gobizflyClient()
 	listener, err := client.CloudLoadBalancer.Listeners().Get(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error when retrieving listener: %v", err)
+		return fmt.Errorf("error retrieving listener: %v", err)
 	}
 	if listener == nil {
-		return fmt.Errorf("Error when retrieving listener %s: listener object is nil", d.Id())
+		return fmt.Errorf("error retrieving listener %s: listener object is nil", d.Id())
 	}
 	if len(listener.LoadBalancers) == 0 {
-		return fmt.Errorf("Error when retrieving listener %s: listener has no load balancers", d.Id())
+		return fmt.Errorf("error retrieving listener %s: listener has no load balancers", d.Id())
 	}
 	l7policyIDs := make([]string, 0)
 	for _, policy := range listener.L7Policies {
@@ -193,7 +193,7 @@ func resourceBizflyCloudLoadBalancerListenerUpdate(d *schema.ResourceData, meta 
 	}
 	_, err := client.CloudLoadBalancer.Listeners().Update(context.Background(), d.Id(), &lur)
 	if err != nil {
-		return fmt.Errorf("Error when updating listener: %v", err)
+		return fmt.Errorf("error updating listener: %v", err)
 	}
 	return resourceBizflyCloudLoadBalancerListenerRead(d, meta)
 }
@@ -210,7 +210,7 @@ func resourceBizflyCloudLoadBalancerListenerDelete(d *schema.ResourceData, meta 
 	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID, loadbalancerResource)
 	err := client.CloudLoadBalancer.Listeners().Delete(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error when deleting listener: %v", err)
+		return fmt.Errorf("error deleting listener: %v", err)
 	}
 	return nil
 }

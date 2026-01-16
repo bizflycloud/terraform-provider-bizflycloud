@@ -21,10 +21,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+
 	"github.com/bizflycloud/gobizfly"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"log"
 )
 
 func dataSourceBizflyCloudServerTypes() *schema.Resource {
@@ -49,7 +50,7 @@ func dataSourceBizflyCloudServerTypeRead(d *schema.ResourceData, meta interface{
 			}
 		}
 		if matchServerType == nil {
-			return resource.RetryableError(fmt.Errorf("Server type %s not found", d.Get("name").(string)))
+			return resource.RetryableError(fmt.Errorf("server type %s not found", d.Get("name").(string)))
 		}
 		return nil
 	})

@@ -31,24 +31,24 @@ func dataSourceBizflyCloudContainerRegistryRead(d *schema.ResourceData, m interf
 	opts := &gobizfly.ListOptions{}
 	registries, err := client.ContainerRegistry.List(context.Background(), opts)
 	if err != nil {
-		return fmt.Errorf("Error retrieving container registries: %v", err)
+		return fmt.Errorf("error retrieving container registries: %v", err)
 	}
 
 	for _, registry := range registries {
 		if registry.Name == name {
 			d.SetId(registry.Name)
 			if err := d.Set("name", registry.Name); err != nil {
-				return fmt.Errorf("Error setting name: %v", err)
+				return fmt.Errorf("error setting name: %v", err)
 			}
 			if err := d.Set("public", registry.Public); err != nil {
-				return fmt.Errorf("Error setting public: %v", err)
+				return fmt.Errorf("error setting public: %v", err)
 			}
 			if err := d.Set("created_at", registry.CreatedAt); err != nil {
-				return fmt.Errorf("Error setting created_at: %v", err)
+				return fmt.Errorf("error setting created_at: %v", err)
 			}
 			return nil
 		}
 	}
 
-	return fmt.Errorf("No container registry found with name: %s", name)
+	return fmt.Errorf("no container registry found with name: %s", name)
 }

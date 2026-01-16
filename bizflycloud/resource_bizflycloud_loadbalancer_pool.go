@@ -239,11 +239,11 @@ func resourceBizflyCloudLoadBalancerPoolCreate(d *schema.ResourceData, meta inte
 	log.Printf("[DEBUG] Create pool payload: %+v", createReq)
 	pool, err := client.CloudLoadBalancer.Pools().Create(context.Background(), lbID, &createReq)
 	if err != nil {
-		return fmt.Errorf("Error when create pool for loadbalancer %s: %+v", lbID, err)
+		return fmt.Errorf("error creating pool for loadbalancer %s: %+v", lbID, err)
 	}
 	if pool == nil {
 		/// need retry here to get the pool object
-		return fmt.Errorf("Error when create pool for loadbalancer %s: pool object is nil", lbID)
+		return fmt.Errorf("error creating pool for loadbalancer %s: pool object is nil", lbID)
 	}
 	poolID := pool.ID
 	err = checkLoadbalancerPoolActiveStatus(client, poolID, lbID)
@@ -293,13 +293,13 @@ func resourceBizflyCloudLoadBalancerPoolRead(d *schema.ResourceData, meta interf
 	client := meta.(*CombinedConfig).gobizflyClient()
 	pool, err := client.CloudLoadBalancer.Pools().Get(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error when retrieving load balancer pool %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving load balancer pool %s: %v", d.Id(), err)
 	}
 	if pool == nil {
-		return fmt.Errorf("Error when retrieving load balancer pool %s: pool object is nil", d.Id())
+		return fmt.Errorf("error retrieving load balancer pool %s: pool object is nil", d.Id())
 	}
 	if len(pool.LoadBalancers) == 0 {
-		return fmt.Errorf("Error when retrieving load balancer pool %s: pool has no load balancers", d.Id())
+		return fmt.Errorf("error retrieving load balancer pool %s: pool has no load balancers", d.Id())
 	}
 	healthMonitor := convertHealthMonitor(pool.HealthMonitor)
 	persistent := convertSessionPersistent(pool.SessionPersistence)
@@ -384,7 +384,7 @@ func resourceBizflyCloudLoadBalancerPoolUpdate(d *schema.ResourceData, meta inte
 			}
 			err = client.CloudLoadBalancer.Members().Delete(context.Background(), poolID, memberID)
 			if err != nil {
-				return fmt.Errorf("Error when delete old member %s: %v", memberID, err)
+				return fmt.Errorf("error deleting old member %s: %v", memberID, err)
 			}
 
 			err = checkLoadbalancerPoolActiveStatus(client, poolID, lbID)
@@ -404,7 +404,7 @@ func resourceBizflyCloudLoadBalancerPoolUpdate(d *schema.ResourceData, meta inte
 			}
 			_, err = client.CloudLoadBalancer.Members().Create(context.Background(), poolID, updateMemberReq)
 			if err != nil {
-				return fmt.Errorf("Error when create new member: %v", err)
+				return fmt.Errorf("error creating new member: %v", err)
 			}
 
 			err = checkLoadbalancerPoolActiveStatus(client, poolID, lbID)
@@ -429,7 +429,7 @@ func resourceBizflyCloudLoadBalancerPoolDelete(d *schema.ResourceData, meta inte
 	_, _ = waitLoadbalancerActiveProvisioningStatus(client, lbID, loadbalancerResource)
 	err := client.CloudLoadBalancer.Pools().Delete(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error when deleting load balancer pool: %v", err)
+		return fmt.Errorf("error deleting load balancer pool: %v", err)
 	}
 	return nil
 }
@@ -666,18 +666,18 @@ func waitPoolActiveProvisioningStatus(client *gobizfly.Client, poolID string) (*
 		if err != nil {
 			return true, err
 		}
-		if pool.ProvisoningStatus == activeStatus {
+		switch pool.ProvisoningStatus {
+		case activeStatus:
 			return true, nil
-		} else if pool.ProvisoningStatus == errorStatus {
-			return true, fmt.Errorf("Loadbalancer Pool %s has gone into ERROR state", poolID)
-		} else {
+		case errorStatus:
+			return true, fmt.Errorf("loadbalancer Pool %s has gone into ERROR state", poolID)
+		default:
 			return false, nil
 		}
-
 	})
 	if err != nil {
 		if err == wait.ErrWaitTimeout {
-			err = fmt.Errorf("Loadbalancer Pool %s failed to go into ACTIVE provisioning status within allotted time", poolID)
+			err = fmt.Errorf("loadbalancer pool %s failed to go into ACTIVE provisioning status within allotted time", poolID)
 		}
 		return nil, err
 	}

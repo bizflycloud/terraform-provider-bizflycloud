@@ -127,13 +127,13 @@ func resourceBizflycloudLoadbalancerL7PolicyCreate(d *schema.ResourceData, meta 
 	// Get load balancer ID from listener to use mutex
 	listener, err := client.CloudLoadBalancer.Listeners().Get(context.Background(), listenerID)
 	if err != nil {
-		return fmt.Errorf("Error when retrieving listener %s: %v", listenerID, err)
+		return fmt.Errorf("error retrieving listener %s: %v", listenerID, err)
 	}
 	if listener == nil {
-		return fmt.Errorf("Error when retrieving listener %s: listener object is nil", listenerID)
+		return fmt.Errorf("error retrieving listener %s: listener object is nil", listenerID)
 	}
 	if len(listener.LoadBalancers) == 0 {
-		return fmt.Errorf("Error when retrieving listener %s: listener has no load balancers", listenerID)
+		return fmt.Errorf("error retrieving listener %s: listener has no load balancers", listenerID)
 	}
 	lbID := listener.LoadBalancers[0].ID
 
@@ -154,10 +154,10 @@ func resourceBizflycloudLoadbalancerL7PolicyCreate(d *schema.ResourceData, meta 
 	log.Printf("[DEBUG] create l7 policy payload for listener %s: %#v", listenerID, *createReq)
 	l7Policy, createErr := client.CloudLoadBalancer.L7Policies().Create(context.Background(), listenerID, createReq)
 	if createErr != nil {
-		return fmt.Errorf("Create l7 policy for listener %s error: %v", listenerID, createErr)
+		return fmt.Errorf("error creating l7 policy for listener %s: %v", listenerID, createErr)
 	}
 	if l7Policy == nil {
-		return fmt.Errorf("Error when creating l7 policy for listener %s: l7 policy object is nil", listenerID)
+		return fmt.Errorf("error creating l7 policy for listener %s: l7 policy object is nil", listenerID)
 	}
 	d.SetId(l7Policy.ID)
 	return resourceBizflycloudLoadbalancerL7PolicyRead(d, meta)
@@ -171,14 +171,14 @@ func resourceBizflycloudLoadbalancerL7PolicyRead(d *schema.ResourceData, meta in
 	log.Printf("[DEBUG] test read l7 policy %s", policyID)
 	l7Policy, err := client.CloudLoadBalancer.L7Policies().Get(context.Background(), policyID)
 	if err != nil {
-		return fmt.Errorf("Error when retrieving l7 policy %s: %v", policyID, err)
+		return fmt.Errorf("error retrieving l7 policy %s: %v", policyID, err)
 	}
 	if l7Policy == nil {
-		return fmt.Errorf("Error when retrieving l7 policy %s: l7 policy object is nil", policyID)
+		return fmt.Errorf("error retrieving l7 policy %s: l7 policy object is nil", policyID)
 	}
 	l7PolicyRules, err := client.CloudLoadBalancer.L7Policies().ListL7PolicyRules(context.Background(), policyID)
 	if err != nil {
-		return fmt.Errorf("Error when listing l7 policy %s rules: %v", policyID, err)
+		return fmt.Errorf("error listing l7 policy %s rules: %v", policyID, err)
 	}
 	rules := parseL7PolicyRules(l7PolicyRules)
 	_ = d.Set("name", l7Policy.Name)
@@ -200,13 +200,13 @@ func resourceBizflycloudLoadbalancerL7PolicyUpdate(d *schema.ResourceData, meta 
 	// Get load balancer ID from listener to use mutex
 	listener, err := client.CloudLoadBalancer.Listeners().Get(context.Background(), listenerID)
 	if err != nil {
-		return fmt.Errorf("Error when retrieving listener %s: %v", listenerID, err)
+		return fmt.Errorf("error retrieving listener %s: %v", listenerID, err)
 	}
 	if listener == nil {
-		return fmt.Errorf("Error when retrieving listener %s: listener object is nil", listenerID)
+		return fmt.Errorf("error retrieving listener %s: listener object is nil", listenerID)
 	}
 	if len(listener.LoadBalancers) == 0 {
-		return fmt.Errorf("Error when retrieving listener %s: listener has no load balancers", listenerID)
+		return fmt.Errorf("error retrieving listener %s: listener has no load balancers", listenerID)
 	}
 	lbID := listener.LoadBalancers[0].ID
 
@@ -237,7 +237,7 @@ func resourceBizflycloudLoadbalancerL7PolicyUpdate(d *schema.ResourceData, meta 
 	log.Printf("[DEBUG] update l7 policy %s payload for listener %s: %#v", policyID, listenerID, *updateReq)
 	_, createErr := client.CloudLoadBalancer.L7Policies().Update(context.Background(), policyID, updateReq)
 	if createErr != nil {
-		return fmt.Errorf("Update l7 policy %s for listener %s error: %v", policyID, listenerID, createErr)
+		return fmt.Errorf("error updating l7 policy %s for listener %s: %v", policyID, listenerID, createErr)
 	}
 	return resourceBizflycloudLoadbalancerL7PolicyRead(d, meta)
 }
@@ -251,13 +251,13 @@ func resourceBizflycloudLoadbalancerL7PolicyDelete(d *schema.ResourceData, meta 
 	// Get load balancer ID from listener to use mutex
 	listener, err := client.CloudLoadBalancer.Listeners().Get(context.Background(), listenerID)
 	if err != nil {
-		return fmt.Errorf("Error when retrieving listener %s: %v", listenerID, err)
+		return fmt.Errorf("error retrieving listener %s: %v", listenerID, err)
 	}
 	if listener == nil {
-		return fmt.Errorf("Error when retrieving listener %s: listener object is nil", listenerID)
+		return fmt.Errorf("error retrieving listener %s: listener object is nil", listenerID)
 	}
 	if len(listener.LoadBalancers) == 0 {
-		return fmt.Errorf("Error when retrieving listener %s: listener has no load balancers", listenerID)
+		return fmt.Errorf("error retrieving listener %s: listener has no load balancers", listenerID)
 	}
 	lbID := listener.LoadBalancers[0].ID
 
@@ -273,7 +273,7 @@ func resourceBizflycloudLoadbalancerL7PolicyDelete(d *schema.ResourceData, meta 
 	}
 	err = client.CloudLoadBalancer.L7Policies().Delete(context.Background(), policyID)
 	if err != nil {
-		return fmt.Errorf("Error when delete l7 policy: %v", err)
+		return fmt.Errorf("error deleting l7 policy: %v", err)
 	}
 	return nil
 }
@@ -297,24 +297,24 @@ func getCreateL7PolicyFromConfig(d *schema.ResourceData) (*gobizfly.CreateL7Poli
 	case constants.RedirectToURLAction:
 		redirectURL := d.Get("redirect_url").(string)
 		if redirectURL == "" {
-			return nil, fmt.Errorf("Action %s with 'redirect_url' must be not empty string", action)
+			return nil, fmt.Errorf("action %s with 'redirect_url' must not be empty string", action)
 		}
 		createReq.RedirectURL = redirectURL
 	case constants.RedirectToPoolAction:
 		redirectPoolID := d.Get("redirect_pool_id").(string)
 		if redirectPoolID == "" {
-			return nil, fmt.Errorf("Action %s with 'redirect_pool_id' must be not empty string", action)
+			return nil, fmt.Errorf("action %s with 'redirect_pool_id' must not be empty string", action)
 		}
 		createReq.RedirectPoolID = redirectPoolID
 	case constants.RedirectPrefixAction:
 		redirectPrefix := d.Get("redirect_prefix").(string)
 		if redirectPrefix == "" {
-			return nil, fmt.Errorf("Action %s with 'redirect_prefix' must be not empty string", action)
+			return nil, fmt.Errorf("action %s with 'redirect_prefix' must not be empty string", action)
 		}
 		createReq.RedirectPrefix = &redirectPrefix
 	case constants.RejectAction:
 	default:
-		return nil, fmt.Errorf("Invalid l7 policy action %s.", action)
+		return nil, fmt.Errorf("invalid l7 policy action %s", action)
 	}
 	return &createReq, nil
 }
@@ -351,34 +351,34 @@ func validateL7PolicyRuleType(ruleType, key, value string) error {
 	switch ruleType {
 	case constants.ACLsTypeHostName:
 		if key != "" {
-			err = fmt.Errorf("Rule type %s with 'key' must have not value", ruleType)
+			err = fmt.Errorf("rule type %s with 'key' must not have value", ruleType)
 		}
 		if value == "" {
-			err = fmt.Errorf("Rule type %s with 'value' must be not empty string", ruleType)
+			err = fmt.Errorf("rule type %s with 'value' must not be empty string", ruleType)
 		}
 	case constants.ACLsTypePath:
 		if key != "" {
-			err = fmt.Errorf("Rule type %s with 'key' must have not value", ruleType)
+			err = fmt.Errorf("rule type %s with 'key' must not have value", ruleType)
 		}
 		if value == "" {
-			err = fmt.Errorf("Rule type %s with 'value' must be not empty string", ruleType)
+			err = fmt.Errorf("rule type %s with 'value' must not be empty string", ruleType)
 		}
 	case constants.ACLsTypeFileType:
 		if key != "" {
-			err = fmt.Errorf("Rule type %s with 'key' must have not value", ruleType)
+			err = fmt.Errorf("rule type %s with 'key' must not have value", ruleType)
 		}
 		if value == "" {
-			err = fmt.Errorf("Rule type %s with 'value' must be not empty string", ruleType)
+			err = fmt.Errorf("rule type %s with 'value' must not be empty string", ruleType)
 		}
 	case constants.ACLsTypeHeader:
 		if key == "" {
-			err = fmt.Errorf("Rule type %s with 'key' must be not empty string", ruleType)
+			err = fmt.Errorf("rule type %s with 'key' must not be empty string", ruleType)
 		}
 		if value == "" {
-			err = fmt.Errorf("Rule type %s with 'value' must be not empty string", ruleType)
+			err = fmt.Errorf("rule type %s with 'value' must not be empty string", ruleType)
 		}
 	default:
-		err = fmt.Errorf("Invalid rule type %s", ruleType)
+		err = fmt.Errorf("invalid rule type %s", ruleType)
 	}
 	return err
 }
@@ -395,24 +395,24 @@ func getUpdateL7PolicyFromConfig(d *schema.ResourceData) (*gobizfly.UpdateL7Poli
 	case constants.RedirectToURLAction:
 		redirectURL := d.Get("redirect_url").(string)
 		if redirectURL == "" {
-			return nil, fmt.Errorf("Action %s with 'redirect_url' must be not empty string", action)
+			return nil, fmt.Errorf("action %s with 'redirect_url' must not be empty string", action)
 		}
 		updateReq.RedirectURL = &redirectURL
 	case constants.RedirectToPoolAction:
 		redirectPoolID := d.Get("redirect_pool_id").(string)
 		if redirectPoolID == "" {
-			return nil, fmt.Errorf("Action %s with 'redirect_pool_id' must be not empty string", action)
+			return nil, fmt.Errorf("action %s with 'redirect_pool_id' must not be empty string", action)
 		}
 		updateReq.RedirectPoolID = &redirectPoolID
 	case constants.RedirectPrefixAction:
 		redirectPrefix := d.Get("redirect_prefix").(string)
 		if redirectPrefix == "" {
-			return nil, fmt.Errorf("Action %s with 'redirect_prefix' must be not empty string", action)
+			return nil, fmt.Errorf("action %s with 'redirect_prefix' must not be empty string", action)
 		}
 		updateReq.RedirectPrefix = &redirectPrefix
 	case constants.RejectAction:
 	default:
-		return nil, fmt.Errorf("Invalid l7 policy action %s.", action)
+		return nil, fmt.Errorf("invalid l7 policy action %s", action)
 	}
 
 	return &updateReq, nil
@@ -443,7 +443,7 @@ func getUpdateL7PolicyRulesFromConfig(d *schema.ResourceData, client *gobizfly.C
 		newRule, err := client.CloudLoadBalancer.L7Policies().CreateL7PolicyRule(context.Background(), policyID, newRulePayload)
 		if err != nil {
 			log.Printf("[Error] create l7 policy %s rule: %v", policyID, err)
-			return nil, fmt.Errorf("Error create l7 policy %s rule: %v", policyID, err)
+			return nil, fmt.Errorf("error creating l7 policy %s rule: %v", policyID, err)
 		}
 		updateRuleReq := gobizfly.UpdateL7PolicyRuleRequest{
 			ID:                  newRule.ID,
@@ -516,18 +516,18 @@ func waitListenerActiveProvisioningStatus(client *gobizfly.Client, listenerID st
 		if err != nil {
 			return true, err
 		}
-		if listener.ProvisoningStatus == activeStatus {
+		switch listener.ProvisoningStatus {
+		case activeStatus:
 			return true, nil
-		} else if listener.ProvisoningStatus == errorStatus {
-			return true, fmt.Errorf("Listener %s has gone into ERROR state", listenerID)
-		} else {
+		case errorStatus:
+			return true, fmt.Errorf("listener %s has gone into ERROR state", listenerID)
+		default:
 			return false, nil
 		}
-
 	})
 	if err != nil {
 		if err == wait.ErrWaitTimeout {
-			err = fmt.Errorf("Listener failed to go into ACTIVE provisioning status within allotted time")
+			err = fmt.Errorf("listener failed to go into ACTIVE provisioning status within allotted time")
 		}
 		return nil, err
 	}
@@ -548,14 +548,14 @@ func waitL7PolicyActiveProvisioningStatus(client *gobizfly.Client, policyID stri
 		if err != nil {
 			return true, err
 		}
-		if policy.ProvisioningStatus == activeStatus {
+		switch policy.ProvisioningStatus {
+		case activeStatus:
 			return true, nil
-		} else if policy.ProvisioningStatus == errorStatus {
+		case errorStatus:
 			return true, fmt.Errorf("L7 policy %s has gone into ERROR state", policyID)
-		} else {
+		default:
 			return false, nil
 		}
-
 	})
 	if err != nil {
 		if err == wait.ErrWaitTimeout {

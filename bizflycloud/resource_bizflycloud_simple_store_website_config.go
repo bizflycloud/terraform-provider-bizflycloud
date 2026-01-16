@@ -69,11 +69,11 @@ func resourceBizflyCloudSimpleStorageBucketWebsiteConfigRead(d *schema.ResourceD
 	}
 	dataBucket, err := client.CloudSimpleStorage.ListWithBucketNameInfo(context.Background(), paramListBucketInfo)
 	if err != nil {
-		return fmt.Errorf("Error when reading simple store website config: %v", err)
+		return fmt.Errorf("error when reading simple store website config: %v", err)
 	}
 
 	if err = d.Set("index", dataBucket.WebsiteConfig.Index); err != nil {
-		return fmt.Errorf("Error setting website config state: %v", err)
+		return fmt.Errorf("error setting website config state: %v", err)
 	}
 	return nil
 }

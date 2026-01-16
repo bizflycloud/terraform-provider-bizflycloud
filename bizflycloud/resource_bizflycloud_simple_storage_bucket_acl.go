@@ -62,7 +62,7 @@ func resourceBizflyCloudSimpleStorageBucketAclRead(d *schema.ResourceData, meta 
 	}
 	dataBuckets, err := client.CloudSimpleStorage.ListWithBucketNameInfo(context.Background(), paramListBucketInfo)
 	if err != nil {
-		return fmt.Errorf("Error when reading simple store Acl: %v", err)
+		return fmt.Errorf("error when reading simple store Acl: %v", err)
 	}
 
 	_ = d.Set("owner", dataBuckets.Acl.Owner)

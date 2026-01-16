@@ -50,7 +50,7 @@ func resourceBizflyCloudSimpleStorageKeyCreate(d *schema.ResourceData, meta inte
 	}
 	_, err := client.CloudSimpleStorage.SimpleStorageKey().CreateAccessKey(context.Background(), &kcr)
 	if err != nil {
-		return fmt.Errorf("Error when creating simple store key: %v", err)
+		return fmt.Errorf("error when creating simple store key: %v", err)
 	}
 	d.SetId(kcr.AccessKey)
 	return resourceBizflyCloudSimpleStorageKeyRead(d, meta)
@@ -60,7 +60,7 @@ func resourceBizflyCloudSimpleStorageKeyRead(d *schema.ResourceData, meta interf
 	client := meta.(*CombinedConfig).gobizflyClient()
 	keys, err := client.CloudSimpleStorage.SimpleStorageKey().ListAccessKey(context.Background(), &gobizfly.ListOptions{})
 	if err != nil {
-		return fmt.Errorf("Error retrieving simple store key: %v", err)
+		return fmt.Errorf("error retrieving simple store key: %v", err)
 	}
 	for _, key := range keys {
 		if key.AccessKey == d.Id() {
@@ -75,7 +75,7 @@ func resourceBizflyCloudSimpleStorageKeyDelete(d *schema.ResourceData, meta inte
 	client := meta.(*CombinedConfig).gobizflyClient()
 	err := client.CloudSimpleStorage.SimpleStorageKey().DeleteAccessKey(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting simple store key: %v", err)
+		return fmt.Errorf("error deleting simple store key: %v", err)
 	}
 	return nil
 }
