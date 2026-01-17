@@ -143,22 +143,3 @@ func dataCloudDatabaseNodeSchema() map[string]*schema.Schema {
 		},
 	}
 }
-
-func resourceCloudDatabaseNodeSchema() map[string]*schema.Schema {
-	s := dataCloudDatabaseNodeSchema()
-	// Add updatable fields
-	s["volume_size"] = &schema.Schema{
-		Type:     schema.TypeInt,
-		Optional: true,
-	}
-	s["flavor_name"] = &schema.Schema{
-		Type:     schema.TypeString,
-		Optional: true,
-	}
-	// Make id required for resource
-	s["id"] = &schema.Schema{
-		Type:     schema.TypeString,
-		Required: true,
-	}
-	return s
-}

@@ -25,13 +25,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func datasourceBizflyCloudDatabaseBackupSchedule() *schema.Resource {
-	return &schema.Resource{
-		Read:   dataSourceBizflyCloudDatabaseBackupScheduleRead,
-		Schema: dataCloudDatabaseBackupScheduleSchema(),
-	}
-}
-
 func dataSourceBizflyCloudDatabaseBackupScheduleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
