@@ -62,15 +62,12 @@ func resourceBizflyCloudSimpleStorageBucketVersioningRead(d *schema.ResourceData
 	}
 	dataBucket, err := client.CloudSimpleStorage.ListWithBucketNameInfo(context.Background(), paramListBucketInfo)
 	if err != nil {
-		return fmt.Errorf("Error when reading simple store Verioning: %v", err)
+		return fmt.Errorf("error when reading simple store Verioning: %v", err)
 	}
-	versioningEnabled := false
-	if dataBucket.Versioning.Status == "Enabled" {
-		versioningEnabled = true
-	}
+	versioningEnabled := dataBucket.Versioning.Status == "Enabled"
 
 	if err = d.Set("versioning", versioningEnabled); err != nil {
-		return fmt.Errorf("Error setting versioning state: %v", err)
+		return fmt.Errorf("error setting versioning state: %v", err)
 	}
 	return nil
 }

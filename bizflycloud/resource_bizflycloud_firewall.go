@@ -118,9 +118,9 @@ func resourceBizflyCloudFirewallCreate(d *schema.ResourceData, meta interface{})
 	firewallOpts := firewallRequestBuilder(d)
 	firewall, err := client.CloudServer.Firewalls().Create(context.Background(), &firewallOpts)
 	if err != nil {
-		return fmt.Errorf("Error when creating firewall: %v", err)
+		return fmt.Errorf("error creating firewall: %v", err)
 	}
-	d.SetId(firewall.BaseFirewall.ID)
+	d.SetId(firewall.ID)
 	return resourceBizflyCloudFirewallRead(d, meta)
 }
 
@@ -128,11 +128,11 @@ func resourceBizflyCloudFirewallRead(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*CombinedConfig).gobizflyClient()
 	firewall, err := client.CloudServer.Firewalls().Get(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error when retrieving fireall: %v", err)
+		return fmt.Errorf("error retrieving firewall: %v", err)
 	}
-	_ = d.Set("name", firewall.BaseFirewall.Name)
-	_ = d.Set("rules_count", firewall.BaseFirewall.RulesCount)
-	_ = d.Set("network_interface_count", firewall.BaseFirewall.NetworkInterfaceCount)
+	_ = d.Set("name", firewall.Name)
+	_ = d.Set("rules_count", firewall.RulesCount)
+	_ = d.Set("network_interface_count", firewall.NetworkInterfaceCount)
 
 	_ = d.Set("network_interfaces", flatternBizflyCloudNetworkInterfaces(firewall.NetworkInterface))
 	if len(firewall.InBound) > 0 {
@@ -148,7 +148,7 @@ func resourceBizflyCloudFirewallDelete(d *schema.ResourceData, meta interface{})
 	client := meta.(*CombinedConfig).gobizflyClient()
 	_, err := client.CloudServer.Firewalls().Delete(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error when deleting firewall: %v", err)
+		return fmt.Errorf("error deleting firewall: %v", err)
 	}
 	return nil
 }
@@ -159,9 +159,9 @@ func resourceBizflyCloudFirewallUpdate(d *schema.ResourceData, meta interface{})
 	firewallOpts := firewallRequestBuilder(d)
 	firewall, err := client.CloudServer.Firewalls().Update(context.Background(), d.Id(), &firewallOpts)
 	if err != nil {
-		return fmt.Errorf("Error when creating firewall: %v", err)
+		return fmt.Errorf("error updating firewall: %v", err)
 	}
-	d.SetId(firewall.BaseFirewall.ID)
+	d.SetId(firewall.ID)
 	return resourceBizflyCloudFirewallRead(d, meta)
 }
 

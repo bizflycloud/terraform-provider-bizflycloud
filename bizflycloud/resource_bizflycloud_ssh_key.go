@@ -60,7 +60,7 @@ func resourceBizflyCloudSSHKeyCreate(d *schema.ResourceData, meta interface{}) e
 		PublicKey: d.Get("public_key").(string),
 	})
 	if err != nil {
-		return fmt.Errorf("Error creating SSH key: %v", err)
+		return fmt.Errorf("error creating SSH key: %v", err)
 	}
 	d.SetId(resp.Name)
 	_ = d.Set("finger_print", resp.FingerPrint)
@@ -71,7 +71,7 @@ func resourceBizflyCloudSSHKeyRead(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*CombinedConfig).gobizflyClient()
 	sshkeys, err := client.CloudServer.SSHKeys().List(context.Background(), &gobizfly.ListOptions{})
 	if err != nil {
-		return fmt.Errorf("Error retrieving ssh keys: %v", err)
+		return fmt.Errorf("error retrieving ssh keys: %v", err)
 	}
 	for _, sshkey := range sshkeys {
 		if sshkey.SSHKeyPair.Name == d.Id() {
@@ -88,7 +88,7 @@ func resourceBizflyCloudSSHKeyDelete(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*CombinedConfig).gobizflyClient()
 	_, err := client.CloudServer.SSHKeys().Delete(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting ssh key: %v", err)
+		return fmt.Errorf("error deleting ssh key: %v", err)
 	}
 	return nil
 }

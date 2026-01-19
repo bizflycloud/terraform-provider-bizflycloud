@@ -70,7 +70,7 @@ func dataSourceBizflyCloudNodesRead(d *schema.ResourceData, meta interface{}) er
 		d.SetId(clusterID.(string))
 		_ = d.Set("nodes", nodesResult)
 	} else {
-		return fmt.Errorf("Nodes ID must be set")
+		return fmt.Errorf("nodes ID must be set")
 	}
 
 	return nil

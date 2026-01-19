@@ -86,7 +86,7 @@ func resourceBizflyCloudVolumeSnapshotCreate(d *schema.ResourceData, meta interf
 	}
 	snapshot, err := client.CloudServer.Snapshots().Create(context.Background(), &scr)
 	if err != nil {
-		return fmt.Errorf("Error creating snapshot: %v", err)
+		return fmt.Errorf("error creating snapshot: %v", err)
 	}
 	d.SetId(snapshot.ID)
 	_ = d.Set("volume_id", snapshot.VolumeID)
@@ -97,7 +97,7 @@ func resourceBizflyCloudVolumeSnapshotRead(d *schema.ResourceData, meta interfac
 	client := meta.(*CombinedConfig).gobizflyClient()
 	snapshot, err := client.CloudServer.Snapshots().Get(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving snapshot %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving snapshot %s: %v", d.Id(), err)
 	}
 	_ = d.Set("name", snapshot.Name)
 	_ = d.Set("size", snapshot.Size)
@@ -116,7 +116,7 @@ func resourceBizflyCloudVolumeSnapshotDelete(d *schema.ResourceData, meta interf
 	client := meta.(*CombinedConfig).gobizflyClient()
 	err := client.CloudServer.Snapshots().Delete(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting volume snapshot %s: %v", d.Id(), err)
+		return fmt.Errorf("error deleting volume snapshot %s: %v", d.Id(), err)
 	}
 	return nil
 }

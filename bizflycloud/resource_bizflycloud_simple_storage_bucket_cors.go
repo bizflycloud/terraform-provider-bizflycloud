@@ -107,7 +107,7 @@ func resourceBizflyCloudSimpleStorageBucketCorsRead(d *schema.ResourceData, meta
 	}
 	dataBucket, err := client.CloudSimpleStorage.ListWithBucketNameInfo(context.Background(), paramListBucketInfo)
 	if err != nil {
-		return fmt.Errorf("Error when reading simple store Cors: %v", err)
+		return fmt.Errorf("error when reading simple store Cors: %v", err)
 	}
 	d.SetId(dataBucket.Bucket.Name)
 

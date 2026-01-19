@@ -109,12 +109,3 @@ func resourceBizflyCloudCloudDatabaseBackupScheduleDelete(d *schema.ResourceData
 		return nil
 	})
 }
-
-func readIntArray(items []interface{}) []int {
-	intArray := make([]int, 0)
-	for i := 0; i < len(items); i++ {
-		item := items[i].(int)
-		intArray = append(intArray, item)
-	}
-	return intArray
-}

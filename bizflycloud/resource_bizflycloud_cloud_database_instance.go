@@ -697,32 +697,6 @@ func newCloudDatabaseInstanceStateRefreshFunc(d *schema.ResourceData, meta inter
 	}
 }
 
-func updateCloudDatabaseInstanceStateRefreshFunc(d *schema.ResourceData, key string, newValue interface{}, meta interface{}) resource.StateRefreshFunc {
-	client := meta.(*CombinedConfig).gobizflyClient()
-
-	return func() (interface{}, string, error) {
-		err := resourceBizflyCloudCloudDatabaseInstanceRead(d, meta)
-		if err != nil {
-			return nil, "", err
-		}
-
-		if attr, ok := d.GetOk("status"); ok {
-			ins, err := client.CloudDatabase.Instances().Get(context.Background(), d.Id())
-			if err != nil {
-				return nil, "", fmt.Errorf("[ERROR] Retrieving cloud database instance %s error: %v", d.Id(), err)
-			}
-			_ = ins // ensure variable is recognized as used
-			switch attr := attr.(type) {
-			case bool:
-				return &ins, strconv.FormatBool(attr), nil
-			default:
-				return &ins, attr.(string), nil
-			}
-		}
-		return nil, "", nil
-	}
-}
-
 func deleteCloudDatabaseInstanceStateRefreshFunc(d *schema.ResourceData, meta interface{}) resource.StateRefreshFunc {
 	client := meta.(*CombinedConfig).gobizflyClient()
 
@@ -794,20 +768,6 @@ func readCurrentDatabases(client *gobizfly.Client, instanceID string) ([]interfa
 
 	var results []interface{}
 	for _, item := range databases {
-		results = append(results, item.Name)
-	}
-
-	return results, nil
-}
-
-func readCurrentUsers(client *gobizfly.Client, instanceID string) ([]interface{}, error) {
-	users, err := client.CloudDatabase.Instances().ListUsers(context.Background(), instanceID)
-	if err != nil {
-		return nil, err
-	}
-
-	var results []interface{}
-	for _, item := range users {
 		results = append(results, item.Name)
 	}
 

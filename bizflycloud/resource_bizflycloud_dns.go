@@ -35,7 +35,7 @@ func resourceBizflyCloudDNSCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 	zone, err := client.DNS.CreateZone(context.Background(), czp)
 	if err != nil {
-		return fmt.Errorf("Error when create dns zone: %v", err)
+		return fmt.Errorf("error creating dns zone: %v", err)
 	}
 	d.SetId(zone.ID)
 	return resourceBizflyCloudDNSRead(d, meta)
@@ -45,7 +45,7 @@ func resourceBizflyCloudDNSRead(d *schema.ResourceData, meta interface{}) error 
 	client := meta.(*CombinedConfig).gobizflyClient()
 	zone, err := client.DNS.GetZone(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error when get dns zone: %v", err)
+		return fmt.Errorf("error getting dns zone: %v", err)
 	}
 	_ = d.Set("name", zone.Name)
 	_ = d.Set("active", zone.Active)
@@ -74,7 +74,7 @@ func resourceBizflyCloudDNSDelete(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*CombinedConfig).gobizflyClient()
 	err := client.DNS.DeleteZone(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error when delete dns zone : %v", err)
+		return fmt.Errorf("error deleting dns zone: %v", err)
 	}
 	return nil
 }

@@ -54,7 +54,7 @@ func dataSourceBizflyCloudImageRead(d *schema.ResourceData, meta interface{}) er
 			}
 		}
 	} else {
-		return fmt.Errorf("Distribution and Version must be set")
+		return fmt.Errorf("distribution and version must be set")
 	}
 	return nil
 }

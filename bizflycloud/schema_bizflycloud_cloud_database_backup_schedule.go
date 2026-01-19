@@ -23,51 +23,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataCloudDatabaseBackupScheduleSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"first_execution_time": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
-		"id": {
-			Type:     schema.TypeString,
-			Required: true,
-		},
-		"instance_id": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"instance_name": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"limit_backup": {
-			Type:     schema.TypeInt,
-			Computed: true,
-		},
-		"name": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
-		"next_execution_time": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
-		"node_id": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"node_name": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"cron_expression": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-	}
-}
-
 func resourceCloudDatabaseBackupScheduleSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {

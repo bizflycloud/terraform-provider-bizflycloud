@@ -51,12 +51,12 @@ func dataSourceBizflyCloudNetworkInterfaceRead(d *schema.ResourceData, meta inte
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error read network interface network %s: %w", d.Id(), err)
+		return fmt.Errorf("error reading network interface network %s: %w", d.Id(), err)
 	}
 
 	// Prevent panics.
 	if matchNetworkInterface == nil {
-		return fmt.Errorf("Error read network interface network (%s): empty response", d.Id())
+		return fmt.Errorf("error reading network interface network (%s): empty response", d.Id())
 	}
 
 	d.SetId(matchNetworkInterface.ID)

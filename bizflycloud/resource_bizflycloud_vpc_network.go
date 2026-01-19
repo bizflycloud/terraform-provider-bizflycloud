@@ -57,7 +57,7 @@ func resourceBizflyCloudVPCNetworkCreate(d *schema.ResourceData, meta interface{
 	}
 	network, err := client.CloudServer.VPCNetworks().Create(context.Background(), cvp)
 	if err != nil {
-		return fmt.Errorf("Error when create vpc network: %v", err)
+		return fmt.Errorf("error when create vpc network: %v", err)
 	}
 	d.SetId(network.ID)
 	return resourceBizflyCloudVPCNetworkRead(d, meta)
@@ -91,12 +91,12 @@ func resourceBizflyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{})
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error read vpc network VPC %s: %w", d.Id(), err)
+		return fmt.Errorf("error read vpc network VPC %s: %w", d.Id(), err)
 	}
 
 	// Prevent panics.
 	if vpc == nil {
-		return fmt.Errorf("Error read vpc network (%s): empty response", d.Id())
+		return fmt.Errorf("error read vpc network (%s): empty response", d.Id())
 	}
 
 	d.SetId(vpc.ID)
@@ -126,7 +126,7 @@ func resourceBizflyCloudVPCNetworkUpdate(d *schema.ResourceData, meta interface{
 	vpcOpts := VPCRequestBuilder(d)
 	network, err := client.CloudServer.VPCNetworks().Update(context.Background(), d.Id(), &vpcOpts)
 	if err != nil {
-		return fmt.Errorf("Error when update vpc network: %s, %v", d.Id(), err)
+		return fmt.Errorf("error when update vpc network: %s, %v", d.Id(), err)
 	}
 	d.SetId(network.ID)
 	return resourceBizflyCloudVPCNetworkRead(d, meta)
@@ -140,7 +140,7 @@ func resourceBizflyCloudVPCNetworkDelete(d *schema.ResourceData, meta interface{
 	}
 	err := client.CloudServer.VPCNetworks().Delete(context.Background(), vpcID)
 	if err != nil && !errors.Is(err, gobizfly.ErrNotFound) {
-		return fmt.Errorf("Error when delete vpc network: %v", err)
+		return fmt.Errorf("error when delete vpc network: %v", err)
 	}
 	return nil
 }
@@ -153,7 +153,7 @@ func detachIgwOutOfVpc(client *gobizfly.Client, vpcID string) error {
 	}
 	attachedVPCs, err := client.CloudServer.VPCNetworks().List(context.Background(), listOpts)
 	if err != nil {
-		return fmt.Errorf("Error when list igw vpc networks [%v]: %v", vpcID, err)
+		return fmt.Errorf("error when list igw vpc networks [%v]: %v", vpcID, err)
 	}
 	for _, vpc := range attachedVPCs {
 		if vpc.ID == vpcID {
@@ -170,7 +170,7 @@ func detachIgwOutOfVpc(client *gobizfly.Client, vpcID string) error {
 		if errors.Is(err, gobizfly.ErrNotFound) {
 			return nil
 		}
-		return fmt.Errorf("Error when get detail IGW [%v]: %v", *igwID, err)
+		return fmt.Errorf("error when get detail IGW [%v]: %v", *igwID, err)
 	}
 	payload := gobizfly.UpdateInternetGatewayPayload{
 		Name:        detailIGW.Name,
@@ -178,7 +178,7 @@ func detachIgwOutOfVpc(client *gobizfly.Client, vpcID string) error {
 		NetworkIDs:  []string{},
 	}
 	if _, err = client.CloudServer.InternetGateways().Update(context.Background(), *igwID, payload); err != nil {
-		return fmt.Errorf("Error when detach IGW [%v] out of vpc network [%v]: %v", *igwID, vpcID, err)
+		return fmt.Errorf("error when detach IGW [%v] out of vpc network [%v]: %v", *igwID, vpcID, err)
 	}
 	return nil
 }

@@ -54,12 +54,12 @@ func dataSourceBizflyCloudVPCNetworkRead(d *schema.ResourceData, meta interface{
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error read vpc network %s: %w", d.Id(), err)
+		return fmt.Errorf("error reading vpc network %s: %w", d.Id(), err)
 	}
 
 	// Prevent panics.
 	if matchVPC == nil {
-		return fmt.Errorf("Error read vpc network (%s): empty response", d.Id())
+		return fmt.Errorf("error reading vpc network (%s): empty response", d.Id())
 	}
 
 	d.SetId(matchVPC.ID)
