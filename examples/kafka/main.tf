@@ -1,8 +1,7 @@
 terraform {
   required_providers {
     bizflycloud = {
-      source  = "local/bizflycloud"
-      version = "1.0.0"
+      source  = "bizflycloud/bizflycloud"
     }
   }
 }
