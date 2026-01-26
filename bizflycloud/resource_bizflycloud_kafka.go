@@ -41,7 +41,7 @@ func resourceBizflyCloudKafka() *schema.Resource {
 			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
 		SchemaVersion: 1,
-		Schema: resourceKafkaSchema(),
+		Schema:        resourceKafkaSchema(),
 	}
 }
 
