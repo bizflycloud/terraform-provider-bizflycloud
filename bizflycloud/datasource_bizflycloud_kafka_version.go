@@ -73,7 +73,7 @@ func dataSourceBizflyCloudKafkaVersionRead(d *schema.ResourceData, meta interfac
 
 	versions, err := client.Kafka.ListVersion(context.Background(), opts)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Kafka versions: %v", err)
+		return fmt.Errorf("error retrieving Kafka versions: %v", err)
 	}
 
 	var versionList []map[string]interface{}
@@ -88,7 +88,7 @@ func dataSourceBizflyCloudKafkaVersionRead(d *schema.ResourceData, meta interfac
 	}
 
 	if err := d.Set("versions", versionList); err != nil {
-		return fmt.Errorf("Error setting versions: %v", err)
+		return fmt.Errorf("error setting versions: %v", err)
 	}
 
 	// Set a unique ID for the data source

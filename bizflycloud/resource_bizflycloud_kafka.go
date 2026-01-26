@@ -61,7 +61,7 @@ func resourceBizflyCloudKafkaCreate(d *schema.ResourceData, meta interface{}) er
 
 	_, err := client.Kafka.Create(context.Background(), req)
 	if err != nil {
-		return fmt.Errorf("Error creating kafka cluster: %w", err)
+		return fmt.Errorf("error creating kafka cluster: %w", err)
 	}
 
 	// Wait for cluster to be created and become Active
@@ -86,7 +86,7 @@ func resourceBizflyCloudKafkaRead(d *schema.ResourceData, meta interface{}) erro
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving kafka cluster %s: %w", d.Id(), err)
+		return fmt.Errorf("error retrieving kafka cluster %s: %w", d.Id(), err)
 	}
 
 	_ = d.Set("name", cluster.Name)
@@ -170,7 +170,7 @@ func resourceBizflyCloudKafkaDelete(d *schema.ResourceData, meta interface{}) er
 	}
 	_, err := client.Kafka.Delete(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting kafka cluster %s: %w", d.Id(), err)
+		return fmt.Errorf("error deleting kafka cluster %s: %w", d.Id(), err)
 	}
 	// Wait for deletion
 	err = waitForKafkaClusterDeleted(d, meta)

@@ -1,6 +1,6 @@
 // This file is part of terraform-provider-bizflycloud
 //
-// Copyright (C) 2021  Bizfly Cloud
+// Copyright (C) 2026  Bizfly Cloud
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -185,11 +185,11 @@ func testAccCheckBizflyCloudKafkaExists(n string, cluster *gobizfly.ClusterRespo
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
-			return fmt.Errorf("Not found: %s", n)
+			return fmt.Errorf("not found: %s", n)
 		}
 
 		if rs.Primary.ID == "" {
-			return fmt.Errorf("No Kafka cluster ID is set")
+			return fmt.Errorf("no Kafka cluster ID is set")
 		}
 
 		client := testAccProvider.Meta().(*CombinedConfig).gobizflyClient()
@@ -200,7 +200,7 @@ func testAccCheckBizflyCloudKafkaExists(n string, cluster *gobizfly.ClusterRespo
 		}
 
 		if retrievedCluster.ID != rs.Primary.ID {
-			return fmt.Errorf("Kafka cluster not found")
+			return fmt.Errorf("kafka cluster not found")
 		}
 
 		*cluster = *retrievedCluster
@@ -222,7 +222,7 @@ func testAccCheckBizflyCloudKafkaDestroy(s *terraform.State) error {
 		if err != nil {
 			if !errors.Is(err, gobizfly.ErrNotFound) {
 				return fmt.Errorf(
-					"Error waiting for Kafka cluster (%s) to be destroyed: %s",
+					"error waiting for Kafka cluster (%s) to be destroyed: %s",
 					rs.Primary.ID, err)
 			}
 		}

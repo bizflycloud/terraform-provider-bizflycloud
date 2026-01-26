@@ -103,7 +103,7 @@ func dataSourceBizflyCloudKafkaFlavorRead(d *schema.ResourceData, meta interface
 
 	flavors, err := client.Kafka.ListFlavor(context.Background(), opts)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Kafka flavors: %v", err)
+		return fmt.Errorf("error retrieving Kafka flavors: %v", err)
 	}
 
 	var flavorList []map[string]interface{}
@@ -125,7 +125,7 @@ func dataSourceBizflyCloudKafkaFlavorRead(d *schema.ResourceData, meta interface
 	}
 
 	if err := d.Set("flavors", flavorList); err != nil {
-		return fmt.Errorf("Error setting flavors: %v", err)
+		return fmt.Errorf("error setting flavors: %v", err)
 	}
 
 	// Set a unique ID for the data source

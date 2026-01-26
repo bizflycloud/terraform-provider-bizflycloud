@@ -90,7 +90,7 @@ func dataSourceBizflyCloudKafkaRead(d *schema.ResourceData, meta interface{}) er
 				d.SetId("")
 				return nil
 			}
-			return fmt.Errorf("Error getting kafka cluster %s: %w", id.(string), err)
+			return fmt.Errorf("error getting kafka cluster %s: %w", id.(string), err)
 		}
 		d.SetId(cluster.ID)
 		_ = d.Set("name", cluster.Name)
@@ -111,10 +111,10 @@ func dataSourceBizflyCloudKafkaRead(d *schema.ResourceData, meta interface{}) er
 	name := d.Get("name").(string)
 	clusters, err := client.Kafka.List(context.Background(), &gobizfly.KafkaClusterListOptions{Name: name})
 	if err != nil {
-		return fmt.Errorf("Error listing kafka clusters: %w", err)
+		return fmt.Errorf("error listing kafka clusters: %w", err)
 	}
 	if len(clusters) == 0 {
-		return fmt.Errorf("No kafka cluster found with name %s", name)
+		return fmt.Errorf("no kafka cluster found with name %s", name)
 	}
 	// pick first match
 	match := clusters[0]
