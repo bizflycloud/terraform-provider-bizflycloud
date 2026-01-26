@@ -1,5 +1,5 @@
 ---
-subcategory: Cloud Server
+subcategory: Cloud Kafka
 page_title: "Bizfly Cloud: bizflycloud_kafka"
 description: |-
     Provides a Bizfly Cloud Kafka resource. This can be used to create, modify, and delete Cluster Kafka.
